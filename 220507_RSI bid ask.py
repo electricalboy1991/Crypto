@@ -17,8 +17,8 @@ now = datetime.datetime.now()
 count_day = 41
 count_hour = 40*24
 interval_hour = 'minute60'
-balance_manwon = math.trunc(0.0001*float(balance[0]['balance']))
-balance_won = float(balance[0]['balance'])
+
+
 
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
@@ -27,6 +27,9 @@ pd.set_option('display.float_format', lambda x: '%.2f' % x)
 while(1):
 
     balance = upbit.get_balances()
+    balance_manwon = math.trunc(0.0001 * float(balance[0]['balance']))
+    balance_won = float(balance[0]['balance'])
+
     df_day = pyupbit.get_ohlcv(ticker=ticker, to=now, count=count_day)
     df_hour = pyupbit.get_ohlcv(ticker=ticker, to=now, interval=interval_hour, count=count_hour)
 

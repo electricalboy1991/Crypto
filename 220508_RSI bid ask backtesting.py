@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 MA = 24
 ticker = 'KRW-BTC'
 now = datetime.datetime.now()
-count_day = 121
-count_hour = 120*24
+count_day = 365*5+1 #365일 * 5년 + indexing 맞추기 위한 1
+count_hour =  365*5*24 #365일 * 5년 * 24 시간
 interval_hour = 'minute60'
 
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
@@ -43,28 +43,4 @@ df_hour['RSI_MA'] = df_hour['RSI'].rolling(MA).mean()
 df_hour[np.isnan(df_hour)] = 0
 
 
-'''Chart Drawing
 
-plt.subplot(2, 1, 1)
-# plt.plot(df_day[['RSI']], marker='o', markersize=4, linestyle='--')
-plt.plot(df_day[['RSI_MA']])
-plt.title("Day RSI Chart")
-plt.xlabel("Time")
-plt.ylabel("Data")
-plt.ylim([0, 100])     # Y축의 범위: [ymin, ymax]
-plt.axhspan(0, 50, facecolor='b', alpha=0.3)
-plt.grid(color='gray', linestyle='--', linewidth=0.2)
-
-plt.subplot(2, 1, 2)
-plt.plot(df_hour[['RSI']], marker='o', markersize=4, linestyle='--', color = 'red')
-plt.axhspan(0, 25.7, facecolor='r', alpha=0.3)
-plt.title("Hour RSI Chart")
-plt.xlabel("Time")
-plt.ylabel("Data")
-plt.ylim([0, 100])     # Y축의 범위: [ymin, ymax]
-plt.grid(color='gray', linestyle='--', linewidth=0.2)
-plt.show()
-'''
-
-# print(df_day.tail(n=10))
-# print(df_day[['RSI']].tail(n=10)) #얘는 인덱싱을 한거고,
