@@ -2,12 +2,15 @@ import ccxt
 import pyupbit
 import requests
 import math
+from ftx import FtxClient
 
-access_key = "mpCGRiTCqlza4eKywK6AIikXQ9ABX3dqQkyuTc3w"
-secret_key = "megYxQfiLpuII681da1vlX2bC9EcGXI0iyg6odSQ"
+client= FtxClient()
+
+upbit_access_key = "mpCGRiTCqlza4eKywK6AIikXQ9ABX3dqQkyuTc3w"
+upbit_secret_key = "megYxQfiLpuII681da1vlX2bC9EcGXI0iyg6odSQ"
 server_url = "https://api.upbit.com"
 
-upbit = pyupbit.Upbit(access_key, secret_key)
+upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
 
 def upbit_get_usd_krw():
     url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD'
@@ -16,15 +19,15 @@ def upbit_get_usd_krw():
 
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 
-binance = ccxt.binance()
+ftx = ccxt.ftx()
 while(1):
     try:
 
         upbit_price_BTC_current = pyupbit.get_current_price("KRW-BTC")
-        binance_price_BTC = binance.fetch_ticker("BTC/USDT")
-        binance_price_BTC_current = binance_price_BTC['close']
+        ftx_price_BTC = ftx.fetch_ticker("BTC/USDT")
+        ftx_price_BTC_current = ftx_price_BTC['close']
         won_rate = upbit_get_usd_krw()
-        kimp = (upbit_price_BTC_current / (binance_price_BTC_current * won_rate) - 1) * 100
+        kimp = (upbit_price_BTC_current / (ftx_price_BTC_current * won_rate) - 1) * 100
 
         balance = upbit.get_balances()
         balance_manwon = math.trunc(0.0001 * float(balance[0]['balance']))
