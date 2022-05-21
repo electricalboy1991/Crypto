@@ -4,7 +4,9 @@ import requests
 import math
 from ftx import FtxClient
 
-client= FtxClient()
+api_key = "MtJF_svDhTVIpnV_m1pSjatw3RONTF2Rbmsnnb5S"
+api_secret = "ZnlRiiCPo-7NOYjHkpClv6RLjjfBOpDvQSvMw1pj"
+client = FtxClient(api_key=api_key, api_secret=api_secret)
 
 upbit_access_key = "mpCGRiTCqlza4eKywK6AIikXQ9ABX3dqQkyuTc3w"
 upbit_secret_key = "megYxQfiLpuII681da1vlX2bC9EcGXI0iyg6odSQ"
@@ -40,11 +42,13 @@ while(1):
                 if balance_manwon == 100:
                     print("처음 산다")
                 else:
+                    print(kimp)
                     continue
             else:  # 김프가 0 이하
                 if balance_manwon == 50:
                     print("더사서 평단 낮춘다.")
                 else:
+                    print("2")
                     continue
         if kimp > 3:
             print("판다")
