@@ -10,8 +10,8 @@ import pandas as pd
 
 #챕터7까지 진행하시면서 봇은 점차 완성이 되어 갑니다!!!
 #챕터5까지 완강 후 봇을 돌리셔도 되지만 이왕이면 7까지 완강하신 후 돌리시는 걸 추천드려요!
-access = "A0X27AGgl8UYAC2cFMYzyrMlfxn1DsgrxoGjLVc2"          # 본인 값으로 변경
-secret = "JkaADmlhsKOAcOlSsYw1WJ7DIpSnM9gGzP7dLRBx"          # 본인 값으로 변경
+access = "15XXj7UPGD5dkBQK4zeFJMuqjQeEce9P6MuPIRdIhhzKUDCFuZoQsvjfKiP2sRaY"          # 본인 값으로 변경
+secret = "tjJlMeq25x4aOdThgq3DHr5bHhtkmZIOBLTMiulht2NBlTQbH0H0EA4FaznwNYtK"          # 본인 값으로 변경
 
 upbit = pyupbit.Upbit(access, secret)
 
