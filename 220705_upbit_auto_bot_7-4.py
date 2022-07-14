@@ -215,7 +215,7 @@ for ticker in Tickers:
 
                 #팔았으면 원화를 다시 가져올 필요가 있다.
                 won = float(upbit.get_balance("KRW"))
-                line_alert.SendMessage("[업빗_현물] 수익! : " + str(revenu_rate) + "코인 : " + ticker[4:] )
+                line_alert.SendMessage("[업빗_현물] 수익! : " + str(round(revenu_rate,2)) + "코인 : " + ticker[4:] )
                
 
 

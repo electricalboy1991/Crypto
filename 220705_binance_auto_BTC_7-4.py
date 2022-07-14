@@ -447,29 +447,31 @@ else:
         if ma5 < ma20 and ma5_before3 > ma5_before2 and ma5_before2 < ma5:
             #수익이 났다!!! 숏 포지션 종료하고 롱 포지션도 잡아주자!
             if revenue_rate >= target_revenue_rate:
+                if rsi14 <=35:
+                    #알림 기능 테스트! 자유롭게 원하는 부분에 내게 메세지를 보내보세요! 단 숫자형(실수,정수)는 저렇게 str함수로 스트링으로 변환이 필요하다는 점 기억하세요!
+                    line_alert.SendMessage("[바이_흔들봇]수익 실현 : " + str(round(unrealizedProfit-(abs_amt + first_amount)*coin_price*(0.04/100),2)) + "$")
+                    line_alert.SendMessage("[바이_흔들봇]수익% :(lev " + str(leverage) + ")"
+                                           + str(round(leverage*(unrealizedProfit - (abs_amt + first_amount)*coin_price*(0.04 / 100))*100/(abs_amt*coin_price),2)) + "%")
+                    #주문 취소후
+                    binanceX.cancel_all_orders(Target_Coin_Ticker)
+                    time.sleep(0.1)
 
-                #알림 기능 테스트! 자유롭게 원하는 부분에 내게 메세지를 보내보세요! 단 숫자형(실수,정수)는 저렇게 str함수로 스트링으로 변환이 필요하다는 점 기억하세요!
-                line_alert.SendMessage("[바이_흔들봇]수익 실현 : " + str(round(unrealizedProfit-(abs_amt + first_amount)*coin_price*(0.04/100),2)) + "$")
-                line_alert.SendMessage("[바이_흔들봇]수익% :(lev " + str(leverage) + ")"
-                                       + str(round(leverage*(unrealizedProfit - (abs_amt + first_amount)*coin_price*(0.04 / 100))*100/(abs_amt*coin_price),2)) + "%")
-                #주문 취소후
-                binanceX.cancel_all_orders(Target_Coin_Ticker)
-                time.sleep(0.1)
-                        
-                '''
-                #클래스에선 수수료 절감 차원에서 지정가로 잡았지만 단점은 100% 포지션이 종료되거나 잡힌다는 보장이 없다는 점입니다.
-                
+                    #롱 포지션을 잡는다
+                    print(binanceX.create_market_buy_order(Target_Coin_Ticker, abs_amt + first_amount))
+                else:
+                    # 알림 기능 테스트! 자유롭게 원하는 부분에 내게 메세지를 보내보세요! 단 숫자형(실수,정수)는 저렇게 str함수로 스트링으로 변환이 필요하다는 점 기억하세요!
+                    line_alert.SendMessage("[바이_흔들봇]수익 실현 : " + str(round(unrealizedProfit - (abs_amt + first_amount) * coin_price * (0.04 / 100), 2)) + "$")
+                    line_alert.SendMessage("[바이_흔들봇]수익% :(lev " + str(leverage) + ")"
+                                           + str(round(leverage * (unrealizedProfit - (abs_amt + first_amount) * coin_price * (0.04 / 100)) * 100 / (abs_amt * coin_price), 2)) + "%")
+                    # 주문 취소후
+                    binanceX.cancel_all_orders(Target_Coin_Ticker)
+                    time.sleep(0.1)
 
-                #해당 코인 가격을 가져온다.
-                coin_price = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
+                    # 따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요!
+                    # 롱 포지션을 잡는다
+                    print(binanceX.create_market_buy_order(Target_Coin_Ticker, abs_amt))
 
-                #롱 포지션을 잡는다
-                print(binanceX.create_limit_buy_order(Target_Coin_Ticker, abs_amt + first_amount, coin_price))
 
-                '''
-                #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요!
-                #롱 포지션을 잡는다
-                print(binanceX.create_market_buy_order(Target_Coin_Ticker, abs_amt + first_amount))
 
                 #스탑 로스 설정을 건다.
                 myBinance.SetStopLoss(binanceX,Target_Coin_Ticker,stop_loass_rate)
