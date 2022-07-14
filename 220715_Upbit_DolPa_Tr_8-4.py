@@ -9,8 +9,16 @@ import my_key    #업비트 시크릿 액세스키
 import line_alert   
 
 import json
-
 '''
+기존에 구입하지 않은 코인 기준으로 변동성 돌파 전략 세움
+'''
+'''
+파일저장을 이해하기 위한 예로
+수익성은 없을 수 없는 봇입니다!
+
+공부용으로 체크하세요 ^^!
+
+
 변동성 돌파 전략 단타 변형!
 
 변동성 = (전날 고가 - 전날 저가) * 0.5
@@ -32,7 +40,7 @@ import json
 매일 9시에 파일의 리스트에 쓰여있는 코인을 지워줄 필요가 있다!
 
 
-크론탭에 1분마다 혹은 5분마다 등록하셔도 무관합니다.
+크론탭에 1분마다 동작하게 등록합니다.
 
 '''
 
@@ -49,7 +57,7 @@ upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
 
 
 #내가 매수할 총 코인 개수
-MaxCoinCnt = 10.0
+MaxCoinCnt = 5.0
 
 #내가 가진 잔고 데이터를 다 가져온다.
 balances = upbit.get_balances()
@@ -58,6 +66,12 @@ balances = upbit.get_balances()
 
 #내 남은 원화(현금))을 구한다.
 TotalWon = float(upbit.get_balance("KRW"))
+
+######################################################
+#이런식으로 해당 전략에 할당할 금액을 조절할 수도 있습니다.
+#이 경우 내가 가진 원화의 절반을 맥스로 해서 매매합니다.
+TotalWon = TotalWon * 0.5
+######################################################
 
 
 
@@ -80,7 +94,7 @@ print ("CoinMoney:", CoinMoney)
 DolPaCoinList = list()
 
 #파일 경로입니다.
-dolpha_type_file_path = "/var/Autobot_seoul/UpbitDolPaCoin.json"
+dolpha_type_file_path = "/var/autobot/UpbitDolPaCoin.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(dolpha_type_file_path, 'r') as json_file:
@@ -92,7 +106,32 @@ except Exception as e:
 
 
 
-#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다. // 서울이랑 시간 차 때문임//
+
+##############################################################
+#빈 딕셔너리를 선언합니다!
+DolPaRevenueDict = dict()
+
+#파일 경로입니다.
+revenue_type_file_path = "/var/autobot/UpbitDolPaRevenue.json"
+try:
+    #이 부분이 파일을 읽어서 딕셔너리에 넣어주는 로직입니다. 
+    with open(revenue_type_file_path, 'r') as json_file:
+        DolPaRevenueDict = json.load(json_file)
+
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First")
+
+##############################################################
+
+##############################################################
+#수익율 0.5%를 트레일링 스탑 기준으로 잡는다. 즉 고점 대비 0.5% 하락하면 매도 처리 한다!
+stop_revenue = 0.5
+##############################################################
+
+
+
+#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
 time_info = time.gmtime()
 hour = time_info.tm_hour
 min = time_info.tm_min
@@ -101,11 +140,25 @@ print(hour, min)
 
 
 
-
+#########################################################
 #거래대금이 많은 탑코인 30개의 리스트
 #TopCoinList = myUpbit.GetTopCoinList("day",30)
 
+'''
+업비트 거래대금 탑 코인 리스트를 파일로 빠르게 읽는 방법 :
+https://blog.naver.com/zacra/222670663136
+#(업비트 베스트 봇 과정인데 이 1탄 만 보시고 적용하셔도 됩니다)
+'''
+
+#위 링크의 과정 진행하셔서 전체 원화 마켓을 대상으로 삼는거 보다
+#거래대금 많은 탑 코인 리스트를 활용해 변동성 돌파 전략을 활용하면 더 좋습니다!
+#시간되시면 꼭 살펴보세요 ^^
+
 Tickers = pyupbit.get_tickers("KRW")
+#########################################################
+
+
+
 
 for ticker in Tickers:
     try: 
@@ -138,25 +191,30 @@ for ticker in Tickers:
                 #수익율을 구한다.
                 revenue_rate = myUpbit.GetRevenueRate(balances,ticker)
 
-                #수익율이 -1%에 도달하면 모두 손절한다!!!
-                if revenue_rate < -1.0:
-                    #시장가로 모두 매도!
-                    balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
+                ##############################################################
+                #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다!
+                if revenue_rate > DolPaRevenueDict[ticker]:
+
+                    #이렇게 딕셔너리에 값을 넣어주면 된다.
+                    DolPaRevenueDict[ticker] = revenue_rate
+                    
+                    #파일에 딕셔너리를 저장합니다
+                    with open(revenue_type_file_path, 'w') as outfile:
+                        json.dump(DolPaRevenueDict, outfile)
+
+                #그게 아닌데 
+                else:
+                    #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 0.5% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
+                    if (DolPaRevenueDict[ticker] - stop_revenue) >= revenue_rate:
+                        #시장가로 모두 매도!
+                        balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
+
+                        #이렇게 손절했다고 메세지를 보낼수도 있다
+                        line_alert.SendMessage("Finish DolPa Coin : " + ticker + " Revenue rate:" + str(revenue_rate))
+
+                ##############################################################
 
 
-                    #이렇게 손절했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("Cut DolPa Coin : " + ticker)
-
-                ''' 
-                #익절 순간 메세지를 보내려면 아래 지정가 익절 주문을 주석처리 하고 이 부분을 해제!
-                if revenue_rate >= 2.0:
-                    #시장가로 모두 매도!
-                    balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
-
-
-                    #이렇게 익절했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("Revenue DolPa Coin : " + ticker)
-                '''
 
 
         #아니다!
@@ -178,27 +236,16 @@ for ticker in Tickers:
             if now_price > target_price and len(DolPaCoinList) < MaxCoinCnt: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
 
 
+
                 #보유하고 있지 않은 코인 (매수되지 않은 코인)일 경우만 매수한다!
                 if myUpbit.IsHasCoin(balances, ticker) == False:
+
+
 
                     print("!!!!!!!!!!!!!!!DolPa GoGoGo!!!!!!!!!!!!!!!!!!!!!!!!")
                     #시장가 매수를 한다.
                     balances = myUpbit.BuyCoinMarket(upbit,ticker,CoinMoney)
             
-            
-                    ########################################################################
-                    ####익절 순간 메세지를 받고 싶다면 이 로직을 주석처리 하고 위에서 시장가로 익절한다.####
-
-                    #평균매입단가와 매수개수를 구해서 2% 상승한 가격으로 지정가 매도주문을 걸어놓는다.
-                    avgPrice = myUpbit.GetAvgBuyPrice(balances,ticker)
-                    coin_volume = upbit.get_balance(ticker)
-
-                    targetPrice = avgPrice * 1.02
-
-                    #지정가 매도 익절 라인을 그어 놓는다!
-                    myUpbit.SellCoinLimit(upbit,ticker,targetPrice,coin_volume)
-
-                    ########################################################################
 
 
                     #매수된 코인을 DolPaCoinList 리스트에 넣고 이를 파일로 저장해둔다!
@@ -209,8 +256,22 @@ for ticker in Tickers:
                         json.dump(DolPaCoinList, outfile)
 
 
+                    ##############################################################
+                    #매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
+                    DolPaRevenueDict[ticker] = 0
+                    
+                    #파일에 딕셔너리를 저장합니다
+                    with open(revenue_type_file_path, 'w') as outfile:
+                        json.dump(DolPaRevenueDict, outfile)
+                    ##############################################################
+
+
+
+
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("BUY Done DolPa Coin : " + ticker)
+                    line_alert.SendMessage("Start DolPa Coin : " + ticker)
+
+
 
     except Exception as e:
         print("---:", e)
@@ -253,12 +314,7 @@ for ticker in Tickers:
 이렇게 2개의 리스트를 파일에 저장할 필요가 있습니다.
 1번은 이미 만들었고 2번의 리스트 파일저장을 만들 필요가 있겠죠. ^^
 
-이는 필요하신 분의 과제로 남겨두고요.
+이는 필요하신 분의 과제로 남겨두겠습니다!
 
-그래서 일단 여기서는 심플하게 봇의 전략으로 매수할 코인은 잔고가 없다는 조건을 걸겠습니다.
-아래 if문으로 보유하고 있지 않은 코인만 전략 매수 대상이 됩니다!!
 '''
-
-
-
 
