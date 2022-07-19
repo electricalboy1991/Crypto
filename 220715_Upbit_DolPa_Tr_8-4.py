@@ -70,7 +70,7 @@ TotalWon = float(upbit.get_balance("KRW"))
 ######################################################
 #이런식으로 해당 전략에 할당할 금액을 조절할 수도 있습니다.
 #이 경우 내가 가진 원화의 절반을 맥스로 해서 매매합니다.
-TotalWon = TotalWon * 0.5
+TotalWon = TotalWon * 0.02
 ######################################################
 
 
@@ -94,7 +94,7 @@ print ("CoinMoney:", CoinMoney)
 DolPaCoinList = list()
 
 #파일 경로입니다.
-dolpha_type_file_path = "/var/autobot/UpbitDolPaCoin.json"
+dolpha_type_file_path = "/var/Autobot_seoul/UpbitDolPaCoin.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(dolpha_type_file_path, 'r') as json_file:
@@ -112,7 +112,7 @@ except Exception as e:
 DolPaRevenueDict = dict()
 
 #파일 경로입니다.
-revenue_type_file_path = "/var/autobot/UpbitDolPaRevenue.json"
+revenue_type_file_path = "/var/Autobot_seoul/UpbitDolPaRevenue.json"
 try:
     #이 부분이 파일을 읽어서 딕셔너리에 넣어주는 로직입니다. 
     with open(revenue_type_file_path, 'r') as json_file:
@@ -141,8 +141,8 @@ print(hour, min)
 
 
 #########################################################
-#거래대금이 많은 탑코인 30개의 리스트
-#TopCoinList = myUpbit.GetTopCoinList("day",30)
+#거래대금이 많은 탑코인 10개의 리스트
+TopCoinList = myUpbit.GetTopCoinList("day",10)
 
 '''
 업비트 거래대금 탑 코인 리스트를 파일로 빠르게 읽는 방법 :
@@ -174,6 +174,9 @@ for ticker in Tickers:
                 #매수한 코인이라면.
                 if myUpbit.IsHasCoin(balances, ticker) == True:
                     #시장가로 모두 매도!
+                    revenue_rate = myUpbit.GetRevenueRate(balances, ticker)
+
+                    line_alert.SendMessage("[업빗_돌파_9시매도] : " + ticker + "수익율 : " + str(round(revenue_rate,2)))
                     balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
                 #리스트에서 코인을 빼 버린다.
@@ -210,16 +213,18 @@ for ticker in Tickers:
                         balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
                         #이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage("Finish DolPa Coin : " + ticker + " Revenue rate:" + str(revenue_rate))
+                        line_alert.SendMessage("[업빗_돌파_TR스탑] : " + ticker + "수익율 : " + str(round(revenue_rate,2)))
 
                 ##############################################################
 
 
 
 
-        #아니다!
+        #변동성 돌파로 매수된 코인이 아니다!!!
         else:
-            
+            if myUpbit.CheckCoinInList(TopCoinList,ticker) == False:
+                continue
+
             time.sleep(0.05)
             df = pyupbit.get_ohlcv(ticker,interval="day") #일봉 데이타를 가져온다.
             
@@ -265,12 +270,8 @@ for ticker in Tickers:
                         json.dump(DolPaRevenueDict, outfile)
                     ##############################################################
 
-
-
-
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("Start DolPa Coin : " + ticker)
-
+                    line_alert.SendMessage("[업빗_돌파_시작] : " + ticker)
 
 
     except Exception as e:

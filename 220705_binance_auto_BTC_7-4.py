@@ -509,6 +509,7 @@ else:
                 '''
                 #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요!
                 #숏 포지션을 잡는다
+                line_alert.SendMessage("[바이_흔들봇]물타기 : " + str(round(water_amount * coin_price, 2)) + "$")
                 print(binanceX.create_market_sell_order(Target_Coin_Ticker, water_amount))
 
                 #스탑 로스 설정을 건다.
@@ -533,6 +534,7 @@ else:
             '''
             #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요
             #롱 포지션을 잡는다
+            line_alert.SendMessage("[바이_흔들봇]물타기 위해 절반 손절 : " + str(round(abs_amt / 2.0 * coin_price, 2)) + "$")
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, abs_amt / 2.0))
 
             #스탑 로스 설정을 건다.
