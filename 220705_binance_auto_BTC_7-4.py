@@ -327,6 +327,7 @@ if amt == 0:
         '''
         #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요!
         #숏 포지션을 잡는다
+        line_alert.SendMessage("[바이_흔들봇]숏 포지션 잡기로 시작 : " + str(round(coin_price*first_amount,2)) + "$")
         print(binanceX.create_market_sell_order(Target_Coin_Ticker, first_amount))
 
         #스탑 로스 설정을 건다.
@@ -336,7 +337,7 @@ if amt == 0:
 
 
     #5일선이 20일선 아래에 있는데 5일선이 상승추세로 꺾였을때 and RSI지표가 65 이하일때  롱 오를거야 를 잡는다.
-    if ma5 < ma20 and ma5_before3 > ma5_before2 and ma5_before2 < ma5 and rsi14 <= 65.0:
+    if ma5 < ma20 and ma5_before3 > ma5_before2 and ma5_before2 < ma5 and rsi14 <= 40.0:
         print("buy/long")
         #주문 취소후
         binanceX.cancel_all_orders(Target_Coin_Ticker)
@@ -357,6 +358,7 @@ if amt == 0:
         '''
         #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요!
         #롱 포지션을 잡는다
+        line_alert.SendMessage("[바이_흔들봇]롱 포지션 잡기로 시작 : " + str(round(coin_price * first_amount, 2)) + "$")
         print(binanceX.create_market_buy_order(Target_Coin_Ticker, first_amount))
 
         #스탑 로스 설정을 건다.
