@@ -486,6 +486,7 @@ else:
 
             #물탈 수량 여기서는 현재 수량(abs_amt)만큼 물을 타지만
             #water_amount = one_percent_amount * 5.0 이렇게 5%씩 탄다는 식으로 변형할 수 있습니다!!
+            #아래 수식의 의미는 지금 가지고 있는 만큼 물탄다
             water_amount = abs_amt
 
 
@@ -536,7 +537,7 @@ else:
             '''
             #따라서 여기서는 시장가로 잡습니다 <- 이렇게 하는걸 권장드려요
             #롱 포지션을 잡는다
-            line_alert.SendMessage("[바이_흔들봇]물타기 위해 절반 손절 : " + str(round(abs_amt / 2.0 * coin_price, 2)) + "$")
+            line_alert.SendMessage("[바이_흔들봇] 추가 물타기 위해 절반 손절 : " + str(round(abs_amt / 2.0 * coin_price, 2)) + "$")
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, abs_amt / 2.0))
 
             #스탑 로스 설정을 건다.
