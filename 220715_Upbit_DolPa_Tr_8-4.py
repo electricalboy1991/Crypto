@@ -209,7 +209,7 @@ for ticker in Tickers:
                 else:
                     #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 0.5% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
 
-                    if revenue_rate > 0.3 and (DolPaRevenueDict[ticker] - stop_revenue) >= revenue_rate:
+                    if revenue_rate > 0.7 and (DolPaRevenueDict[ticker] - stop_revenue) >= revenue_rate:
                         #시장가로 모두 매도!
                         balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
