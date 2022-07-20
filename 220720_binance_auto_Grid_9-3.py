@@ -52,6 +52,7 @@ CoinCnt = len(LovelyCoinList)
 #################################################################################################################
 #설정할 레버리지!
 #여기서 레버 20배 쓴 이유는, 많은 돈으로 거미줄을 많이 깔기 위함임
+#아마 기본 거래 수량 맞추기 위해서 일 듯
 set_leverage = 20
 
 
@@ -218,14 +219,12 @@ for ticker in Tickers:
                 for order in orders:
 
                     #그냥 숏에 오픈된 주문 전체를 취소하는 것으로 변경했습니다!
+                    #open된 주문이 있냐는 거임
                     if order['status'] == "open"  and order['info']['positionSide'] == "SHORT":
                         binanceX.cancel_order(order['id'],Target_Coin_Ticker)
 
                         #영상에 빠뜨렸지만 이렇게 꼭 쉬어줘야 합니다!
                         time.sleep(0.05)
-         
-
-
 
                 #숏 포지션을 잡습니다.
                 params = {

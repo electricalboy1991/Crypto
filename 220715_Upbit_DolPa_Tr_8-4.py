@@ -70,7 +70,7 @@ TotalWon = float(upbit.get_balance("KRW"))
 ######################################################
 #이런식으로 해당 전략에 할당할 금액을 조절할 수도 있습니다.
 #이 경우 내가 가진 원화의 절반을 맥스로 해서 매매합니다.
-TotalWon = TotalWon * 0.02
+TotalWon = TotalWon * 0.1
 ######################################################
 
 
@@ -175,8 +175,9 @@ for ticker in Tickers:
                 if myUpbit.IsHasCoin(balances, ticker) == True:
                     #시장가로 모두 매도!
                     revenue_rate = myUpbit.GetRevenueRate(balances, ticker)
-
-                    line_alert.SendMessage("[업빗_돌파_9시매도] : " + ticker + "수익율 : " + str(round(revenue_rate,2)))
+                    avg_buy_price = myUpbit.GetAvgBuyPrice(balances, ticker)
+                    line_alert.SendMessage("[업빗_돌파_9시매도] : " + ticker + "수익율 : " + str(round(revenue_rate,2))
+                                           + " 차익 : "+ str(round(avg_buy_price*revenue_rate/100,2)) + "원" )
                     balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
                 #리스트에서 코인을 빼 버린다.
@@ -212,9 +213,10 @@ for ticker in Tickers:
                     if revenue_rate > 0.7 and (DolPaRevenueDict[ticker] - stop_revenue) >= revenue_rate:
                         #시장가로 모두 매도!
                         balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
-
+                        avg_buy_price = myUpbit.GetAvgBuyPrice(balances, ticker)
                         #이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage("[업빗_돌파_TR스탑] : " + ticker + "수익율 : " + str(round(revenue_rate,2)))
+                        line_alert.SendMessage("[업빗_돌파_TR스탑] : " + ticker + "수익율 : " + str(round(revenue_rate,2))
+                                               + " 차익 : "+ str(round(avg_buy_price*revenue_rate/100,2)) + "원" )
 
                 ##############################################################
 
@@ -251,7 +253,9 @@ for ticker in Tickers:
                     print("!!!!!!!!!!!!!!!DolPa GoGoGo!!!!!!!!!!!!!!!!!!!!!!!!")
                     #시장가 매수를 한다.
                     balances = myUpbit.BuyCoinMarket(upbit,ticker,CoinMoney)
-            
+                    buy_won = myUpbit.GetCoinNowMoney(balances, ticker)
+                    # 이렇게 매수했다고 메세지를 보낼수도 있다
+                    line_alert.SendMessage("[업빗_돌파_시작] : " + ticker + " 총 매수 금액 : " + str(round(buy_won,2)) + "원")
 
 
                     #매수된 코인을 DolPaCoinList 리스트에 넣고 이를 파일로 저장해둔다!
@@ -271,8 +275,7 @@ for ticker in Tickers:
                         json.dump(DolPaRevenueDict, outfile)
                     ##############################################################
 
-                    #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("[업빗_돌파_시작] : " + ticker)
+
 
 
     except Exception as e:
