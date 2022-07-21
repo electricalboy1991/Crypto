@@ -203,6 +203,19 @@ def GetCoinNowMoney(balances,Ticker):
             break
     return CoinMoney
 
+
+def NumOfTickerCoin(balances,Ticker):
+    NumOfCoin = 0.0
+    for value in balances:
+        realTicker = value['unit_currency'] + "-" + value['currency']
+        if Ticker == realTicker:
+            NumOfCoin = (float(value['balance']) + float(value['locked']))
+            break
+    return NumOfCoin
+
+
+
+
 #티커에 해당하는 코인이 매수된 상태면 참을 리턴하는함수
 def IsHasCoin(balances,Ticker):
     HasCoin = False

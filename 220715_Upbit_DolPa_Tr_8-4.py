@@ -175,9 +175,11 @@ for ticker in Tickers:
                 if myUpbit.IsHasCoin(balances, ticker) == True:
                     #시장가로 모두 매도!
                     revenue_rate = myUpbit.GetRevenueRate(balances, ticker)
-                    avg_buy_price = myUpbit.GetAvgBuyPrice(balances, ticker)
+                    now_price=pyupbit.get_current_price(ticker)
+                    AvgBuyPrice=myUpbit.GetAvgBuyPrice(balances, ticker)
+                    NumOfCoin=myUpbit.NumOfTickerCoin(balances, ticker)
                     line_alert.SendMessage("[업빗_돌파_9시매도] : " + ticker + "수익율 : " + str(round(revenue_rate,2))
-                                           + " 차익 : "+ str(round(avg_buy_price*revenue_rate/100,2)) + "원" )
+                                           + " 차익 : "+ str(round((now_price-AvgBuyPrice)*NumOfCoin,2)) + "원" )
                     balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
                 #리스트에서 코인을 빼 버린다.
@@ -214,13 +216,15 @@ for ticker in Tickers:
                         #시장가로 모두 매도!
                         balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
                         avg_buy_price = myUpbit.GetAvgBuyPrice(balances, ticker)
+                        now_price = pyupbit.get_current_price(ticker)
+                        AvgBuyPrice = myUpbit.GetAvgBuyPrice(balances, ticker)
+                        NumOfCoin = myUpbit.NumOfTickerCoin(balances, ticker)
+
                         #이렇게 손절했다고 메세지를 보낼수도 있다
                         line_alert.SendMessage("[업빗_돌파_TR스탑] : " + ticker + "수익율 : " + str(round(revenue_rate,2))
-                                               + " 차익 : "+ str(round(avg_buy_price*revenue_rate/100,2)) + "원" )
+                                               + " 차익 : "+ str(round((now_price-AvgBuyPrice)*NumOfCoin,2)) + "원" )
 
                 ##############################################################
-
-
 
 
         #변동성 돌파로 매수된 코인이 아니다!!!
