@@ -256,7 +256,7 @@ coin_price = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
 
 #레버리지에 따른 최대 매수 가능 수량
 #만약에 내가 2000원이 있어, 전재산의 0.5를 쓸거야, 레버리지는 3배, 코인 가격은 1000원, 이때 Max_Amount는 3이 되는거지
-Max_Amount = round(myBinance.GetAmount(float(balance['USDT']['total']),coin_price,0.5),3) * leverage 
+Max_Amount = round(myBinance.GetAmount(float(balance['USDT']['total']),coin_price,1),3) * leverage
 
 #최대 매수수량의 1%에 해당하는 수량을 구한다.
 one_percent_amount = Max_Amount / 100.0
