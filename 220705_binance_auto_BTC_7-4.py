@@ -291,8 +291,8 @@ abs_amt = abs(amt)
 
 #아래는 타겟 수익율로 마음껏 조절하세요
 #타겟 레이트 0.001 
-target_rate = 0.001
-#타겟 수익율 0.1%
+target_rate = 0.01
+#타겟 수익율 1%
 target_revenue_rate = target_rate * 100.0
 
 

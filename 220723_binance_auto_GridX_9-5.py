@@ -259,6 +259,8 @@ for ticker in Tickers:
 
                 Water_amt = FirstAmt
 
+                # Water_amt의 최소 값을 설정해 주는 부분인 듯
+                # Water_amt는 아래 while문을 돌면서 할당 코인량이 더 커짐
                 if Water_amt < Buy_Amt:
                     Water_amt = Buy_Amt
 
@@ -339,7 +341,7 @@ for ticker in Tickers:
 
 
 
-            #포지션이 양쪽 다 잡혀있다.
+            #포지션이 적어도 한 쪽은 잡혀있다.
             else:
                 print("")
 
@@ -413,14 +415,15 @@ for ticker in Tickers:
 
 
                 #수수료를 감안해 각각 0.7과 1.3을 곱해서 보정을 한다!
+                #대충 계산한 거임
                 unrealizedProfit_s_f = float(unrealizedProfit_s) * 0.70
-                if float(unrealizedProfit_s) < 0:
+                if float(unrealizedProfit_s) < 0: # 손해의 경우 1.3 곱해서 키운다
                     unrealizedProfit_s_f = float(unrealizedProfit_s) * 1.3
 
 
 
                 unrealizedProfit_b_f = float(unrealizedProfit_b) * 0.70
-                if float(unrealizedProfit_b) < 0:
+                if float(unrealizedProfit_b) < 0: # 손해의 경우 1.3 곱해서 키운다
                     unrealizedProfit_b_f = float(unrealizedProfit_b) * 1.3
 
 
@@ -432,6 +435,7 @@ for ticker in Tickers:
                 print("---- total_profit", total_profit)
 
                 #수익이 나왔다!
+                #(abs(amt_b) <= abs(amt_s) and revenue_rate_s >= target_revenute) 이 경우는 가격이 오르면서 숏이 계속 체결이 된 거겠지. 물타던 숏에 의해 실제 가격이 떨어져서 수익권으로 도달한것
                 if total_profit > 0 and ( (abs(amt_b) <= abs(amt_s) and  revenue_rate_s >= target_revenute) or (abs(amt_b) >= abs(amt_s) and  revenue_rate_b >= target_revenute) ) :
    
 
@@ -463,6 +467,7 @@ for ticker in Tickers:
                     line_alert.SendMessage(Target_Coin_Ticker + " Bot End!!" )
 
                 else:
+                    #가격이 계속 오르면 숏 포지션 갯수가 커짐, 이러면 헷징이 무너질 수 있음, 그래서 수량을 맞춰주는 거임
                     #아직 수익이 나오지 않은 상태! 여기서는 1 : 4 로 맞춰주기 위해서 물린쪽 포지션 수량의 0.25를 곱했습니다.
                     # 1:5로 하려면 0.2 등을 입력해야 되니 영상과는 다르게 변수를 만들어 처리했습니다.
 
