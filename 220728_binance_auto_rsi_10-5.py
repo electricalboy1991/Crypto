@@ -52,7 +52,7 @@ Tickers = binanceX.fetch_tickers()
 
 #총 원금대비 설정 비율 
 #아래처럼 0.2 로 셋팅하면 20%가 해당 전략에 할당된다는 이야기!
-Invest_Rate = 0.4
+Invest_Rate = 0.3
 
 
 #테스트를 위해 비트코인만 일단 체크해봅니다. 
@@ -512,6 +512,7 @@ for ticker in Tickers:
                                 'positionSide': 'LONG'
                             }
                             data = binanceX.create_market_buy_order(Target_Coin_Ticker,Buy_Amt,params)
+                            line_alert.SendMessage("[바이_div봇 롱] 진입: " + str(Target_Coin_Ticker) + "구매 $ : " +str(data['price']*Buy_Amt) )
 
 
                             #익절할 가격을 구합니다.
@@ -605,7 +606,7 @@ for ticker in Tickers:
                                 'positionSide': 'SHORT'
                             }
                             data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-
+                            line_alert.SendMessage("[바이_div봇 숏] 진입: " + str(Target_Coin_Ticker) + "구매 $ : " + str(data['price'] * Buy_Amt))
 
                             #익절할 가격을 구합니다.
                             target_price = data['price'] - change_value
