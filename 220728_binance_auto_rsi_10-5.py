@@ -183,7 +183,7 @@ for ticker in Tickers:
                 ###############################################################
 
                 #코인별 할당된 수량의 절반으로 매수합니다. 
-                Buy_Amt = Max_Amt / 3.0
+                Buy_Amt = Max_Amt / 1.0
                 Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker,Buy_Amt))
 
                 #최소 주문 수량보다 작다면 이렇게 셋팅!
@@ -305,7 +305,7 @@ for ticker in Tickers:
 
                                         
                                         #아래 주석을 풀면 거미줄이 체결되 익절 주문이 변경될때 나에게 알림을 보낼 수 있습니다!
-                                        #line_alert.SendMessage("RSI Divergence Change Long Line  : " + Target_Coin_Ticker )
+                                        line_alert.SendMessage("RSI Divergence Change Long Line  : " + Target_Coin_Ticker )
                                     
 
                         #숏포지션이 있다면 현재 라이브상태!
@@ -380,7 +380,7 @@ for ticker in Tickers:
 
                 
                         #전저, 전전저점 구해서 상승 추세선을 구할수 있으니 구해보자!
-                        for index in range(3,4): #20개로 짧게 봅니다
+                        for index in range(3,20): #20개로 짧게 봅니다
 
                             left = myBinance.GetRSI(df,14,-(index-1))
                             middle = myBinance.GetRSI(df,14,-(index))
@@ -432,7 +432,7 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if up_first_value <= 30.0 or up_second_value <= 30.0:
+                                if (up_first_value <= 30.0 or up_second_value <= 30.0) and (df['close'][-(up_first_point)] >= df['close'][-1]) :
                                     IsLongDivergence = True
 
 
@@ -446,7 +446,7 @@ for ticker in Tickers:
 
 
                         #전고, 전전고점 구해서 하락 추세선을 구할수 있으니 구해보자!
-                        for index in range(3,4): #20개로 짧게 봅니다
+                        for index in range(3,20): #20개로 짧게 봅니다
 
 
                             left = myBinance.GetRSI(df,14,-(index-1))
@@ -496,7 +496,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if down_first_value >=70.0 or down_second_value >= 70.0:
+                                if (down_first_value >=70.0 or down_second_value >= 70.0) and (df['close'][-(up_first_point)] <= df['close'][-1]) :
                                     IsShortDivergence = True
 
 
