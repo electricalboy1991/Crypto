@@ -432,7 +432,7 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if up_first_value <= 21.0 or up_second_value <= 21.0:
+                                if up_first_value <= 30.0 or up_second_value <= 30.0:
                                     IsLongDivergence = True
 
 
@@ -496,7 +496,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if down_first_value >= 79.0 or down_second_value >= 79.0:
+                                if down_first_value >=70.0 or down_second_value >= 70.0:
                                     IsShortDivergence = True
 
 
