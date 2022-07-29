@@ -52,7 +52,7 @@ Tickers = binanceX.fetch_tickers()
 
 #총 원금대비 설정 비율 
 #아래처럼 0.2 로 셋팅하면 20%가 해당 전략에 할당된다는 이야기!
-Invest_Rate = 0.3
+Invest_Rate = 0.2
 
 
 #테스트를 위해 비트코인만 일단 체크해봅니다. 
@@ -183,7 +183,7 @@ for ticker in Tickers:
                 ###############################################################
 
                 #코인별 할당된 수량의 절반으로 매수합니다. 
-                Buy_Amt = Max_Amt / 15.0
+                Buy_Amt = Max_Amt / 3.0
                 Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker,Buy_Amt))
 
                 #최소 주문 수량보다 작다면 이렇게 셋팅!
@@ -196,9 +196,6 @@ for ticker in Tickers:
 
                 #거미줄깔 맥스 수량!!
                 Max_Water_Amt = Max_Amt - Buy_Amt
-
-
-
 
                 amt_s = 0 
                 amt_b = 0
@@ -360,7 +357,8 @@ for ticker in Tickers:
 
 
                         #변동성의 절반! 이걸로 익절 손절 하자!
-                        change_value = (float(df['high'][-2]) - float(df['low'][-2])) * 0.5
+
+                        change_value = (float(df['high'][-2]) - float(df['low'][-2])) * 0.35
 
 
                         #단 변동성이 현재 코인가격의 0.25%보다 작다면 맞춰준다!
@@ -382,7 +380,7 @@ for ticker in Tickers:
 
                 
                         #전저, 전전저점 구해서 상승 추세선을 구할수 있으니 구해보자!
-                        for index in range(3,20): #20개로 짧게 봅니다
+                        for index in range(3,4): #20개로 짧게 봅니다
 
                             left = myBinance.GetRSI(df,14,-(index-1))
                             middle = myBinance.GetRSI(df,14,-(index))
@@ -434,7 +432,7 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if up_first_value <= 35.0 or up_second_value <= 35.0:
+                                if up_first_value <= 21.0 or up_second_value <= 21.0:
                                     IsLongDivergence = True
 
 
@@ -448,7 +446,7 @@ for ticker in Tickers:
 
 
                         #전고, 전전고점 구해서 하락 추세선을 구할수 있으니 구해보자!
-                        for index in range(3,20): #20개로 짧게 봅니다
+                        for index in range(3,4): #20개로 짧게 봅니다
 
 
                             left = myBinance.GetRSI(df,14,-(index-1))
@@ -498,7 +496,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if down_first_value >= 65.0 or down_second_value >= 65.0:
+                                if down_first_value >= 79.0 or down_second_value >= 79.0:
                                     IsShortDivergence = True
 
 
