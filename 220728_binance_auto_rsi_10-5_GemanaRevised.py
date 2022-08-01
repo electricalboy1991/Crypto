@@ -23,9 +23,6 @@ import json
 이상하거나 문의가 있다면 클래스 영상에 댓글로 언제든지 알려주세요!
 '''
 
-#다른 봇들이랑 타이밍 비틀려고 25초 걸었어
-# time.sleep(25)
-
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
 
@@ -52,7 +49,7 @@ Tickers = binanceX.fetch_tickers()
 
 #총 원금대비 설정 비율 
 #아래처럼 0.2 로 셋팅하면 20%가 해당 전략에 할당된다는 이야기!
-Invest_Rate = 0.005
+Invest_Rate = 0.2
 
 
 #테스트를 위해 비트코인만 일단 체크해봅니다. 
@@ -78,8 +75,10 @@ except Exception as e:
 
 
 
+
+
+
 #익절과 거미줄까는데 기준이된 변동성 값을 파일에 저장해 놓는다
-#이거는 익절 기준을 이전 캔들의 변동성 *0.5같은 걸 기준으로 해놓았기 때문에 파일 저장이 필요
 ChangeValueDict = dict()
 
 #파일 경로입니다.
@@ -93,9 +92,16 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First")
 
+
+
+
+
+
+
 ###################################################
 #설정할 레버리지!
 set_leverage = 10
+
 
 
 #선물 테더(USDT) 마켓에서 거래중인 코인을 거래대금이 많은 순서로 가져옵니다. 여기선 Top 25
@@ -110,13 +116,19 @@ try:
     TopCoinList.remove("ETH/USDT")
 except Exception as e:
     print("Exception", e)
+
+
     
 print(TopCoinList)
+
+
 
 #잔고 데이타 가져오기 
 balance = binanceX.fetch_balance(params={"type": "future"})
 time.sleep(0.1)
 #pprint.pprint(balance)
+
+
 
 
 #시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
@@ -126,9 +138,8 @@ min = time_info.tm_min
 print(hour, min)
 
 
-#이거 이전이랑 수익 비교하는 걸로 바꿔줘
-if min % 60 == 0:
-    line_alert.SendMessage("현재 평가 전체 금액 : " + str(balance['USDT']['total']))
+
+
 
 #모든 선물 거래가능한 코인을 가져온다.
 for ticker in Tickers:
@@ -147,8 +158,12 @@ for ticker in Tickers:
             #탑코인 리스트에 속하거나 추세선 돌파에 의해 매매된 코인이라면...
             if myBinance.CheckCoinInList(TopCoinList,ticker) == True or myBinance.CheckCoinInList(DolPaCoinList,ticker) == True:
 
+
+            
                 time.sleep(0.2)
                 print("Target_Coin_Ticker" , Target_Coin_Ticker)
+
+                
 
                 Target_Coin_Symbol = ticker.replace("/", "")
 
@@ -159,14 +174,22 @@ for ticker in Tickers:
 
                 print("--- Target_Coin_Ticker:", Target_Coin_Ticker ," minimun_amount : ", minimun_amount)
 
+
+
+
                 print(balance['USDT'])
                 print("Total Money:",float(balance['USDT']['total']))
                 print("Remain Money:",float(balance['USDT']['free']))
+
 
                 leverage = 0  #레버리지
 
                 #해당 코인 가격을 가져온다.
                 coin_price = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
+
+
+
+
 
                 #해당 코인에 할당된 금액에 따른 최대 매수수량을 구해본다!
                 Max_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, myBinance.GetAmount(float(balance['USDT']['total']),coin_price,Invest_Rate / CoinCnt)))  * set_leverage 
@@ -182,10 +205,9 @@ for ticker in Tickers:
                 #어디까지나 예시로 첫 진입 수량과 물탈 수량은 자유롭게 여러분들이 설정하세요!!!!
                 ###############################################################
 
-                #코인별 할당된 수량의 절반으로 매수합니다.
 
-                #1이면 물 안타기 // 3이면 물 1번 타기 // 7이면 물 2번 타기// 15면 물 3번 타기
-                Buy_Amt = Max_Amt / 1.0
+                #코인별 할당된 수량의 절반으로 매수합니다. 
+                Buy_Amt = Max_Amt / 15.0
                 Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker,Buy_Amt))
 
                 #최소 주문 수량보다 작다면 이렇게 셋팅!
@@ -199,6 +221,9 @@ for ticker in Tickers:
                 #거미줄깔 맥스 수량!!
                 Max_Water_Amt = Max_Amt - Buy_Amt
 
+
+
+
                 amt_s = 0 
                 amt_b = 0
                 entryPrice_s = 0 #평균 매입 단가. 따라서 물을 타면 변경 된다.
@@ -211,8 +236,6 @@ for ticker in Tickers:
 
                 print("------")
                 #숏잔고
-
-                #평균 매입 단가는 아래의 for문에 의해서 지속 업데이트 됨
                 for posi in balance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
                         print(posi)
@@ -222,8 +245,8 @@ for ticker in Tickers:
                         isolated = posi['isolated']
                         break
 
+
                 #롱잔고
-                # 평균 매입 단가는 아래의 for문에 의해서 지속 업데이트 됨
                 for posi in balance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'LONG':
                         print(posi)
@@ -232,6 +255,10 @@ for ticker in Tickers:
                         leverage = float(posi['leverage'])
                         isolated = posi['isolated']
                         break
+
+
+
+
 
                 #################################################################################################################
                 #레버리지 셋팅
@@ -244,6 +271,7 @@ for ticker in Tickers:
 
                 #################################################################################################################
 
+
                 #################################################################################################################
                 #격리 모드로 설정
                 if isolated == False:
@@ -252,6 +280,13 @@ for ticker in Tickers:
                     except Exception as e:
                         print("Exception:", e)
                 #################################################################################################################  
+                
+
+
+
+
+
+
 
 
                 #전략에 의해 매수 했는데..
@@ -259,7 +294,6 @@ for ticker in Tickers:
 
 
                     #그런데 포지션이 없다. 익절이나 손절한 상태!
-                    #1분 마다 돌면서 익절 체크하는 거지
                     if abs(amt_s) == 0 and abs(amt_b) == 0:
 
                         #남은 주문읠 모두 취소하고
@@ -273,8 +307,11 @@ for ticker in Tickers:
                         with open(dolpha_type_file_path, 'w') as outfile:
                             json.dump(DolPaCoinList, outfile)
 
-                        line_alert.SendMessage("다이버젼스 끝! : " + Target_Coin_Ticker )
 
+                        line_alert.SendMessage("RSI Divergence End!!!!! : " + Target_Coin_Ticker )
+
+
+                        
                     else:
 
                         #주문 정보를 읽어온다.
@@ -283,20 +320,22 @@ for ticker in Tickers:
                         #롱포지션이 있다면 현재 라이브상태!
                         if abs(amt_b) > 0:
 
+
                             #익절할 가격을 구합니다. 파일에 저장된 값 (change_value) 을 사용하는 것을 볼 수 있습니다!
                             target_price = entryPrice_b + (ChangeValueDict[Target_Coin_Ticker] * 1.0)
-                            # loss_price = entryPrice_b - (ChangeValueDict[Target_Coin_Ticker] * 1.0)
 
+                                
                             #### 영상에 없지만 익절 주문이 있는지 여부 플래그 변수를 하나 만들었어요! ###
                             bExist = False
 
-                            #주문 정보를 읽어온다.//특정 티커에 대한 주문정보
+
+                            #주문 정보를 읽어온다.
                             for order in orders:
                                 #익절 주문을 필터합니다.
-                                #리밋 주문 필터해야하는 이유는, 이렇게 안하면 stop loss 주문까지 들어가게됨.
                                 if order['status'] == "open" and order['info']['positionSide'] == "LONG" and order['side'] == "sell" and order['type'] == "limit":
 
-                                            
+                                    bExist = True #### 익절 주문이 있다면 (당연히 있겠죠)! True를 입력해줍니다. ###
+                                                
                                     #이 안에 들어왔다면 익절 주문인데
                                     #익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐 
                                     if float(order['price']) != float(binanceX.price_to_precision(Target_Coin_Ticker,target_price)):
@@ -310,36 +349,34 @@ for ticker in Tickers:
                                         params = {
                                             'positionSide': 'LONG'
                                         }
-                                        print(binanceX.create_order(Target_Coin_Ticker,abs(amt_b),target_price,params))
+                                        print(binanceX.create_limit_sell_order(Target_Coin_Ticker,abs(amt_b),target_price,params))
 
 
                                         
                                         #아래 주석을 풀면 거미줄이 체결되 익절 주문이 변경될때 나에게 알림을 보낼 수 있습니다!
-                                        line_alert.SendMessage("RSI Divergence Change Long Line  : " + Target_Coin_Ticker )
+                                         #line_alert.SendMessage("RSI Divergence Change Long Line  : " + Target_Coin_Ticker )
+
+
                             #### 앗 그런데 익절 주문이 없다고???? ###
                             if bExist == False:
-                                # 그럼 익절 주문을 걸어 둡니다
+
+                                #그럼 익절 주문을 걸어 둡니다     
                                 params = {
                                     'positionSide': 'LONG'
                                 }
-                                print(binanceX.create_order(Target_Coin_Ticker, abs(amt_b), target_price,
-                                                                       params))
-
-                                # params = {'positionSide': 'LONG'}
-                                # print(binanceX.create_order(Target_Coin_Ticker, abs(amt_b), loss_price,params))
-
-
+                                print(binanceX.create_limit_sell_order(Target_Coin_Ticker,abs(amt_b),target_price,params))
+                                
+                                   
 
                         #숏포지션이 있다면 현재 라이브상태!
                         if abs(amt_s) > 0:
 
                             #익절할 가격을 구합니다. 파일에 저장된 값 (change_value) 을 사용하는 것을 볼 수 있습니다!
                             target_price = entryPrice_s - (ChangeValueDict[Target_Coin_Ticker] * 1.0)
-                            # loss_price = entryPrice_s + (ChangeValueDict[Target_Coin_Ticker] * 1.0)
+                                
                             #### 영상에 없지만 익절 주문이 있는지 여부 플래그 변수를 하나 만들었어요! ###
                             bExist = False
 
-                        
             
                             for order in orders:
 
@@ -347,8 +384,8 @@ for ticker in Tickers:
                                 if order['status'] == "open" and order['info']['positionSide'] == "SHORT" and order['side'] == "buy" and order['type'] == "limit":
                                     
                                     pprint.pprint(order)
-
-
+                                    bExist = True #### 익절 주문이 있다면 (당연히 있겠죠)! True를 입력해줍니다. ###
+                                    
                                     #이 안에 들어왔다면 익절 주문인데
                                     #익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐 
                                     if float(order['price']) != float(binanceX.price_to_precision(Target_Coin_Ticker,target_price)):
@@ -362,31 +399,25 @@ for ticker in Tickers:
                                         params = {
                                             'positionSide': 'SHORT'
                                         }
-                                        print(binanceX.create_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
+                                        print(binanceX.create_limit_buy_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
     
                                         
-                                        line_alert.SendMessage("RSI Divergence Change Short Line  : " + Target_Coin_Ticker )
+                                        #line_alert.SendMessage("RSI Divergence Change Short Line  : " + Target_Coin_Ticker )
+
                             #### 앗 그런데 익절 주문이 없다고???? ###
                             if bExist == False:
 
-                                #그럼 익절 주문을 걸어 둡니다
+                                #그럼 익절 주문을 걸어 둡니다             
                                 params = {
                                     'positionSide': 'SHORT'
                                 }
-                                print(binanceX.create_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
-
-                                # params = {'positionSide': 'SHORT'}
-                                # print(binanceX.create_order(Target_Coin_Ticker, abs(amt_s), loss_price,params))
-
-
-
-
-
+                                print(binanceX.create_limit_buy_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
 
 
 
                 else:
 
+                
                     # 일봉 혹은 1분봉 취향에 맞게 변경해보세요!
                     #########################################################################
                     # 높은 타임 프레임으로 갈수록 다이버전스의 신뢰도는 높아집니다!
@@ -395,19 +426,21 @@ for ticker in Tickers:
                     # 5분마다 아래 로직이 실행된다!
                     if min % 5 == 0:
 
+
                         #캔들 정보 가져온다 - 5분봉 
                         df = myBinance.GetOhlcv(binanceX,Target_Coin_Ticker, '5m')
 
+                        
 
                         #변동성의 절반! 이걸로 익절 손절 하자!
-                        #5분 봉 기준의 변동성으로 익절 손절 로직 돌림
-                        change_value = (float(df['high'][-2]) - float(df['low'][-2])) * 0.35
+                        change_value = (float(df['high'][-2]) - float(df['low'][-2])) * 0.5
 
 
                         #단 변동성이 현재 코인가격의 0.25%보다 작다면 맞춰준다!
                         if change_value < coin_price * 0.0025:
                             change_value = coin_price * 0.0025
 
+                        
 
 
                         #첫번째 꺾인 지점 (전저점)
@@ -475,8 +508,12 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if (up_first_value <= 30.0 or up_second_value <= 30.0) and (df['close'][-(up_first_point)] >= df['close'][-1]) :
+                                if up_first_value <= 35.0 or up_second_value <= 35.0:
                                     IsLongDivergence = True
+            
+
+
+
 
 
                         #첫번째 꺾인 지점 (전고점)
@@ -539,7 +576,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if (down_first_value >=70.0 or down_second_value >= 70.0) and (df['close'][-(up_first_point)] <= df['close'][-1]) :
+                                if down_first_value >= 65.0 or down_second_value >= 65.0:
                                     IsShortDivergence = True
 
 
@@ -552,16 +589,15 @@ for ticker in Tickers:
                             params = {
                                 'positionSide': 'LONG'
                             }
-                            data = binanceX.create_order(Target_Coin_Ticker,Buy_Amt,params)
-                            line_alert.SendMessage("[바이_div봇 롱] 진입: " + str(Target_Coin_Ticker) + "구매 $ : " +str(data['price']*Buy_Amt) )
+                            data = binanceX.create_market_buy_order(Target_Coin_Ticker,Buy_Amt,params)
 
 
                             #익절할 가격을 구합니다.
                             target_price = data['price'] + change_value
-                            #loss_price = data['price'] - change_value
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
-                            print(binanceX.create_order(Target_Coin_Ticker,data['amount'],target_price,params))
-                            # print(binanceX.create_order(Target_Coin_Ticker, data['amount'], loss_price,params))
+                            print(binanceX.create_limit_sell_order(Target_Coin_Ticker,data['amount'],target_price,params))
+
+
 
 
                             #아래는 물타기 라인을 긋는 로직입니다.
@@ -572,7 +608,7 @@ for ticker in Tickers:
                             print("Water_amt", Water_amt)
 
                             i = 1
-
+                
 
                             line_data = None
 
@@ -590,7 +626,6 @@ for ticker in Tickers:
                                 #############################################################
                                 #(change_value * 2.0) 이 수치를 조절해 간격을 늘리거나 줄일 수 있는데 장단점이 있습니다. 
                                 #정답은 없습니다. 자유롭게 변경하고 테스트 해보세요!
-                                #거미줄 까는 간격을 이야기하는 거임
                                 water_price = data['price'] - ((change_value * 2.0) * float(i))
                                 #############################################################
 
@@ -598,7 +633,7 @@ for ticker in Tickers:
                                 params = {
                                     'positionSide': 'LONG'
                                 }
-                                line_data = binanceX.create_order(Target_Coin_Ticker,Water_amt,water_price,params)
+                                line_data = binanceX.create_limit_buy_order(Target_Coin_Ticker,Water_amt,water_price,params)
                                 
 
                                 TotalWater_Amt += Water_amt
@@ -617,6 +652,7 @@ for ticker in Tickers:
                             #실제로 스탑로스를 가격으로 겁니다!
                             myBinance.SetStopLossLongPrice(binanceX, Target_Coin_Ticker, stop_price, False)
 
+
                             ####################################################################
                             #익절과 거미줄까는데 기준이된 변동성 값을 파일에 저장해 놓는다
                             #시간이 흐르면 캔들이 바뀌고 기준이 된 변동성 값이 바뀔 것이기 때문에 저장해 둬야 한다!!
@@ -634,11 +670,16 @@ for ticker in Tickers:
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
+                            
+
 
                             line_alert.SendMessage("RSI Divergence Start Long : " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
 
+                                                
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
                             balance = binanceX.fetch_balance(params={"type": "future"})
+
+
 
 
                         #숏포지션을 잡을 수 있다! 상승 추세선을 아래로 돌파한 상황!
@@ -648,13 +689,13 @@ for ticker in Tickers:
                             params = {
                                 'positionSide': 'SHORT'
                             }
-                            data = binanceX.create_order(Target_Coin_Ticker,Buy_Amt,params)
-                            line_alert.SendMessage("[바이_div봇 숏] 진입: " + str(Target_Coin_Ticker) + "구매 $ : " + str(data['price'] * Buy_Amt))
+                            data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+
 
                             #익절할 가격을 구합니다.
                             target_price = data['price'] - change_value
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
-                            print(binanceX.create_order(Target_Coin_Ticker,data['amount'],target_price,params))
+                            print(binanceX.create_limit_buy_order(Target_Coin_Ticker,data['amount'],target_price,params))
 
 
 
@@ -692,7 +733,7 @@ for ticker in Tickers:
                                 params = {
                                     'positionSide': 'SHORT'
                                 }
-                                line_data = binanceX.create_order(Target_Coin_Ticker,Water_amt,water_price,params)
+                                line_data = binanceX.create_limit_sell_order(Target_Coin_Ticker,Water_amt,water_price,params)
                                 
 
                                 TotalWater_Amt += Water_amt
@@ -734,8 +775,11 @@ for ticker in Tickers:
 
                             line_alert.SendMessage("RSI Divergence Start Short : " + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
 
+
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
                             balance = binanceX.fetch_balance(params={"type": "future"})
+
+
 
 
     except Exception as e:
