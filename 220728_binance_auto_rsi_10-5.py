@@ -558,10 +558,10 @@ for ticker in Tickers:
 
                             #익절할 가격을 구합니다.
                             target_price = data['price'] + change_value
-                            #loss_price = data['price'] - change_value
+                            loss_price = data['price'] - change_value
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             print(binanceX.create_order(Target_Coin_Ticker,data['amount'],target_price,params))
-                            # print(binanceX.create_order(Target_Coin_Ticker, data['amount'], loss_price,params))
+                            print(binanceX.create_order(Target_Coin_Ticker, data['amount'], loss_price,params))
 
 
                             #아래는 물타기 라인을 긋는 로직입니다.
@@ -653,8 +653,11 @@ for ticker in Tickers:
 
                             #익절할 가격을 구합니다.
                             target_price = data['price'] - change_value
+                            loss_price =  data['price'] + change_value
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             print(binanceX.create_order(Target_Coin_Ticker,data['amount'],target_price,params))
+                            # 그리고 지정가로 손절 주문을 걸어놓는다!
+                            print(binanceX.create_order(Target_Coin_Ticker, data['amount'], loss_price, params))
 
 
 
