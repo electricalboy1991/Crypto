@@ -49,7 +49,7 @@ Tickers = binanceX.fetch_tickers()
 
 #총 원금대비 설정 비율 
 #아래처럼 0.2 로 셋팅하면 20%가 해당 전략에 할당된다는 이야기!
-Invest_Rate = 0.2
+Invest_Rate = 0.003
 
 
 #테스트를 위해 비트코인만 일단 체크해봅니다. 
@@ -138,6 +138,8 @@ min = time_info.tm_min
 print(hour, min)
 
 
+if min % 60 == 0:
+    line_alert.SendMessage("현재 평가 전체 금액 : " + str(balance['USDT']['total']))
 
 
 
@@ -207,7 +209,7 @@ for ticker in Tickers:
 
 
                 #코인별 할당된 수량의 절반으로 매수합니다. 
-                Buy_Amt = Max_Amt / 15.0
+                Buy_Amt = Max_Amt / 3.0
                 Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker,Buy_Amt))
 
                 #최소 주문 수량보다 작다면 이렇게 셋팅!
@@ -355,7 +357,7 @@ for ticker in Tickers:
 
                                         
                                         #아래 주석을 풀면 거미줄이 체결되 익절 주문이 변경될때 나에게 알림을 보낼 수 있습니다!
-                                         #line_alert.SendMessage("RSI Divergence Change Long Line  : " + Target_Coin_Ticker )
+                                        line_alert.SendMessage("[바이_div_long물타기] : " + Target_Coin_Ticker )
 
 
                             #### 앗 그런데 익절 주문이 없다고???? ###
@@ -367,7 +369,7 @@ for ticker in Tickers:
                                 }
                                 #print(binanceX.create_limit_sell_order(Target_Coin_Ticker,abs(amt_b),target_price,params))
                                 print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'sell', abs(amt_b), target_price, params))
-                                
+                                line_alert.SendMessage("[바이_div_long익절주문추가] : " + Target_Coin_Ticker)
                                    
 
                         #숏포지션이 있다면 현재 라이브상태!
@@ -405,7 +407,7 @@ for ticker in Tickers:
                                         print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', abs(amt_s), target_price, params))
     
                                         
-                                        #line_alert.SendMessage("RSI Divergence Change Short Line  : " + Target_Coin_Ticker )
+                                        line_alert.SendMessage("[바이_div_short물타기] : " + Target_Coin_Ticker )
 
                             #### 앗 그런데 익절 주문이 없다고???? ###
                             if bExist == False:
@@ -416,7 +418,7 @@ for ticker in Tickers:
                                 }
                                 #print(binanceX.create_limit_buy_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
                                 print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', abs(amt_s), target_price, params))
-
+                                line_alert.SendMessage("[바이_div_short익절주문추가] : " + Target_Coin_Ticker)
 
 
                 else:
@@ -512,7 +514,7 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if up_first_value <= 35.0 or up_second_value <= 35.0:
+                                if (up_first_value <= 35.0 or up_second_value <= 35.0) and now_rsi<= up_first_value:
                                     IsLongDivergence = True
             
 
@@ -580,7 +582,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if down_first_value >= 65.0 or down_second_value >= 65.0:
+                                if (down_first_value >= 65.0 or down_second_value >= 65.0) and now_rsi>=down_first_value:
                                     IsShortDivergence = True
 
 
@@ -680,7 +682,7 @@ for ticker in Tickers:
                             
 
 
-                            line_alert.SendMessage("RSI Divergence Start Long : " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
+                            line_alert.SendMessage("[바이_div_long시작] : " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
 
                                                 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
@@ -782,7 +784,7 @@ for ticker in Tickers:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
 
-                            line_alert.SendMessage("RSI Divergence Start Short : " + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
+                            line_alert.SendMessage("[바이_div_short 시작] : " + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
 
 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
