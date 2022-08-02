@@ -601,7 +601,7 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_sell_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'sell', data['amount'], target_price, params))
-                            line_alert.SendMessage("[바이_div_롱_진입] : " + Target_Coin_Ticker  + " " + round(Buy_Amt*data['price']))
+                            line_alert.SendMessage("[바이_div_롱_진입] : " + Target_Coin_Ticker  + " " + round(Buy_Amt*data['price'],2))
 
 
 
@@ -700,7 +700,7 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_buy_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', data['amount'], target_price, params))
-                            line_alert.SendMessage("[바이_div_숏_진입] : " + Target_Coin_Ticker + " " +round(Buy_Amt*data['price']))
+                            line_alert.SendMessage("[바이_div_숏_진입] : " + Target_Coin_Ticker + " " +round(Buy_Amt*data['price']),2)
 
 
 
