@@ -136,13 +136,6 @@ time_info = time.gmtime()
 hour = time_info.tm_hour
 min = time_info.tm_min
 print(hour, min)
-
-
-if min % 60 == 0:
-    line_alert.SendMessage("현재 평가 전체 금액 : " + str(balance['USDT']['total']))
-
-
-
 #모든 선물 거래가능한 코인을 가져온다.
 for ticker in Tickers:
 
@@ -315,6 +308,8 @@ for ticker in Tickers:
 
                         
                     else:
+                        if min % 60 == 0:
+                            line_alert.SendMessage("현재 평가 전체 금액 : " + str(balance['USDT']['total']))
 
                         #주문 정보를 읽어온다.
                         orders = binanceX.fetch_orders(Target_Coin_Ticker)
@@ -514,7 +509,7 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if (up_first_value <= 35.0 or up_second_value <= 35.0) and now_rsi<= up_first_value:
+                                if (up_first_value <= 35.0 or up_second_value <= 35.0) and now_rsi<= 40:
                                     IsLongDivergence = True
             
 
@@ -582,7 +577,7 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if (down_first_value >= 65.0 or down_second_value >= 65.0) and now_rsi>=down_first_value:
+                                if (down_first_value >= 65.0 or down_second_value >= 65.0) and now_rsi>=60:
                                     IsShortDivergence = True
 
 
