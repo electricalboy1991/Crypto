@@ -63,7 +63,7 @@ CoinCnt = 5.0 #len(LovelyCoinList)
 DolPaCoinList = list()
 
 #파일 경로입니다.
-dolpha_type_file_path = "/var/autobot/BinanceRSIDolPaCoin.json"
+dolpha_type_file_path = "/var/Autobot_seoul/BinanceRSIDolPaCoin.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(dolpha_type_file_path, 'r') as json_file:
@@ -82,7 +82,7 @@ except Exception as e:
 ChangeValueDict = dict()
 
 #파일 경로입니다.
-change_value_file_path = "/var/autobot/BinanceRSIchangeValue.json"
+change_value_file_path = "/var/Autobot_seoul/BinanceRSIDolPaCoin.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(change_value_file_path, 'r') as json_file:
@@ -371,6 +371,7 @@ for ticker in Tickers:
                         if abs(amt_s) > 0:
 
                             #익절할 가격을 구합니다. 파일에 저장된 값 (change_value) 을 사용하는 것을 볼 수 있습니다!
+                            #물타기를 하면 entryPrice_s, 이 값이 변경됨
                             target_price = entryPrice_s - (ChangeValueDict[Target_Coin_Ticker] * 1.0)
                                 
                             #### 영상에 없지만 익절 주문이 있는지 여부 플래그 변수를 하나 만들었어요! ###
@@ -385,8 +386,9 @@ for ticker in Tickers:
                                     pprint.pprint(order)
                                     bExist = True #### 익절 주문이 있다면 (당연히 있겠죠)! True를 입력해줍니다. ###
                                     
-                                    #이 안에 들어왔다면 익절 주문인데
-                                    #익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐 
+                                    # 이 안에 들어왔다면 익절 주문인데
+                                    # 익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐
+                                    # 물타기를 하면 entryPrice_s, 이 값이 변경됨 -> target_price = entryPrice_s - (ChangeValueDict[Target_Coin_Ticker] * 1.0)에 의해 target_price가 변경됨
                                     if float(order['price']) != float(binanceX.price_to_precision(Target_Coin_Ticker,target_price)):
 
                                         #기존 익절 주문 취소하고
@@ -599,7 +601,7 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_sell_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'sell', data['amount'], target_price, params))
-
+                            line_alert.SendMessage("[바이_div_롱_진입] : " + Target_Coin_Ticker  + " " + round(Buy_Amt*data['price']))
 
 
 
@@ -674,10 +676,6 @@ for ticker in Tickers:
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
-                            
-
-
-                            line_alert.SendMessage("[바이_div_long시작] : " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
 
                                                 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
@@ -702,7 +700,7 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_buy_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', data['amount'], target_price, params))
-
+                            line_alert.SendMessage("[바이_div_숏_진입] : " + Target_Coin_Ticker + " " +round(Buy_Amt*data['price']))
 
 
 
@@ -778,8 +776,6 @@ for ticker in Tickers:
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
-
-                            line_alert.SendMessage("[바이_div_short 시작] : " + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
 
 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
