@@ -111,11 +111,13 @@ TopCoinList = myBinance.GetTopCoinList(binanceX,25)
 #try - except로 감싸주는게 좋습니다. 왜냐하면 비트와 이더가 탑 25위 안에 안드는 일은 없겠지만
 #다른 코인을 제외했는데 그 코인이 거래대금이 줄어들어 TopCoinList에서 빠지면
 #리스트에서 없는 요소를 제거하려고 했기때문에 예외가 발생하고 아래 로직이 실행되지 않게 됩니다.
-try:
-    TopCoinList.remove("BTC/USDT")
-    TopCoinList.remove("ETH/USDT")
-except Exception as e:
-    print("Exception", e)
+
+
+# try:
+#     TopCoinList.remove("BTC/USDT")
+#     TopCoinList.remove("ETH/USDT")
+# except Exception as e:
+#     print("Exception", e)
 
 
     
