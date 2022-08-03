@@ -49,7 +49,7 @@ Tickers = binanceX.fetch_tickers()
 
 #총 원금대비 설정 비율 
 #아래처럼 0.2 로 셋팅하면 20%가 해당 전략에 할당된다는 이야기!
-Invest_Rate = 0.003
+Invest_Rate = 0.1
 
 
 #테스트를 위해 비트코인만 일단 체크해봅니다. 
@@ -71,7 +71,7 @@ try:
 
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-    print("Exception by First")
+    print("DolPaCoinList Exception by First")
 
 
 
@@ -82,7 +82,7 @@ except Exception as e:
 ChangeValueDict = dict()
 
 #파일 경로입니다.
-change_value_file_path = "/var/Autobot_seoul/BinanceRSIDolPaCoin.json"
+change_value_file_path = "/var/Autobot_seoul/BinanceRSIchangeValue.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(change_value_file_path, 'r') as json_file:
@@ -90,7 +90,7 @@ try:
 
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-    print("Exception by First")
+    print("ChangeValueDict Exception by First")
 
 
 
@@ -136,6 +136,11 @@ time_info = time.gmtime()
 hour = time_info.tm_hour
 min = time_info.tm_min
 print(hour, min)
+
+
+
+
+
 #모든 선물 거래가능한 코인을 가져온다.
 for ticker in Tickers:
 
@@ -286,7 +291,8 @@ for ticker in Tickers:
 
                 #전략에 의해 매수 했는데..
                 if myBinance.CheckCoinInList(DolPaCoinList,ticker) == True:
-
+                    if min % 60 ==0:
+                        line_alert.SendMessage("평가 금액 : " + str(balance['USDT']['total']))
 
                     #그런데 포지션이 없다. 익절이나 손절한 상태!
                     if abs(amt_s) == 0 and abs(amt_b) == 0:
@@ -308,8 +314,6 @@ for ticker in Tickers:
 
                         
                     else:
-                        if min % 60 == 0:
-                            line_alert.SendMessage("현재 평가 전체 금액 : " + str(balance['USDT']['total']))
 
                         #주문 정보를 읽어온다.
                         orders = binanceX.fetch_orders(Target_Coin_Ticker)
@@ -352,7 +356,7 @@ for ticker in Tickers:
 
                                         
                                         #아래 주석을 풀면 거미줄이 체결되 익절 주문이 변경될때 나에게 알림을 보낼 수 있습니다!
-                                        line_alert.SendMessage("[바이_div_long물타기] : " + Target_Coin_Ticker )
+                                        line_alert.SendMessage("[바이_div_long물타기] : "  + Target_Coin_Ticker )
 
 
                             #### 앗 그런데 익절 주문이 없다고???? ###
@@ -364,14 +368,13 @@ for ticker in Tickers:
                                 }
                                 #print(binanceX.create_limit_sell_order(Target_Coin_Ticker,abs(amt_b),target_price,params))
                                 print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'sell', abs(amt_b), target_price, params))
-                                line_alert.SendMessage("[바이_div_long익절주문추가] : " + Target_Coin_Ticker)
+                                
                                    
 
                         #숏포지션이 있다면 현재 라이브상태!
                         if abs(amt_s) > 0:
 
                             #익절할 가격을 구합니다. 파일에 저장된 값 (change_value) 을 사용하는 것을 볼 수 있습니다!
-                            #물타기를 하면 entryPrice_s, 이 값이 변경됨
                             target_price = entryPrice_s - (ChangeValueDict[Target_Coin_Ticker] * 1.0)
                                 
                             #### 영상에 없지만 익절 주문이 있는지 여부 플래그 변수를 하나 만들었어요! ###
@@ -386,9 +389,8 @@ for ticker in Tickers:
                                     pprint.pprint(order)
                                     bExist = True #### 익절 주문이 있다면 (당연히 있겠죠)! True를 입력해줍니다. ###
                                     
-                                    # 이 안에 들어왔다면 익절 주문인데
-                                    # 익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐
-                                    # 물타기를 하면 entryPrice_s, 이 값이 변경됨 -> target_price = entryPrice_s - (ChangeValueDict[Target_Coin_Ticker] * 1.0)에 의해 target_price가 변경됨
+                                    #이 안에 들어왔다면 익절 주문인데
+                                    #익절 주문의 가격이 위에서 방금 구한 익절할 가격과 다르다면? 거미줄에 닿아 평단과 수량이 바뀐 경우니깐 
                                     if float(order['price']) != float(binanceX.price_to_precision(Target_Coin_Ticker,target_price)):
 
                                         #기존 익절 주문 취소하고
@@ -404,7 +406,7 @@ for ticker in Tickers:
                                         print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', abs(amt_s), target_price, params))
     
                                         
-                                        line_alert.SendMessage("[바이_div_short물타기] : " + Target_Coin_Ticker )
+                                        line_alert.SendMessage("[바이_div_short물타기]  : " + Target_Coin_Ticker )
 
                             #### 앗 그런데 익절 주문이 없다고???? ###
                             if bExist == False:
@@ -415,7 +417,7 @@ for ticker in Tickers:
                                 }
                                 #print(binanceX.create_limit_buy_order(Target_Coin_Ticker,abs(amt_s),target_price,params))
                                 print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', abs(amt_s), target_price, params))
-                                line_alert.SendMessage("[바이_div_short익절주문추가] : " + Target_Coin_Ticker)
+
 
 
                 else:
@@ -511,7 +513,8 @@ for ticker in Tickers:
                             if abs(amt_b) == 0 and df['close'][-(up_first_point)] < df['close'][-(up_second_point)] and len(DolPaCoinList) < CoinCnt:
 
                                 #RSI지표가 두좌표중 1개가 35이하일때만 유효하게 하자!
-                                if (up_first_value <= 35.0 or up_second_value <= 35.0) and now_rsi<= 40:
+                                if (up_first_value <= 35.0 or up_second_value <= 35.0) and now_rsi <35.0:
+                                # if up_first_value <= 35.0 or up_second_value <= 35.0:
                                     IsLongDivergence = True
             
 
@@ -579,7 +582,8 @@ for ticker in Tickers:
 
 
                                 #RSI지표가 두좌표중 1개가 65이상일때만 유효하게 하자!
-                                if (down_first_value >= 65.0 or down_second_value >= 65.0) and now_rsi>=60:
+                                if (down_first_value >= 65.0 or down_second_value >= 65.0) and now_rsi>=65.0:
+                                # if down_first_value >= 65.0 or down_second_value >= 65.0:
                                     IsShortDivergence = True
 
 
@@ -601,9 +605,6 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_sell_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'sell', data['amount'], target_price, params))
-                            line_alert.SendMessage("[바이_div_롱_진입] : " + Target_Coin_Ticker  + " " + str(round(Buy_Amt*data['price'],2)))
-
-
 
                             #아래는 물타기 라인을 긋는 로직입니다.
                             TotalWater_Amt = 0 #누적 거미줄에 깔린 수량
@@ -676,6 +677,10 @@ for ticker in Tickers:
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
+                            
+
+
+                            line_alert.SendMessage("[바이_div_롱_진입] " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
 
                                                 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
@@ -700,7 +705,7 @@ for ticker in Tickers:
                             #그리고 지정가로 익절 주문을 걸어놓는다!            
                             #print(binanceX.create_limit_buy_order(Target_Coin_Ticker,data['amount'],target_price,params))
                             print(binanceX.create_order(Target_Coin_Ticker, 'limit', 'buy', data['amount'], target_price, params))
-                            line_alert.SendMessage("[바이_div_숏_진입] : " + Target_Coin_Ticker + " " + str(round(Buy_Amt*data['price'],2)))
+
 
 
 
@@ -776,6 +781,8 @@ for ticker in Tickers:
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
+
+                            line_alert.SendMessage("[바이_div_숏_진입]" + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
 
 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
