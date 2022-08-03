@@ -680,7 +680,7 @@ for ticker in Tickers:
                             
 
 
-                            line_alert.SendMessage("[바이_div_롱_진입] " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(up_first_value) +  "," + str(up_second_point)+ "/" + str(up_second_value) )
+                            line_alert.SendMessage("[바이_div_롱_진입] " + Target_Coin_Ticker + " X: " + str(up_first_point) + "/" + str(round(up_first_value,1)) +  " , " + str(up_second_point)+ "/" + str(round(up_second_value,1)))
 
                                                 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
@@ -777,18 +777,16 @@ for ticker in Tickers:
                             #실제로 리스트에 매수(포지션 잡았다고)했다고 해당 코인 이름(티커)를 저장해둔다!
                             DolPaCoinList.append(Target_Coin_Ticker)
                                     
-                            
+
                             with open(dolpha_type_file_path, 'w') as outfile:
                                 json.dump(DolPaCoinList, outfile)
                             ####################################################################
 
-                            line_alert.SendMessage("[바이_div_숏_진입]" + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(down_first_value) +  "," + str(down_second_point) + "/" + str(down_second_value)  )
+                            line_alert.SendMessage("[바이_div_숏_진입]" + Target_Coin_Ticker + " X: " + str(down_first_point) + "/" + str(round(down_first_value,1)) +  " , " + str(down_second_point) + "/" + str(round(down_second_value,1)))
 
 
                             #매수 했다면 한번 더 잔고 데이타 가져오기 
                             balance = binanceX.fetch_balance(params={"type": "future"})
-
-
 
 
     except Exception as e:
