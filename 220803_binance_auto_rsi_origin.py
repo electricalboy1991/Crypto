@@ -120,27 +120,28 @@ TopCoinList = myBinance.GetTopCoinList(binanceX,25)
 #     print("Exception", e)
 
 
-    
+for ticker1 in Tickers:
+    if "/USDT" in ticker1:
+        candidate_ticker = ticker1
+        if abs(float(Tickers[candidate_ticker]['info']['priceChangePercent'])) > 10:
+            try:
+                TopCoinList.remove(candidate_ticker)
+            except Exception as e:
+                print("Exception", e)
+
+
 print(TopCoinList)
-
-
 
 #잔고 데이타 가져오기 
 balance = binanceX.fetch_balance(params={"type": "future"})
 time.sleep(0.1)
 #pprint.pprint(balance)
 
-
-
-
 #시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
 time_info = time.gmtime()
 hour = time_info.tm_hour
 min = time_info.tm_min
 print(hour, min)
-
-
-
 
 
 #모든 선물 거래가능한 코인을 가져온다.
