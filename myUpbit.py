@@ -2,7 +2,7 @@
 import pyupbit
 import time
 import pandas as pd
-
+import requests
 from cryptography.fernet import Fernet
 
 '''
@@ -15,7 +15,7 @@ class SimpleEnDecrypt:
             key = Fernet.generate_key() # 키를 생성한다
         self.key = key
         self.f   = Fernet(self.key)
-    
+
     def encrypt(self, data, is_out_string=True):
         if isinstance(data, bytes):
             ou = self.f.encrypt(data) # 바이트형태이면 바로 암호화
@@ -128,6 +128,13 @@ def GetMACD(ohlcv, st):
     dic_macd['ocl'] = dic_macd['macd'] - dic_macd['macd_siginal']
 
     return dic_macd
+
+def upbit_get_usd_krw():
+    url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD'
+    exchange =requests.get(url, headers=headers).json()
+    return exchange[0]['basePrice']
+
+headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 
 
 #거래대금이 많은 순으로 코인 리스트를 얻는다. 첫번째 : Interval기간(day,week,minute15 ....), 두번째 : 몇개까지 
