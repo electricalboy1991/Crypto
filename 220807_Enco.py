@@ -118,12 +118,41 @@ for ticker_upbit in TopCoinList_upbit:
 
         now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
         k_rate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
+
+        leverage = 0  # 레버리지
+        isolated = True  # 격리모드인지
+
+        Target_Coin_Symbol = ticker_binance.replace("/", "")
+
+        #################################################################################################################
+        # 레버리지 셋팅
+        if leverage != set_leverage:
+
+            try:
+                print(binanceX.fapiPrivate_post_leverage(
+                    {'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
+            except Exception as e:
+                print("Exception:", e)
+
+        #################################################################################################################
+
+        #################################################################################################################
+        # 격리 모드로 설정
+        if isolated == False:
+            try:
+                print(binanceX.fapiPrivate_post_margintype(
+                    {'symbol': Target_Coin_Symbol, 'marginType': 'ISOLATED'}))
+            except Exception as e:
+                print("Exception:", e)
+        #################################################################################################################
+
+
         # 전략에 의해 매수 했고
         if myUpbit.CheckCoinInList(Kimplist,ticker_upbit) == True:
             # 따라서 잔고도 있다.
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
-                if k_rate > 1.9:
+                if k_rate > 2:
                     isolated = True  # 격리모드인지
 
                     Target_Coin_Symbol = ticker_binance.replace("/", "")
@@ -161,7 +190,7 @@ for ticker_upbit in TopCoinList_upbit:
 
         # 아직 김프 포지션 못 잡은 상태
         else:
-            if k_rate < 0.1 and len(Kimplist) < CoinCnt:
+            if k_rate < 1 and len(Kimplist) < CoinCnt:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -169,35 +198,6 @@ for ticker_upbit in TopCoinList_upbit:
                 print(balance_binanace['USDT'])
                 print("Total Money:", float(balance_binanace['USDT']['total']))
                 print("Remain Money:", float(balance_binanace['USDT']['free']))
-
-                Target_Coin_Symbol = ticker_binance.replace("/", "")
-
-                leverage = 0  # 레버리지
-                isolated = True  # 격리모드인지
-
-
-                #################################################################################################################
-                # 레버리지 셋팅
-                if leverage != set_leverage:
-
-                    try:
-                        print(binanceX.fapiPrivate_post_leverage(
-                            {'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
-                    except Exception as e:
-                        print("Exception:", e)
-
-                #################################################################################################################
-
-                #################################################################################################################
-                # 격리 모드로 설정
-                if isolated == False:
-                    try:
-                        print(binanceX.fapiPrivate_post_margintype(
-                            {'symbol': Target_Coin_Symbol, 'marginType': 'ISOLATED'}))
-                    except Exception as e:
-                        print("Exception:", e)
-                #################################################################################################################
-
 
                 Buy_Amt = float(binanceX.amount_to_precision(ticker_binance,myBinance.GetAmount(float(balance_binanace['USDT']['total']),
                           now_price_binance, Invest_Rate / CoinCnt))) * set_leverage
