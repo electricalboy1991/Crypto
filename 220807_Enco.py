@@ -174,7 +174,10 @@ for ticker_upbit in TopCoinList_upbit:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                    binanceX.cancel_all_orders(ticker_binance)
                     print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(amt_s), None, params))
+
+                    myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                     print(myUpbit.SellCoinMarket(upbit, ticker_upbit, upbit.get_balance(ticker_upbit)))
 
                     time.sleep(0.1)
