@@ -48,6 +48,21 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First")
 
+Situation_flag = dict()
+
+Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(Situation_flag_type_file_path, 'r') as json_file:
+        Situation_flag = json.load(json_file)
+
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First")
+
+
+
+
 
 #시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
 time_info = time.gmtime()
@@ -152,6 +167,7 @@ for ticker_upbit in TopCoinList_upbit:
             # 따라서 잔고도 있다.
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
+                #수익화
                 if k_rate > 2:
                     isolated = True  # 격리모드인지
 
@@ -191,9 +207,149 @@ for ticker_upbit in TopCoinList_upbit:
                     with open(Kimplist_type_file_path, 'w') as outfile:
                         json.dump(Kimplist, outfile)
 
+                    Situation_flag[ticker_upbit] = [False,False,False,False,False]
+
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+
+
+
+                elif k_rate > 0.0 and k_rate < 0.6 and Situation_flag[ticker_upbit][1] == False:
+                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(float(balance_binanace['USDT']['total']),
+                        now_price_binance, Invest_Rate / CoinCnt))) * set_leverage
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, Buy_Amt))
+
+                    ADMoney = Buy_Amt * now_price_upbit
+
+                    # 5천원 이하면 매수가 아예 안되니 5천원 미만일 경우 강제로 5000원으로 만들어 준다!
+                    if ADMoney < 5000:
+                        ADMoney = 5000
+
+                    # 최소 주문 수량보다 작다면 이렇게 셋팅!
+                    if Buy_Amt < minimun_amount:
+                        Buy_Amt = minimun_amount
+
+
+                    params = {'positionSide': 'SHORT'}
+
+                    # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+
+                    time.sleep(0.1)
+                    line_alert.SendMessage(
+                        "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+
+                    Situation_flag[ticker_upbit][1] = True
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+
+                elif k_rate > -0.6 and k_rate < 0.0 and Situation_flag[ticker_upbit][2] == False:
+                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(
+                        float(balance_binanace['USDT']['total']),
+                        now_price_binance, Invest_Rate / CoinCnt))) * set_leverage
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, Buy_Amt))
+
+                    ADMoney = Buy_Amt * now_price_upbit
+
+                    # 5천원 이하면 매수가 아예 안되니 5천원 미만일 경우 강제로 5000원으로 만들어 준다!
+                    if ADMoney < 5000:
+                        ADMoney = 5000
+
+                    # 최소 주문 수량보다 작다면 이렇게 셋팅!
+                    if Buy_Amt < minimun_amount:
+                        Buy_Amt = minimun_amount
+
+                    params = {'positionSide': 'SHORT'}
+
+                    # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+
+                    time.sleep(0.1)
+                    line_alert.SendMessage(
+                        "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+
+                    Situation_flag[ticker_upbit][2] = True
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+
+                elif k_rate > -1.2 and k_rate < -0.6 and Situation_flag[ticker_upbit][3] == False:
+                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(
+                        float(balance_binanace['USDT']['total']),
+                        now_price_binance, Invest_Rate / CoinCnt))) * set_leverage
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, Buy_Amt))
+
+                    ADMoney = Buy_Amt * now_price_upbit
+
+                    # 5천원 이하면 매수가 아예 안되니 5천원 미만일 경우 강제로 5000원으로 만들어 준다!
+                    if ADMoney < 5000:
+                        ADMoney = 5000
+
+                    # 최소 주문 수량보다 작다면 이렇게 셋팅!
+                    if Buy_Amt < minimun_amount:
+                        Buy_Amt = minimun_amount
+
+                    params = {'positionSide': 'SHORT'}
+
+                    # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+
+                    time.sleep(0.1)
+                    line_alert.SendMessage(
+                        "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+
+                    Situation_flag[ticker_upbit][3] = True
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+
+                elif k_rate < -1.2 and Situation_flag[ticker_upbit][4] == False:
+                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(
+                        float(balance_binanace['USDT']['total']),
+                        now_price_binance, Invest_Rate / CoinCnt))) * set_leverage
+
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, Buy_Amt))
+
+                    ADMoney = Buy_Amt * now_price_upbit
+
+                    # 5천원 이하면 매수가 아예 안되니 5천원 미만일 경우 강제로 5000원으로 만들어 준다!
+                    if ADMoney < 5000:
+                        ADMoney = 5000
+
+                    # 최소 주문 수량보다 작다면 이렇게 셋팅!
+                    if Buy_Amt < minimun_amount:
+                        Buy_Amt = minimun_amount
+
+                    params = {'positionSide': 'SHORT'}
+
+                    # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+
+                    time.sleep(0.1)
+                    line_alert.SendMessage(
+                        "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+
+                    Situation_flag[ticker_upbit][4] = True
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+
+
         # 아직 김프 포지션 못 잡은 상태
         else:
-            if k_rate < 1 and len(Kimplist) < CoinCnt:
+            if k_rate < 1.2 and len(Kimplist) < CoinCnt:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -208,7 +364,6 @@ for ticker_upbit in TopCoinList_upbit:
                 Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, Buy_Amt))
                 print("Buy_Amt",Buy_Amt)
 
-                # 할당 금액의 1/15 을 첫 진입 금액으로!
                 FirstEnterMoney = Buy_Amt*now_price_upbit
 
                 # 5천원 이하면 매수가 아예 안되니 5천원 미만일 경우 강제로 5000원으로 만들어 준다!
@@ -218,8 +373,6 @@ for ticker_upbit in TopCoinList_upbit:
                 # 최소 주문 수량보다 작다면 이렇게 셋팅!
                 if Buy_Amt < minimun_amount:
                     Buy_Amt = minimun_amount
-
-                isolated = True  # 격리모드인지
 
                 # 숏 포지션을 잡습니다.
                 params = {'positionSide': 'SHORT'}
@@ -231,7 +384,6 @@ for ticker_upbit in TopCoinList_upbit:
                 stop_price_binance = now_price_binance*1.3
                 stop_price_upbit = now_price_upbit*1.3
 
-
                 myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                 coin_volume = upbit.get_balance(ticker_upbit)
@@ -239,12 +391,16 @@ for ticker_upbit in TopCoinList_upbit:
 
                 time.sleep(0.1)
                 line_alert.SendMessage(
-                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                    "[김프 초기 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
                 with open(Kimplist_type_file_path, 'w') as outfile:
                     json.dump(Kimplist, outfile)
+
+                Situation_flag[ticker_upbit] = [True,False,False,False,False]
+                with open(Situation_flag_type_file_path, 'w') as outfile:
+                    json.dump(Situation_flag, outfile)
 
             else:
                 continue
