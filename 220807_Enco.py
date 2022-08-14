@@ -36,7 +36,8 @@ time.sleep(0.05)
 
 #빈 리스트를 선언합니다.
 Kimplist = list()
-Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+# Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Kimplist_type_file_path, 'r') as json_file:
@@ -47,7 +48,8 @@ except Exception as e:
     print("Exception by First 1")
 
 Situation_flag = dict()
-Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+# Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Situation_flag_type_file_path, 'r') as json_file:
@@ -57,7 +59,8 @@ except Exception as e:
     print("Exception by First 2")
 
 Krate_ExClose= dict()
-Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+# Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_ExClose_type_file_path, 'r') as json_file:
@@ -68,7 +71,8 @@ except Exception as e:
     print("Exception by First 3")
 
 Krate_total = dict()
-Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+# Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_total_type_file_path, 'r') as json_file:
@@ -77,7 +81,19 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 4")
 
+#### 이거 매번 가져올 수 없으니까, 수정해줘 나중에
+# top_file_path = "/var/Autobot_seoul/TopCoinList.json"
+TopCoinList_upbit = list()
+top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
 
+#파일을 읽어서 리스트를 만듭니다.
+try:
+    with open(top_file_path, "r") as json_file:
+        TopCoinList_upbit = json.load(json_file)
+
+except Exception as e:
+    TopCoinList_upbit = myUpbit.GetTopCoinList("day",30)
+    print("Exception by First")
 
 #시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
 time_info = time.gmtime()
@@ -86,15 +102,15 @@ min = time_info.tm_min
 print(hour, min)
 
 
-Invest_Rate = 0.1
+Invest_Rate = 0.3
 set_leverage = 3
-profit_rate = 0.8
+profit_rate = 1.0
 Krate_interval = 0.4
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
 ####이거 늘릴 때, 최소 금액 맞춰주기
-CoinCnt = 5.0
+CoinCnt = 10.0
 
 
 # binance 객체 생성
@@ -116,21 +132,9 @@ balance_upbit = upbit.get_balances()
 
 won_rate = myUpbit.upbit_get_usd_krw()
 
-#### 이거 매번 가져올 수 없으니까, 수정해줘 나중에
-top_file_path = "./UpbitTopCoinList.json"
 
-# TopCoinList_upbit = list()
 
-# #파일을 읽어서 리스트를 만듭니다.
-# try:
-#     with open(top_file_path, "r") as json_file:
-#         TopCoinList_upbit = json.load(json_file)
-#
-# except Exception as e:
-#     TopCoinList_upbit = myUpbit.GetTopCoinList("day",30)
-#     print("Exception by First")
-
-TopCoinList_upbit = ['KRW-FLOW','KRW-ETC','KRW-BTC','KRW-NEAR','KRW-ETH','KRW-WAVES','KRW-XRP']
+# TopCoinList_upbit = ['KRW-FLOW','KRW-ETC','KRW-BTC','KRW-NEAR','KRW-ETH','KRW-WAVES','KRW-XRP']
 
 characters = "KRW-"
 
@@ -145,7 +149,11 @@ for ticker_upbit in TopCoinList_upbit:
         Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
 
         Krate_list = list(filter(None, Krate_total[ticker_upbit]))
-        Krate_average = sum(Krate_list)/len(Krate_list)
+        if len(Krate_list) ==0:
+            pass
+        else:
+            Krate_average = sum(Krate_list)/len(Krate_list)
+
         # 종가를 저장하는 로직
         if hour ==23 and min % 60 ==0:
 
