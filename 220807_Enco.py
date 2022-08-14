@@ -34,10 +34,18 @@ Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
 
 time.sleep(0.05)
 
+
+#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
+time_info = time.gmtime()
+hour = time_info.tm_hour
+min = time_info.tm_min
+print(hour, min)
+
+
 #빈 리스트를 선언합니다.
 Kimplist = list()
-# Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
-Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
+Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+# Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Kimplist_type_file_path, 'r') as json_file:
@@ -48,8 +56,8 @@ except Exception as e:
     print("Exception by First 1")
 
 Situation_flag = dict()
-# Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
-Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
+Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+# Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Situation_flag_type_file_path, 'r') as json_file:
@@ -59,8 +67,8 @@ except Exception as e:
     print("Exception by First 2")
 
 Krate_ExClose= dict()
-# Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
-Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
+Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+# Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_ExClose_type_file_path, 'r') as json_file:
@@ -71,8 +79,8 @@ except Exception as e:
     print("Exception by First 3")
 
 Krate_total = dict()
-# Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
-Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
+Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+# Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_total_type_file_path, 'r') as json_file:
@@ -82,27 +90,26 @@ except Exception as e:
     print("Exception by First 4")
 
 #### 이거 매번 가져올 수 없으니까, 수정해줘 나중에
-# top_file_path = "/var/Autobot_seoul/TopCoinList.json"
-TopCoinList_upbit = list()
-top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
+TopCoinList = list()
+top_file_path = "/var/Autobot_seoul/TopCoinList.json"
+# top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
 
 #파일을 읽어서 리스트를 만듭니다.
 try:
     with open(top_file_path, "r") as json_file:
-        TopCoinList_upbit = json.load(json_file)
+        TopCoinList = json.load(json_file)
+        if hour ==22 and min % 60 ==1:
+            with open(top_file_path, 'w') as outfile:
+                json.dump(TopCoinList, outfile)
 
 except Exception as e:
-    TopCoinList_upbit = myUpbit.GetTopCoinList("day",30)
+    TopCoinList = myUpbit.GetTopCoinList("day",30)
     print("Exception by First")
 
-#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
-time_info = time.gmtime()
-hour = time_info.tm_hour
-min = time_info.tm_min
-print(hour, min)
 
 
-Invest_Rate = 0.3
+
+Invest_Rate = 0.5
 set_leverage = 3
 profit_rate = 1.0
 Krate_interval = 0.4
@@ -138,7 +145,7 @@ won_rate = myUpbit.upbit_get_usd_krw()
 
 characters = "KRW-"
 
-for ticker_upbit in TopCoinList_upbit:
+for ticker_upbit in TopCoinList:
     now_price_upbit = pyupbit.get_current_price(ticker_upbit)
     ticker_temp = ticker_upbit.replace('KRW-','')
     ticker_binance = ticker_temp+'/USDT'
@@ -148,11 +155,13 @@ for ticker_upbit in TopCoinList_upbit:
         now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
         Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
 
-        Krate_list = list(filter(None, Krate_total[ticker_upbit]))
-        if len(Krate_list) ==0:
-            pass
-        else:
+        if ticker_upbit in Krate_total:
+            Krate_list = list(filter(None, Krate_total[ticker_upbit]))
             Krate_average = sum(Krate_list)/len(Krate_list)
+        else:
+            Krate_total[ticker_upbit] = [2,2,2,2,2]
+            Krate_list = list(filter(None, Krate_total[ticker_upbit]))
+            Krate_average = sum(Krate_list) / len(Krate_list)
 
         # 종가를 저장하는 로직
         if hour ==23 and min % 60 ==0:
@@ -164,6 +173,14 @@ for ticker_upbit in TopCoinList_upbit:
                 Krate_ExClose[ticker_upbit] = Krate
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
                     json.dump(Krate_ExClose, outfile)
+
+        #TopCoinList가 바뀌어서 ExClose에 새로 넣어줘야할 때
+        if ticker_upbit in Krate_ExClose:
+            pass
+        else:
+            Krate_ExClose[ticker_upbit] = Krate
+            with open(Krate_ExClose_type_file_path, 'w') as outfile:
+                json.dump(Krate_ExClose, outfile)
 
         leverage = 0  # 레버리지
         isolated = True  # 격리모드인지
@@ -228,6 +245,7 @@ for ticker_upbit in TopCoinList_upbit:
 
                     #주문 취소해줘야 매도 됨
                     myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                    time.sleep(0.1)
                     print(myUpbit.SellCoinMarket(upbit, ticker_upbit, upbit.get_balance(ticker_upbit)))
 
                     time.sleep(0.1)
@@ -244,7 +262,7 @@ for ticker_upbit in TopCoinList_upbit:
                     with open(Situation_flag_type_file_path, 'w') as outfile:
                         json.dump(Situation_flag, outfile)
 
-                    Krate_total[ticker_upbit] = [None,None,None,None,None]
+                    Krate_total[ticker_upbit] = [2,2,2,2,2]
                     with open(Krate_total_type_file_path, 'w') as outfile:
                         json.dump(Krate_total, outfile)
 
@@ -452,6 +470,7 @@ for ticker_upbit in TopCoinList_upbit:
 
                 # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                 print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                time.sleep(0.1)
                 print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
 
                 stop_price_binance = now_price_binance*1.3
