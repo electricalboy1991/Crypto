@@ -44,11 +44,24 @@ print(hour, min)
 
 #빈 리스트를 선언합니다.
 Kimplist = list()
+
+
 Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+top_file_path = "/var/Autobot_seoul/TopCoinList.json"
+
+#
 # Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
+# Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
+# Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
+# Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
+# top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
+
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-    with open(Kimplist_type_file_path, 'r') as json_file:
+    with open(Kimplist_type_file_path, 'r', encoding="utf-8") as json_file:
         Kimplist = json.load(json_file)
 
 except Exception as e:
@@ -56,22 +69,20 @@ except Exception as e:
     print("Exception by First 1")
 
 Situation_flag = dict()
-Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
-# Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
+
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-    with open(Situation_flag_type_file_path, 'r') as json_file:
+    with open(Situation_flag_type_file_path, 'r', encoding="utf-8") as json_file:
         Situation_flag = json.load(json_file)
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 2")
 
 Krate_ExClose= dict()
-Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
-# Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
+
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-    with open(Krate_ExClose_type_file_path, 'r') as json_file:
+    with open(Krate_ExClose_type_file_path, 'r', encoding="utf-8") as json_file:
         Krate_ExClose = json.load(json_file)
 
 except Exception as e:
@@ -79,11 +90,10 @@ except Exception as e:
     print("Exception by First 3")
 
 Krate_total = dict()
-Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
-# Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
+
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-    with open(Krate_total_type_file_path, 'r') as json_file:
+    with open(Krate_total_type_file_path, 'r', encoding="utf-8") as json_file:
         Krate_total = json.load(json_file)
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
@@ -91,15 +101,14 @@ except Exception as e:
 
 #### 이거 매번 가져올 수 없으니까, 수정해줘 나중에
 TopCoinList = list()
-top_file_path = "/var/Autobot_seoul/TopCoinList.json"
-# top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
 
 #파일을 읽어서 리스트를 만듭니다.
 try:
-    with open(top_file_path, "r") as json_file:
+    with open(top_file_path, "r", encoding="utf-8") as json_file:
         TopCoinList = json.load(json_file)
-        if hour ==22 and min % 60 ==1:
-            with open(top_file_path, 'w') as outfile:
+        if hour ==0 and min % 60 ==42:
+            TopCoinList = myUpbit.GetTopCoinList("day", 30)
+            with open(top_file_path, 'w', encoding="utf-8") as outfile:
                 json.dump(TopCoinList, outfile)
 
 except Exception as e:
@@ -109,7 +118,7 @@ except Exception as e:
 
 
 
-Invest_Rate = 0.5
+Invest_Rate = 0.4
 set_leverage = 3
 profit_rate = 1.0
 Krate_interval = 0.4
@@ -146,7 +155,16 @@ won_rate = myUpbit.upbit_get_usd_krw()
 characters = "KRW-"
 
 for ticker_upbit in TopCoinList:
-    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+    try:
+        time.sleep(0.05)
+        now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+    except Exception as e:
+        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+        print(" Json Error " + str(ticker_upbit))
+        continue
+
+    if now_price_upbit < 500:
+        continue
     ticker_temp = ticker_upbit.replace('KRW-','')
     ticker_binance = ticker_temp+'/USDT'
 
