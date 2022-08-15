@@ -118,7 +118,7 @@ except Exception as e:
 
 
 
-Invest_Rate = 0.4
+Invest_Rate = 0.6
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
