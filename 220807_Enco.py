@@ -120,7 +120,7 @@ except Exception as e:
 
 Invest_Rate = 0.4
 set_leverage = 3
-profit_rate = 1.0
+profit_rate = 1.5
 Krate_interval = 0.4
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
@@ -233,6 +233,18 @@ for ticker_upbit in TopCoinList:
             # 따라서 잔고도 있다.
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
+                if Krate_average<=0:
+                    profit_rate = 2.6
+                elif 0<Krate_average<=1:
+                    profit_rate = 2.1
+                elif 1<Krate_average<=2:
+                    profit_rate = 1.6
+                elif 2 < Krate_average <= 2.5:
+                    profit_rate = 1.2
+                else:
+                    profit_rate = 1.0
+
+
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 if Krate > 0.5 \
                         and Krate > Krate_ExClose[ticker_upbit]+0.1 \
@@ -268,7 +280,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
 
-                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " " + str(round(abs(amt_s)*now_price_upbit*(Krate-0.1)/100,2)) + " 원")
+                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
 
 
                     Kimplist.remove(ticker_upbit)
@@ -501,7 +513,7 @@ for ticker_upbit in TopCoinList:
 
                 time.sleep(0.1)
                 line_alert.SendMessage(
-                    "[김프 초기 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
