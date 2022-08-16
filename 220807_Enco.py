@@ -52,7 +52,7 @@ Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
 Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
 top_file_path = "/var/Autobot_seoul/TopCoinList.json"
 
-#
+
 # Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
 # Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
 # Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
@@ -148,7 +148,12 @@ balance_upbit = upbit.get_balances()
 
 won_rate = myUpbit.upbit_get_usd_krw()
 
-
+upbit_remain_money=0
+for upbit_asset in balance_upbit:
+    if upbit_asset['currency'] == 'KRW':
+        upbit_remain_money = upbit_asset['balance']
+    else:
+        continue
 
 # TopCoinList_upbit = ['KRW-FLOW','KRW-ETC','KRW-BTC','KRW-NEAR','KRW-ETH','KRW-WAVES','KRW-XRP']
 
@@ -280,7 +285,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
 
-                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
+                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,1)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,1)) + "% ")
 
 
                     Kimplist.remove(ticker_upbit)
@@ -323,12 +328,15 @@ for ticker_upbit in TopCoinList:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
+                        print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    else:
+                        continue
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                        "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
 
                     Situation_flag[ticker_upbit][1] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -343,6 +351,8 @@ for ticker_upbit in TopCoinList:
                         and Krate > Krate_ExClose[ticker_upbit] - 4 * Krate_interval \
                         and Krate < Krate_ExClose[ticker_upbit] - 3 * Krate_interval \
                         and Situation_flag[ticker_upbit][2] == False:
+
+                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(
                         float(balance_binanace['USDT']['total']),
@@ -363,12 +373,15 @@ for ticker_upbit in TopCoinList:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
+                        print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    else:
+                        continue
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                        "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
 
                     Situation_flag[ticker_upbit][2] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -406,12 +419,15 @@ for ticker_upbit in TopCoinList:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
+                        print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    else:
+                        continue
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                        "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
 
                     Situation_flag[ticker_upbit][3] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -449,12 +465,15 @@ for ticker_upbit in TopCoinList:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
+                        print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                    else:
+                        continue
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                        "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
 
                     Situation_flag[ticker_upbit][4] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -499,9 +518,12 @@ for ticker_upbit in TopCoinList:
                 params = {'positionSide': 'SHORT'}
 
                 # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                time.sleep(0.1)
-                print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
+                if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and FirstEnterMoney < upbit_remain_money:
+                    print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
+                    print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
+                    time.sleep(0.1)
+                else:
+                    continue
 
                 stop_price_binance = now_price_binance*1.3
                 stop_price_upbit = now_price_upbit*1.3
@@ -513,7 +535,7 @@ for ticker_upbit in TopCoinList:
 
                 time.sleep(0.1)
                 line_alert.SendMessage(
-                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit, 2)) + "원")
+                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,1)))
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
