@@ -52,7 +52,7 @@ Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
 Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
 top_file_path = "/var/Autobot_seoul/TopCoinList.json"
 
-
+#
 # Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
 # Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
 # Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
@@ -151,7 +151,7 @@ won_rate = myUpbit.upbit_get_usd_krw()
 upbit_remain_money=0
 for upbit_asset in balance_upbit:
     if upbit_asset['currency'] == 'KRW':
-        upbit_remain_money = upbit_asset['balance']
+        upbit_remain_money = float(upbit_asset['balance'])
     else:
         continue
 
