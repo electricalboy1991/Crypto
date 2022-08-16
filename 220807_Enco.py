@@ -42,8 +42,7 @@ min = time_info.tm_min
 print(hour, min)
 
 
-#빈 리스트를 선언합니다.
-Kimplist = list()
+
 
 
 Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
@@ -58,6 +57,9 @@ top_file_path = "/var/Autobot_seoul/TopCoinList.json"
 # Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
 # Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
 # top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
+
+#빈 리스트를 선언합니다.
+Kimplist = list()
 
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
@@ -122,6 +124,7 @@ Invest_Rate = 0.5
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
+filtered_Krate = 3
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
@@ -190,7 +193,7 @@ for ticker_upbit in TopCoinList:
         if hour ==23 and min % 60 ==0:
 
             #  너무 높은 김프 예외
-            if Krate > 3:
+            if Krate > filtered_Krate:
                 pass
             else:
                 Krate_ExClose[ticker_upbit] = Krate
@@ -198,15 +201,21 @@ for ticker_upbit in TopCoinList:
                     json.dump(Krate_ExClose, outfile)
 
         #TopCoinList가 바뀌어서 ExClose에 새로 넣어줘야할 때
+        #지금의 김프가라도 ExClose에 반영해주는 거지.
         if ticker_upbit in Krate_ExClose:
             pass
         else:
-            Krate_ExClose[ticker_upbit] = Krate
-            with open(Krate_ExClose_type_file_path, 'w') as outfile:
-                json.dump(Krate_ExClose, outfile)
+            if Krate > filtered_Krate:
+                Krate_ExClose[ticker_upbit] = 2
+                with open(Krate_ExClose_type_file_path, 'w') as outfile:
+                    json.dump(Krate_ExClose, outfile)
+            else:
+                Krate_ExClose[ticker_upbit] = Krate
+                with open(Krate_ExClose_type_file_path, 'w') as outfile:
+                    json.dump(Krate_ExClose, outfile)
 
         leverage = 0  # 레버리지
-        isolated = True  # 격리모드인지
+        isolated = False  # 격리모드인지
 
         Target_Coin_Symbol = ticker_binance.replace("/", "")
 
@@ -239,13 +248,13 @@ for ticker_upbit in TopCoinList:
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
                 if Krate_average<=0:
-                    profit_rate = 2.6
-                elif 0<Krate_average<=1:
                     profit_rate = 2.1
+                elif 0<Krate_average<=1:
+                    profit_rate = 1.5
                 elif 1<Krate_average<=2:
-                    profit_rate = 1.6
-                elif 2 < Krate_average <= 2.5:
                     profit_rate = 1.2
+                elif 2 < Krate_average <= 2.5:
+                    profit_rate = 1.1
                 else:
                     profit_rate = 1.0
 
@@ -293,11 +302,15 @@ for ticker_upbit in TopCoinList:
                     with open(Kimplist_type_file_path, 'w') as outfile:
                         json.dump(Kimplist, outfile)
 
-                    Situation_flag[ticker_upbit] = [False,False,False,False,False]
+                    # Situation_flag[ticker_upbit] = [False,False,False,False,False]
+                    #매도하는 여기서 해당 딕셔너리를 그냥 제거하면 될 듯. 어차피 로직의 시작은 매도인데, 매도하면 새로 반영 되니까
+                    del Situation_flag[ticker_upbit]
                     with open(Situation_flag_type_file_path, 'w') as outfile:
                         json.dump(Situation_flag, outfile)
 
-                    Krate_total[ticker_upbit] = [2,2,2,2,2]
+                    # Krate_total[ticker_upbit] = [2,2,2,2,2]
+                    #매도하는 여기서 해당 딕셔너리를 그냥 제거하면 될 듯. 어차피 로직의 시작은 매도인데, 매도하면 새로 반영 되니까
+                    del Krate_total[ticker_upbit]
                     with open(Krate_total_type_file_path, 'w') as outfile:
                         json.dump(Krate_total, outfile)
 
