@@ -51,7 +51,7 @@ Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
 Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
 top_file_path = "/var/Autobot_seoul/TopCoinList.json"
 
-#
+
 # Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
 # Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
 # Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
@@ -161,6 +161,8 @@ for upbit_asset in balance_upbit:
 # TopCoinList_upbit = ['KRW-FLOW','KRW-ETC','KRW-BTC','KRW-NEAR','KRW-ETH','KRW-WAVES','KRW-XRP']
 
 characters = "KRW-"
+
+
 
 for ticker_upbit in TopCoinList:
     try:
@@ -294,8 +296,9 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
 
-                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,1)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,1)) + "% ")
-
+                    line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
+                    total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+                    line_alert.SendMessage("[자산] : " + total_asset + "만원")
 
                     Kimplist.remove(ticker_upbit)
                     # 파일에 리스트를 저장합니다
@@ -349,7 +352,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
+                        "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                     Situation_flag[ticker_upbit][1] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -394,7 +397,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
+                        "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                     Situation_flag[ticker_upbit][2] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -440,7 +443,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
+                        "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                     Situation_flag[ticker_upbit][3] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -486,7 +489,7 @@ for ticker_upbit in TopCoinList:
 
                     time.sleep(0.1)
                     line_alert.SendMessage(
-                        "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,1)))
+                        "[2 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                     Situation_flag[ticker_upbit][4] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -548,7 +551,7 @@ for ticker_upbit in TopCoinList:
 
                 time.sleep(0.1)
                 line_alert.SendMessage(
-                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,1)))
+                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
