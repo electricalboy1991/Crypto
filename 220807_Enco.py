@@ -118,16 +118,16 @@ except Exception as e:
     print("Exception by First")
 
 
-Invest_Rate = 0.5
+Invest_Rate = 0.7
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
-filtered_Krate = 3
+filtered_Krate = 2.4
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
 ####이거 늘릴 때, 최소 금액 맞춰주기
-CoinCnt = 10.0
+CoinCnt = 12.0
 
 
 # binance 객체 생성
@@ -178,7 +178,6 @@ for ticker_upbit in TopCoinList:
     ticker_binance = ticker_temp+'/USDT'
 
     try:
-
         now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
         Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
 
@@ -207,7 +206,7 @@ for ticker_upbit in TopCoinList:
             pass
         else:
             if Krate > filtered_Krate:
-                Krate_ExClose[ticker_upbit] = 2
+                Krate_ExClose[ticker_upbit] = filtered_Krate
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
                     json.dump(Krate_ExClose, outfile)
             else:
@@ -283,6 +282,10 @@ for ticker_upbit in TopCoinList:
 
 
                     # 거래 지점이랑 맞닿게 하기 위해 수익화 조건 한번 더 돌림
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
                     if Krate > 0.5 \
                             and Krate > Krate_ExClose[ticker_upbit] + 0.1 \
                             and Krate - Krate_average > profit_rate:
@@ -343,6 +346,10 @@ for ticker_upbit in TopCoinList:
                     if Buy_Amt < minimun_amount:
                         Buy_Amt = minimun_amount
 
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
                     if Krate < 2 \
                             and Krate >= Krate_ExClose[ticker_upbit] - 3 * Krate_interval \
                             and Krate < Krate_ExClose[ticker_upbit] - 2 * Krate_interval \
@@ -393,6 +400,10 @@ for ticker_upbit in TopCoinList:
                     if Buy_Amt < minimun_amount:
                         Buy_Amt = minimun_amount
 
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
                     if Krate < 2 \
                             and Krate >= Krate_ExClose[ticker_upbit] - 4 * Krate_interval \
                             and Krate < Krate_ExClose[ticker_upbit] - 3 * Krate_interval \
@@ -445,6 +456,11 @@ for ticker_upbit in TopCoinList:
                     if Buy_Amt < minimun_amount:
                         Buy_Amt = minimun_amount
 
+
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
                     if Krate < 2 \
                         and Krate >= Krate_ExClose[ticker_upbit] - 5 * Krate_interval \
                         and Krate < Krate_ExClose[ticker_upbit] - 4 * Krate_interval \
@@ -497,6 +513,10 @@ for ticker_upbit in TopCoinList:
                     if Buy_Amt < minimun_amount:
                         Buy_Amt = minimun_amount
 
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
                     if Krate < 2 \
                             and Krate >= Krate_ExClose[ticker_upbit] - 6 * Krate_interval \
                             and Krate < Krate_ExClose[ticker_upbit] - 5 * Krate_interval \
@@ -560,6 +580,12 @@ for ticker_upbit in TopCoinList:
 
                 # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                 if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and FirstEnterMoney < upbit_remain_money:
+
+                    won_rate = myUpbit.upbit_get_usd_krw()
+                    now_price_upbit = pyupbit.get_current_price(ticker_upbit)
+                    now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
+                    Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
+
                     if Krate < 2 and len(Kimplist) < CoinCnt \
                             and Krate >= Krate_ExClose[ticker_upbit] - 2 * Krate_interval \
                             and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
