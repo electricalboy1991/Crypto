@@ -334,10 +334,6 @@ for ticker in Tickers:
                         line_alert.SendMessage("BUY Done Upbit Trend Dolpa Coin : " + ticker + " X: " + str(down_first_point) +  "," + str(down_second_point) )
         
 
-
-
-
-
     except Exception as e:
         print("---:", e)
 

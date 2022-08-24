@@ -367,6 +367,24 @@ for ticker_upbit in TopCoinList:
                         line_alert.SendMessage(
                             "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
+                        for posi in balance_binanace['info']['positions']:
+                            if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                                print(posi)
+                                amt_s = float(posi['positionAmt'])
+                                entryPrice_s = float(posi['entryPrice'])
+                                leverage = float(posi['leverage'])
+                                isolated = posi['isolated']
+                                break
+
+                        stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
+
+                        myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                        myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                        coin_volume = upbit.get_balance(ticker_upbit)
+                        myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
                         Situation_flag[ticker_upbit][1] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
@@ -421,6 +439,25 @@ for ticker_upbit in TopCoinList:
                         time.sleep(0.1)
                         line_alert.SendMessage(
                             "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+
+                        for posi in balance_binanace['info']['positions']:
+                            if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                                print(posi)
+                                amt_s = float(posi['positionAmt'])
+                                entryPrice_s = float(posi['entryPrice'])
+                                leverage = float(posi['leverage'])
+                                isolated = posi['isolated']
+                                break
+
+                        stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
+
+                        myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                        myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                        coin_volume = upbit.get_balance(ticker_upbit)
+                        myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
 
                         Situation_flag[ticker_upbit][2] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -479,6 +516,25 @@ for ticker_upbit in TopCoinList:
                         line_alert.SendMessage(
                             "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
+                        for posi in balance_binanace['info']['positions']:
+                            if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                                print(posi)
+                                amt_s = float(posi['positionAmt'])
+                                entryPrice_s = float(posi['entryPrice'])
+                                leverage = float(posi['leverage'])
+                                isolated = posi['isolated']
+                                break
+
+                        stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
+
+                        myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                        myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                        coin_volume = upbit.get_balance(ticker_upbit)
+                        myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
+
                         Situation_flag[ticker_upbit][3] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
@@ -535,6 +591,24 @@ for ticker_upbit in TopCoinList:
                         line_alert.SendMessage(
                             "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
+                        for posi in balance_binanace['info']['positions']:
+                            if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                                print(posi)
+                                amt_s = float(posi['positionAmt'])
+                                entryPrice_s = float(posi['entryPrice'])
+                                leverage = float(posi['leverage'])
+                                isolated = posi['isolated']
+                                break
+
+                        stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
+
+                        myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                        myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                        coin_volume = upbit.get_balance(ticker_upbit)
+                        myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
                         Situation_flag[ticker_upbit][4] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
@@ -549,7 +623,6 @@ for ticker_upbit in TopCoinList:
         # 아직 김프 포지션 못 잡은 상태
         else:
             if Krate < 2 and len(Kimplist) < CoinCnt \
-                    and Krate >= Krate_ExClose[ticker_upbit] - 2 * Krate_interval \
                     and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -597,17 +670,36 @@ for ticker_upbit in TopCoinList:
                 else:
                     continue
 
-                stop_price_binance = now_price_binance*1.3
-                stop_price_upbit = now_price_upbit*1.3
-
-                myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
-
-                coin_volume = upbit.get_balance(ticker_upbit)
-                myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+                # stop_price_binance = now_price_binance*1.3
+                # stop_price_upbit = now_price_upbit*1.3
+                #
+                # myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+                #
+                # coin_volume = upbit.get_balance(ticker_upbit)
+                # myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
                 time.sleep(0.1)
                 line_alert.SendMessage(
                     "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * now_price_upbit/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
+
+                for posi in balance_binanace['info']['positions']:
+                    if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                        print(posi)
+                        amt_s = float(posi['positionAmt'])
+                        entryPrice_s = float(posi['entryPrice'])
+                        leverage = float(posi['leverage'])
+                        isolated = posi['isolated']
+                        break
+
+                stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * 0.98
+                stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * 0.98
+
+                myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                coin_volume = upbit.get_balance(ticker_upbit)
+                myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
