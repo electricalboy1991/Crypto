@@ -292,12 +292,12 @@ for ticker_upbit in TopCoinList:
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)
-                        print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(amt_s), None, params))
+                        print(binanceX.create_order(ticker_binance, 'limit', 'buy', abs(amt_s), now_price_binance, params))
 
                         #주문 취소해줘야 매도 됨
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         time.sleep(0.1)
-                        print(myUpbit.SellCoinMarket(upbit, ticker_upbit, upbit.get_balance(ticker_upbit)))
+                        print(myUpbit.SellCoinLimit(upbit, ticker_upbit,now_price_upbit,upbit.get_balance(ticker_upbit)))
 
                         time.sleep(0.1)
 
@@ -358,8 +358,8 @@ for ticker_upbit in TopCoinList:
 
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
-                            print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                            print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                            print(binanceX.create_order(ticker_binance, 'limit', 'sell', Buy_Amt, now_price_binance, params))
+                            print(myUpbit.BuyCoinLimit(upbit, ticker_upbit,now_price_upbit, Buy_Amt))
                         else:
                             continue
 
@@ -413,8 +413,8 @@ for ticker_upbit in TopCoinList:
 
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
-                            print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                            print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                            print(binanceX.create_order(ticker_binance, 'limit', 'sell', Buy_Amt, now_price_binance, params))
+                            print(myUpbit.BuyCoinLimit(upbit, ticker_upbit,now_price_upbit, Buy_Amt))
                         else:
                             continue
 
@@ -470,8 +470,8 @@ for ticker_upbit in TopCoinList:
 
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
-                            print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                            print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                            print(binanceX.create_order(ticker_binance, 'limit', 'sell', Buy_Amt, now_price_binance, params))
+                            print(myUpbit.BuyCoinLimit(upbit, ticker_upbit,now_price_upbit, Buy_Amt))
                         else:
                             continue
 
@@ -526,8 +526,8 @@ for ticker_upbit in TopCoinList:
 
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
-                            print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                            print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                            print(binanceX.create_order(ticker_binance, 'limit', 'sell', Buy_Amt, now_price_binance, params))
+                            print(myUpbit.BuyCoinLimit(upbit, ticker_upbit,now_price_upbit, Buy_Amt))
                         else:
                             continue
 
@@ -589,8 +589,8 @@ for ticker_upbit in TopCoinList:
                     if Krate < 2 and len(Kimplist) < CoinCnt \
                             and Krate >= Krate_ExClose[ticker_upbit] - 2 * Krate_interval \
                             and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
-                        print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
+                        print(binanceX.create_order(ticker_binance, 'limit', 'sell', Buy_Amt, now_price_binance, params))
+                        print(myUpbit.BuyCoinLimit(upbit, ticker_upbit, now_price_upbit, Buy_Amt))
                         time.sleep(0.1)
                     else:
                         continue
