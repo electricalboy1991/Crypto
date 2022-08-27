@@ -13,6 +13,18 @@ import requests
 import myBinance
 import json
 
+Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+top_file_path = "/var/Autobot_seoul/TopCoinList.json"
+
+# Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
+# Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
+# Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
+# Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
+# top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
+
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myUpbit.SimpleEnDecrypt(ende_key.ende_key)
 
@@ -41,18 +53,6 @@ min = time_info.tm_min
 hour_crit = 20
 min_crit = 25
 print(hour, min)
-
-# Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
-# Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
-# Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
-# Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
-# top_file_path = "/var/Autobot_seoul/TopCoinList.json"
-
-Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
-Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
-Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
-Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
-top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
 
 #빈 리스트를 선언합니다.
 Kimplist = list()
@@ -140,10 +140,11 @@ except Exception as e:
     TopCoinList = myUpbit.GetTopCoinList("day",30)
     print("Exception by First")
 
-Invest_Rate = 0.4
+Invest_Rate = 0.3
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
+Kimp_crit = 1.7
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
@@ -348,7 +349,8 @@ for ticker_upbit in TopCoinList:
                     else:
                         continue
 
-                elif Krate <2 \
+                #물타기 1회
+                elif Krate <Kimp_crit \
                         and Krate_total[ticker_upbit][0]-Krate >= Krate_interval\
                         and Situation_flag[ticker_upbit][1] == False:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -389,8 +391,13 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage(
-                            "[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage("[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+
+                        # 체결했으니까 내역 업데이트 해서 받아오기
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
 
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -419,8 +426,8 @@ for ticker_upbit in TopCoinList:
                             json.dump(Krate_total, outfile)
                     else:
                         continue
-
-                elif Krate < 2 \
+                # 물타기 2회
+                elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][2] == False:
 
@@ -450,7 +457,7 @@ for ticker_upbit in TopCoinList:
                     orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
                     upbit_order_standard = orderbook_upbit['orderbook_units'][1]['ask_price']
                     Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
-                    if Krate < 2 \
+                    if Krate < Kimp_crit \
                             and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
                             and Situation_flag[ticker_upbit][2] == False:
 
@@ -464,8 +471,13 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage(
-                            "[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage("[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+
+                        # 체결했으니까 내역 업데이트 해서 받아오기
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
 
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -495,8 +507,8 @@ for ticker_upbit in TopCoinList:
                             json.dump(Krate_total, outfile)
                     else:
                         continue
-
-                elif Krate < 2 \
+                # 물타기 3회
+                elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][2] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][3] == False:
 
@@ -544,6 +556,12 @@ for ticker_upbit in TopCoinList:
                         line_alert.SendMessage(
                             "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
+                        # 체결했으니까 내역 업데이트 해서 받아오기
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
+
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
                                 print(posi)
@@ -572,8 +590,8 @@ for ticker_upbit in TopCoinList:
                             json.dump(Krate_total, outfile)
                     else:
                         continue
-
-                elif Krate < 2 \
+                # 물타기 4회
+                elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][3] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][4] == False:
 
@@ -621,6 +639,12 @@ for ticker_upbit in TopCoinList:
                         line_alert.SendMessage(
                             "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
+                        # 체결했으니까 내역 업데이트 해서 받아오기
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
+
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
                                 print(posi)
@@ -651,7 +675,7 @@ for ticker_upbit in TopCoinList:
 
         # 아직 김프 포지션 못 잡은 상태
         else:
-            if Krate < 2 and len(Kimplist) < CoinCnt \
+            if Krate < Kimp_crit and len(Kimplist) < CoinCnt \
                     and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -715,6 +739,12 @@ for ticker_upbit in TopCoinList:
                 line_alert.SendMessage(
                     "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
 
+                #체결했으니까 내역 업데이트 해서 받아오기
+                balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                time.sleep(0.1)
+                balance_upbit = upbit.get_balances()
+
                 for posi in balance_binanace['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
                         print(posi)
@@ -752,17 +782,3 @@ for ticker_upbit in TopCoinList:
     except Exception as e:
         # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
         print("There is no " + str(ticker_binance) + ' in BINANCE FUTURES')
-
-
-
-
-"""
-for i in TopCoinList_upbit:
-    i = i.replace('KRW-','')
-    Tickers_upbit.append(i)
-"""
-
-"""
-for ticker in Tickers_upbit:
-    print(ticker)
-    """
