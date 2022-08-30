@@ -179,6 +179,11 @@ for upbit_asset in balance_upbit:
 
 characters = "KRW-"
 
+try:
+    TopCoinList.remove("KRW-BTC")
+except Exception as e:
+    print("BTC remove error", e)
+
 for ticker_upbit in TopCoinList:
 
     try:
