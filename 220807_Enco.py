@@ -140,11 +140,11 @@ except Exception as e:
     TopCoinList = myUpbit.GetTopCoinList("day",30)
     print("Exception by First")
 
-Invest_Rate = 0.3
+Invest_Rate = 0.5
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
-Kimp_crit = 1.7
+Kimp_crit = 1.9
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
@@ -189,7 +189,7 @@ for ticker_upbit in TopCoinList:
         print(" Json Error " + str(ticker_upbit))
         continue
 
-    if now_price_upbit < 500:
+    if now_price_upbit < 10:
         continue
     ticker_temp = ticker_upbit.replace('KRW-','')
     ticker_binance = ticker_temp+'/USDT'
