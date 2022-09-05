@@ -25,6 +25,7 @@ top_file_path = "/var/Autobot_seoul/TopCoinList.json"
 # Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
 # top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
 
+
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myUpbit.SimpleEnDecrypt(ende_key.ende_key)
 
@@ -677,7 +678,6 @@ for ticker_upbit in TopCoinList:
                             json.dump(Krate_total, outfile)
                     else:
                         continue
-
         # 아직 김프 포지션 못 잡은 상태
         else:
             if Krate < Kimp_crit and len(Kimplist) < CoinCnt \
@@ -765,17 +765,21 @@ for ticker_upbit in TopCoinList:
                 myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                 myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                time.sleep(0.1)
                 coin_volume = upbit.get_balance(ticker_upbit)
+                time.sleep(0.1)
                 myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
                 Kimplist.append(ticker_upbit)
                 # 파일에 리스트를 저장합니다
                 with open(Kimplist_type_file_path, 'w') as outfile:
                     json.dump(Kimplist, outfile)
+                time.sleep(0.1)
 
                 Situation_flag[ticker_upbit] = [True,False,False,False,False]
                 with open(Situation_flag_type_file_path, 'w') as outfile:
                     json.dump(Situation_flag, outfile)
+                time.sleep(0.1)
 
                 Krate_total[ticker_upbit] = [Krate,None,None,None,None]
                 with open(Krate_total_type_file_path, 'w') as outfile:
