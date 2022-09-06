@@ -15,7 +15,7 @@ class SimpleEnDecrypt:
             key = Fernet.generate_key() # 키를 생성한다
         self.key = key
         self.f   = Fernet(self.key)
-
+    
     def encrypt(self, data, is_out_string=True):
         if isinstance(data, bytes):
             ou = self.f.encrypt(data) # 바이트형태이면 바로 암호화

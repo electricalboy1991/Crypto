@@ -141,7 +141,7 @@ except Exception as e:
     TopCoinList = myUpbit.GetTopCoinList("day",30)
     print("Exception by First")
 
-Invest_Rate = 0.5
+Invest_Rate = 0.3
 set_leverage = 3
 profit_rate = 1.5
 Krate_interval = 0.4
