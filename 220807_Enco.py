@@ -13,6 +13,8 @@ import requests
 import myBinance
 import json
 
+import telegram
+
 Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
 Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
 Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
@@ -172,6 +174,24 @@ balance_upbit = upbit.get_balances()
 won_rate = myUpbit.upbit_get_usd_krw()
 
 upbit_remain_money=0
+
+for jj in Kimplist:
+    if not myUpbit.IsHasCoin(balance_upbit, jj):
+        del Krate_ExClose[jj]
+        del Krate_total[jj]
+        del Situation_flag[jj]
+        Kimplist.remove(jj)
+
+        with open(Krate_ExClose_type_file_path, 'w') as outfile:
+            json.dump(Krate_ExClose, outfile)
+        with open(Krate_total_type_file_path, 'w') as outfile:
+            json.dump(Krate_total, outfile)
+        with open(Situation_flag_type_file_path, 'w') as outfile:
+            json.dump(Situation_flag, outfile)
+        with open(Kimplist_type_file_path, 'w') as outfile:
+            json.dump(Kimplist, outfile)
+
+
 for upbit_asset in balance_upbit:
     if upbit_asset['currency'] == 'KRW':
         upbit_remain_money = float(upbit_asset['balance'])
@@ -185,7 +205,35 @@ try:
 except Exception as e:
     print("BTC remove error", e)
 
-for ticker_upbit in TopCoinList:
+
+#거래 순서를 김프 평단이 낮은 애부터 거래 되도록 하기 위함...
+if len(Krate_total) !=0:
+
+    Krate_aver_total = dict()
+    Traded_sorted_list = list()
+
+    for temp_ticker in Krate_total:
+        Krate_list = list(filter(None, Krate_total[temp_ticker]))
+        Krate_average = sum(Krate_list) / len(Krate_list)
+        Krate_aver_total[temp_ticker] = Krate_average
+
+    Traded_list = sorted(Krate_aver_total.items(), key = lambda item: item[1])
+    #평단 높은 애 먼저 물타고 싶으면 아래 주석을 푼다.
+    #Traded_list = sorted(Krate_aver_total.items(), key=lambda item: item[1], reverse = True)
+    for ii in Traded_list:
+        Traded_sorted_list.append(ii[0])
+
+    s = set(Traded_sorted_list)
+    Rest_topcoin = [x for x in TopCoinList if x not in s]
+
+    Sorted_topcoinlist = Traded_sorted_list+Rest_topcoin
+
+else:
+    Sorted_topcoinlist=TopCoinList
+
+
+
+for ticker_upbit in Sorted_topcoinlist:
 
     try:
         time.sleep(0.05)
@@ -195,7 +243,7 @@ for ticker_upbit in TopCoinList:
         print(" Json Error " + str(ticker_upbit))
         continue
 
-    if now_price_upbit < 10:
+    if now_price_upbit < 10 and myUpbit.CheckCoinInList(Kimplist,ticker_upbit) == False:
         continue
     ticker_temp = ticker_upbit.replace('KRW-','')
     ticker_binance = ticker_temp+'/USDT'
@@ -332,9 +380,9 @@ for ticker_upbit in TopCoinList:
 
                         time.sleep(0.1)
 
-                        line_alert.SendMessage("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
+                        line_alert.SendMessage_SP("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
                         total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
-                        line_alert.SendMessage("[자산] : " + total_asset + "만원")
+                        line_alert.SendMessage_SP("[자산] : " + total_asset + "만원")
 
                         Kimplist.remove(ticker_upbit)
                         # 파일에 리스트를 저장합니다
@@ -397,7 +445,7 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage("[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage_SP("[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -477,7 +525,7 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage("[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage_SP("[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -559,7 +607,7 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage(
+                        line_alert.SendMessage_SP(
                             "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
@@ -642,7 +690,7 @@ for ticker_upbit in TopCoinList:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage(
+                        line_alert.SendMessage_SP(
                             "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
@@ -741,7 +789,7 @@ for ticker_upbit in TopCoinList:
                 # myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
                 time.sleep(0.1)
-                line_alert.SendMessage(
+                line_alert.SendMessage_SP(
                     "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
 
                 #체결했으니까 내역 업데이트 해서 받아오기
@@ -791,3 +839,12 @@ for ticker_upbit in TopCoinList:
     except Exception as e:
         # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
         print("There is no " + str(ticker_binance) + ' in BINANCE FUTURES')
+
+
+#수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
+total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-myUpbit.GetTotalMoney(balance_upbit)+won_rate*float(balance_binanace['info']['totalUnrealizedProfit']))/10000,2))
+
+line_alert.SendMessage_Log("[자산] : " + total_asset + "만원 "+
+                          "[차익] : " + total_difference +"만원 \n"+
+                          "[환율] : " + str(won_rate)+"원 ")
