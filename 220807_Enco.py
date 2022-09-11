@@ -876,7 +876,7 @@ for ticker_upbit in Sorted_topcoinlist:
 total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-myUpbit.GetTotalMoney(balance_upbit)+won_rate*float(balance_binanace['info']['totalUnrealizedProfit']))/10000,2))
 
-line_alert.SendMessage_Log("자산: " + total_asset + "万 "+
+line_alert.SendMessage_Log("★자산: " + total_asset + "万 "+
                           "차익: " + total_difference +"万 "+
                           "환율: " + str(won_rate)+" ")
 
