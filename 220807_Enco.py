@@ -101,7 +101,7 @@ except Exception as e:
     print("Exception by First 4")
 
 TopCoinList = list()
-
+Telegram_Log = dict()
 #파일을 읽어서 리스트를 만듭니다.
 try:
     with open(top_file_path, "r", encoding="utf-8") as json_file:
@@ -331,6 +331,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 else:
                     profit_rate = 1.0
 
+                Telegram_Log[ticker_upbit] = [round(Krate,2),round(Krate_average,2),round(Krate_average+profit_rate,2),len(list(filter(None, Krate_total[ticker_upbit])))-1]
 
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 if Krate > 0.5 \
@@ -461,6 +462,12 @@ for ticker_upbit in Sorted_topcoinlist:
                                 leverage = float(posi['leverage'])
                                 isolated = posi['isolated']
                                 break
+                        for upbit_asset in balance_upbit:
+                            if upbit_asset['currency'] == 'KRW':
+                                upbit_remain_money = float(upbit_asset['balance'])
+                            else:
+                                continue
+
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
@@ -541,6 +548,11 @@ for ticker_upbit in Sorted_topcoinlist:
                                 leverage = float(posi['leverage'])
                                 isolated = posi['isolated']
                                 break
+                        for upbit_asset in balance_upbit:
+                            if upbit_asset['currency'] == 'KRW':
+                                upbit_remain_money = float(upbit_asset['balance'])
+                            else:
+                                continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
@@ -625,6 +637,12 @@ for ticker_upbit in Sorted_topcoinlist:
                                 isolated = posi['isolated']
                                 break
 
+                        for upbit_asset in balance_upbit:
+                            if upbit_asset['currency'] == 'KRW':
+                                upbit_remain_money = float(upbit_asset['balance'])
+                            else:
+                                continue
+
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
 
@@ -708,6 +726,12 @@ for ticker_upbit in Sorted_topcoinlist:
                                 isolated = posi['isolated']
                                 break
 
+                        for upbit_asset in balance_upbit:
+                            if upbit_asset['currency'] == 'KRW':
+                                upbit_remain_money = float(upbit_asset['balance'])
+                            else:
+                                continue
+
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*0.98
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*0.98
 
@@ -774,8 +798,9 @@ for ticker_upbit in Sorted_topcoinlist:
                         and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
                         print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
                         time.sleep(0.1)
+                        print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
+
                     else:
                         continue
                 else:
@@ -806,6 +831,12 @@ for ticker_upbit in Sorted_topcoinlist:
                         leverage = float(posi['leverage'])
                         isolated = posi['isolated']
                         break
+
+                for upbit_asset in balance_upbit:
+                    if upbit_asset['currency'] == 'KRW':
+                        upbit_remain_money = float(upbit_asset['balance'])
+                    else:
+                        continue
 
                 stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * 0.98
                 stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * 0.98
@@ -845,6 +876,16 @@ for ticker_upbit in Sorted_topcoinlist:
 total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-myUpbit.GetTotalMoney(balance_upbit)+won_rate*float(balance_binanace['info']['totalUnrealizedProfit']))/10000,2))
 
-line_alert.SendMessage_Log("[자산] : " + total_asset + "만원 "+
-                          "[차익] : " + total_difference +"만원 \n"+
-                          "[환율] : " + str(won_rate)+"원 ")
+line_alert.SendMessage_Log("자산: " + total_asset + "万 "+
+                          "차익: " + total_difference +"万 "+
+                          "환율: " + str(won_rate)+" ")
+
+if len(Telegram_Log) !=0:
+    for key, value in Telegram_Log.items():
+        key_ticker = key.replace('KRW-', '')
+        line_alert.SendMessage_Log(key_ticker +
+                                    " 今p: " + str(value[0]) +
+                                    " 均p: " + str(value[1]) +
+                                    " TGp: " + str(value[2]) +
+                                   " 물: " + str(value[3]))
+        # line_alert.SendMessage_Log("今%: ")
