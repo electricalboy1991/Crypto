@@ -12,7 +12,7 @@ import ccxt
 import requests
 import myBinance
 import json
-
+from datetime import datetime
 import telegram
 
 Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
@@ -876,16 +876,16 @@ for ticker_upbit in Sorted_topcoinlist:
 total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-myUpbit.GetTotalMoney(balance_upbit)+won_rate*float(balance_binanace['info']['totalUnrealizedProfit']))/10000,2))
 
-line_alert.SendMessage_Log("★자산: " + total_asset + "万 "+
-                          "차익: " + total_difference +"万 "+
-                          "환율: " + str(won_rate)+" ")
 
 if len(Telegram_Log) !=0:
+    current_time = datetime.now()
+    line_alert.SendMessage_Log("♥♥♥" +str(current_time)+"♥♥♥")
+    Telegram_Log_str = str()
     for key, value in Telegram_Log.items():
         key_ticker = key.replace('KRW-', '')
-        line_alert.SendMessage_Log(key_ticker +
-                                    " 今p: " + str(value[0]) +
-                                    " 均p: " + str(value[1]) +
-                                    " TGp: " + str(value[2]) +
-                                   " 물: " + str(value[3]))
-        # line_alert.SendMessage_Log("今%: ")
+        Telegram_Log_str += key_ticker + " 今p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n"
+    Telegram_Log_str += "UB잔액: " + str(round(float(upbit_remain_money/10000),1)) +"만원 " + "BN잔액: " + str(round(float(balance_binanace['USDT']['free']),1))+ "$"
+    line_alert.SendMessage_Log(Telegram_Log_str)
+
+line_alert.SendMessage_Summary1minute("★자산: " + total_asset + "万 "+"차익: " + total_difference +"万 "+"환율: " + str(won_rate)+" ")
+
