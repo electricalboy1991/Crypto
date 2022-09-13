@@ -13,6 +13,7 @@ import requests
 import myBinance
 import json
 from datetime import datetime
+from pytz import timezone
 import telegram
 
 Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
@@ -878,8 +879,10 @@ total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-myUpbit.Get
 
 
 if len(Telegram_Log) !=0:
-    current_time = datetime.now()
-    line_alert.SendMessage_Log("♥♥♥" +str(current_time)+"♥♥♥")
+    current_time = datetime.now(timezone('Asia/Seoul'))
+    KR_time=str(current_time)
+    KR_time_sliced =KR_time[:23]
+    line_alert.SendMessage_Log("♥♥♥" +KR_time_sliced+"♥♥♥")
     Telegram_Log_str = str()
     for key, value in Telegram_Log.items():
         key_ticker = key.replace('KRW-', '')
