@@ -378,13 +378,21 @@ for ticker_upbit in Sorted_topcoinlist:
                         #주문 취소해줘야 매도 됨
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         time.sleep(0.1)
+                        num_coin=upbit.get_balance(ticker_upbit)
                         print(myUpbit.SellCoinMarket(upbit, ticker_upbit,upbit.get_balance(ticker_upbit)))
 
                         time.sleep(0.1)
 
-                        line_alert.SendMessage_SP("[김프 수익] : " + str(ticker_upbit) + " 김프" + str(round(Krate,2)) + "% " + " 김프 차이" + str(round(Krate - Krate_average,2)) + "% ")
+                        line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate,2)) + "% " + " 김프차 " + str(round(Krate - Krate_average,2)) + "% ")
+
+
+                        coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*num_coin+won_rate*(entryPrice_s-now_price_binance)*abs(amt_s)
+                        coin_net_withCommision = round((coin_net-num_coin*now_price_upbit*0.05/100*2)/10000,2)
+
                         total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
-                        line_alert.SendMessage_SP("[자산] : " + total_asset + "만원")
+                        line_alert.SendMessage_SP("[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
+
+
 
                         Kimplist.remove(ticker_upbit)
                         # 파일에 리스트를 저장합니다
@@ -402,6 +410,8 @@ for ticker_upbit in Sorted_topcoinlist:
                         del Krate_total[ticker_upbit]
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
+
+                        line_alert.SendMessage_SP("★★매도 후 Json 저장 완료★★")
                     else:
                         continue
 
@@ -447,7 +457,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage_SP("[김프 1단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage_SP("[1단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -533,7 +543,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                         time.sleep(0.1)
-                        line_alert.SendMessage_SP("[김프 2단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        line_alert.SendMessage_SP("[2단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -621,7 +631,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         time.sleep(0.1)
                         line_alert.SendMessage_SP(
-                            "[김프 3단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                            "[3단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -710,7 +720,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         time.sleep(0.1)
                         line_alert.SendMessage_SP(
-                            "[김프 4단계 물] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                            "[4단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -816,7 +826,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 time.sleep(0.1)
                 line_alert.SendMessage_SP(
-                    "[김프 진입] : " + str(ticker_upbit) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
+                    "[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
 
                 #체결했으니까 내역 업데이트 해서 받아오기
                 balance_binanace = binanceX.fetch_balance(params={"type": "future"})
