@@ -274,7 +274,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 isolated = posi['isolated']
                 break
 
-        profit_rate=100*((upbit_order_standard-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))+won_rate*(entryPrice_s-binance_order_standard))\
+        profit_rate=100*((upbit_order_standard-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)-won_rate*amt_s*(entryPrice_s-binance_order_standard))\
                     /(myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)*myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit)-amt_s*entryPrice_s*won_rate)
 
         #매수 Krate의 평균을 구하기 위한 code
@@ -351,7 +351,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 if Krate > 0.5 \
                         and Krate > Krate_ExClose[ticker_upbit]+0.1 \
                         and Krate - Krate_average > profit_rate_criteria\
-                        and Krate - Krate_average <= profit_rate*2:
+                        and Krate - Krate_average <= profit_rate*2.2:
                     isolated = True  # 격리모드인지
 
                     leverage = 0  # 레버리지
@@ -431,7 +431,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 elif Krate <Kimp_crit \
                         and Krate_total[ticker_upbit][0]-Krate >= Krate_interval\
                         and Situation_flag[ticker_upbit][1] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2>= profit_rate:
+                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(float(balance_binanace['USDT']['total']),
@@ -517,7 +517,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][2] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2>= profit_rate:
+                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -606,7 +606,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][2] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][3] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2>= profit_rate:
+                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -699,7 +699,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][3] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][4] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2>= profit_rate:
+                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
