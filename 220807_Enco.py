@@ -273,8 +273,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 leverage = float(posi['leverage'])
                 isolated = posi['isolated']
                 break
-
-        profit_rate=100*((upbit_order_standard-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)-won_rate*amt_s*(entryPrice_s-binance_order_standard))\
+        if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
+            profit_rate=100*((upbit_order_standard-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)-won_rate*amt_s*(entryPrice_s-binance_order_standard))\
                     /(myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)*myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit)-amt_s*entryPrice_s*won_rate)
 
         #매수 Krate의 평균을 구하기 위한 code
@@ -921,9 +921,11 @@ if len(Telegram_Log) !=0:
     KR_time_sliced =KR_time[:23]
     line_alert.SendMessage_Log("♥♥♥" +KR_time_sliced+"♥♥♥")
     Telegram_Log_str = str()
+    num_type=0
     for key, value in Telegram_Log.items():
+        num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
-        Telegram_Log_str += key_ticker + " 今p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n"
+        Telegram_Log_str += str(num_type) + ". " + key_ticker + " p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n"
     Telegram_Log_str += "UB잔액: " + str(round(float(upbit_remain_money/10000),1)) +"만원 " + "BN잔액: " + str(round(float(balance_binanace['USDT']['free']),1))+ "$"
     line_alert.SendMessage_Log(Telegram_Log_str)
 
