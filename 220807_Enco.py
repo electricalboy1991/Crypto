@@ -430,8 +430,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 #물타기 1회
                 elif Krate <Kimp_crit \
                         and Krate_total[ticker_upbit][0]-Krate >= Krate_interval\
-                        and Situation_flag[ticker_upbit][1] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
+                        and Situation_flag[ticker_upbit][1] == False:
+                        # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, myBinance.GetAmount(float(balance_binanace['USDT']['total']),
@@ -516,8 +516,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 # 물타기 2회
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][2] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
+                        and Situation_flag[ticker_upbit][2] == False:
+                        # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -605,8 +605,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 # 물타기 3회
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][2] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][3] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
+                        and Situation_flag[ticker_upbit][3] == False:
+                        # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -698,8 +698,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 # 물타기 4회
                 elif Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][3] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][4] == False\
-                        and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
+                        and Situation_flag[ticker_upbit][4] == False:
+                        # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
