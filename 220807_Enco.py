@@ -919,15 +919,15 @@ if len(Telegram_Log) !=0:
     current_time = datetime.now(timezone('Asia/Seoul'))
     KR_time=str(current_time)
     KR_time_sliced =KR_time[:23]
-    line_alert.SendMessage_Log("♥♥♥" +KR_time_sliced+"♥♥♥")
     Telegram_Log_str = str()
     num_type=0
     for key, value in Telegram_Log.items():
         num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
         Telegram_Log_str += str(num_type) + ". " + key_ticker + " p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n"
-    Telegram_Log_str += "UB잔액: " + str(round(float(upbit_remain_money/10000),1)) +"만원 " + "BN잔액: " + str(round(float(balance_binanace['USDT']['free']),1))+ "$"
-    line_alert.SendMessage_Log(Telegram_Log_str)
+    line_alert.SendMessage_Log("♥♥♥" +KR_time_sliced+"♥♥♥\n"+Telegram_Log_str)
 
-line_alert.SendMessage_Summary1minute("★자산: " + total_asset + "万 "+"차익: " + total_difference +"万 "+"환율: " + str(won_rate)+" ")
+Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
+line_alert.SendMessage_Summary1minute("★자산: " + total_asset + "万 "+"차익: " + total_difference +"万 "+"환율: " + str(won_rate)+" \n♥" +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액: " + Telegram_lev_Binanace_won)
 
