@@ -365,8 +365,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 if Krate > 0.5 \
                         and Krate > Krate_ExClose[ticker_upbit]+0.1 \
-                        and Krate - Krate_average > profit_rate_criteria\
-                        and Krate - Krate_average <= profit_rate*2.2:
+                        and Krate - Krate_average > profit_rate_criteria:
+                        # and Krate - Krate_average <= profit_rate*2.2:
                     isolated = True  # 격리모드인지
 
                     leverage = 0  # 레버리지
