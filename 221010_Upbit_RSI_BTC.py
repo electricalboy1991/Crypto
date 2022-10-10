@@ -11,8 +11,8 @@ import line_alert  # 라인 메세지를 보내기 위함!
 time.sleep(30)
 
 
-RSI_criteria_1 = 30.2
-RSI_criteria_2 = 19
+RSI_criteria_1 = 27.2
+RSI_criteria_2 = 17
 
 RSI_criteria_1_buywon = 150000
 RSI_criteria_2_buywon = 400000
