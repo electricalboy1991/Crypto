@@ -267,6 +267,7 @@ for ticker_upbit in Sorted_topcoinlist:
     ticker_binance_orderbook = ticker_temp+'BUSD'
 
     try:
+        time.sleep(0.05)
         now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
         # Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
 
@@ -428,7 +429,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     warning_percent = 0.0
 
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,2),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round(unrealizedProfit*Trade_infor[ticker_upbit][0]/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*Trade_infor[ticker_upbit][0]+upbit_diff)/10000,1), warning_percent]
+                                              round(unrealizedProfit*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff)/10000,1), warning_percent]
 
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
 
@@ -1396,9 +1397,13 @@ time.sleep(0.1)
 #수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
 total_asset = str(round((float(balance_binanace['BUSD']['total']) * BUSDKRW + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
-#Summary에 차액 구하는 구간임, 근데 여기는 BUSDKRW로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
-total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-upbit_diff_BTC-myUpbit.GetTotalMoney(balance_upbit)+BUSDKRW*float(balance_binanace['info']['totalUnrealizedProfit']))/10000,2))
+Binance_URP = 0
+for posi in balance_binanace['info']['positions']:
+    if float(posi['unrealizedProfit']) != 0:
+        Binance_URP+=float(posi['unrealizedProfit'])
 
+#Summary에 차액 구하는 구간임, 근데 여기는 BUSDKRW로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
+total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-upbit_diff_BTC-myUpbit.GetTotalMoney(balance_upbit)+BUSDKRW*Binance_URP)/10000,2))
 
 if len(Telegram_Log) !=0:
     current_time = datetime.now(timezone('Asia/Seoul'))
@@ -1410,11 +1415,11 @@ if len(Telegram_Log) !=0:
         num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
         Telegram_Log_str += str(num_type) + ". " + key_ticker + " p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n" \
-                            + "⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n"
+                            + "⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
     line_alert.SendMessage_Log("  ♥♥" +KR_time_sliced+"♥♥  \n"+Telegram_Log_str)
 
 Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * BUSDKRW) / 10000, 1)) + "만원"
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
-line_alert.SendMessage_Summary1minute("★자산 : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : ㉥ " + str(BUSDKRW)+ "₩ ($ : "+ str(won_rate) + "₩)"+ "\n♥"
+line_alert.SendMessage_Summary1minute("★자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : ㉥ " + str(BUSDKRW)+ "₩ ($ : "+ str(won_rate) + "₩)"+ "\n♥"
                                       +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won)
 
