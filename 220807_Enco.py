@@ -517,7 +517,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_average,2)) + "% \n"
                                                     +"[바낸 Profit] : " + str(round(unrealizedProfit*Temp_won_rate/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
                                                   +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
 
@@ -603,7 +603,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     time.sleep(0.1)
 
                     line_alert.SendMessage_SP("[청산 경고 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
-                    line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)+
+                    line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)+
                         "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                 #물타기 1회
@@ -706,7 +706,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[1단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                     else:
@@ -814,7 +814,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[2단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -922,7 +922,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[3단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1026,7 +1026,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[4단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1137,7 +1137,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         line_alert.SendMessage_SP("[5단계 물] : " + str(ticker_upbit[4:]) + " " + str(
                             round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(
                             round(Krate, 2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                             + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1245,7 +1245,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[6단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                             + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1376,7 +1376,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
 
                 line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
-                line_alert.SendMessage_Trading(str(ticker_upbit)+" 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                     + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
     except Exception as e:
