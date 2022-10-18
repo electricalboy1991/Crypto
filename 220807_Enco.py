@@ -285,8 +285,9 @@ for ticker_upbit in Sorted_topcoinlist:
                 break
 
         url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
+        time.sleep(0.05)
         binance_orderbook_data = requests.get(url).json()
-
+        time.sleep(0.05)
         Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
         #바이낸스 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -300,7 +301,9 @@ for ticker_upbit in Sorted_topcoinlist:
         binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
         # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
+        time.sleep(0.05)
         orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
+        time.sleep(0.05)
         upbit_order_index = 0
         upbit_order_Nsum = 0
 
@@ -411,9 +414,9 @@ for ticker_upbit in Sorted_topcoinlist:
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
                 if Krate_average<=0:
-                    profit_rate_criteria = 1.9
+                    profit_rate_criteria = 1.65
                 elif 0<Krate_average<=1:
-                    profit_rate_criteria = 1.5
+                    profit_rate_criteria = 1.4
                 elif 1<Krate_average<=2:
                     profit_rate_criteria = 1.2
                 elif 2 < Krate_average <= 2.5:
@@ -432,10 +435,8 @@ for ticker_upbit in Sorted_topcoinlist:
                                               round(unrealizedProfit*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff)/10000,1), warning_percent]
 
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
-
-                if Krate_close > close_criteria \
-                        and Krate_close > Krate_ExClose[ticker_upbit]+0.1 \
-                        and Krate_close - Krate_average > profit_rate_criteria:
+                upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
+                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
                         # and Krate - Krate_average <= profit_rate*2.2:
                     isolated = True  # 격리모드인지
 
@@ -468,9 +469,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     # 다시 정의 할 필요 없어서 지움
                     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
 
-                    if Krate_close > close_criteria \
-                            and Krate_close > Krate_ExClose[ticker_upbit] + 0.1 \
-                            and Krate_close - Krate_average > profit_rate_criteria:
+                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)
@@ -607,9 +606,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                 #물타기 1회
-                elif Krate <Kimp_crit \
-                        and Krate_total[ticker_upbit][0]-Krate >= Krate_interval\
-                        and Situation_flag[ticker_upbit][1] == False:
+                elif Krate <Kimp_crit and Krate_total[ticker_upbit][0]-Krate >= Krate_interval and Situation_flag[ticker_upbit][1] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -712,9 +709,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 2회
-                elif Krate < Kimp_crit \
-                        and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][2] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][2] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -819,10 +814,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 3회
-                elif Krate < Kimp_crit \
-                        and Krate_total[ticker_upbit][2] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][3] == False:
-                        # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][2] - Krate >= Krate_interval and Situation_flag[ticker_upbit][3] == False:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -927,9 +919,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 4회
-                elif Krate < Kimp_crit \
-                        and Krate_total[ticker_upbit][3] - Krate >= Krate_interval \
-                        and Situation_flag[ticker_upbit][4] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][3] - Krate >= Krate_interval and Situation_flag[ticker_upbit][4] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1032,9 +1022,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         continue
 
                         # 물타기 5회
-                elif Krate < Kimp_crit \
-                             and Krate_total[ticker_upbit][4] - Krate >= Krate_interval \
-                             and Situation_flag[ticker_upbit][5] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][4] - Krate >= Krate_interval and Situation_flag[ticker_upbit][5] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1143,9 +1131,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         continue
 
                 #물타기 6회
-                elif Krate < Kimp_crit \
-                             and Krate_total[ticker_upbit][5] - Krate >= Krate_interval \
-                             and Situation_flag[ticker_upbit][6] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][5] - Krate >= Krate_interval and Situation_flag[ticker_upbit][6] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
