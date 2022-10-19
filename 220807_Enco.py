@@ -174,6 +174,7 @@ Kimp_crit = 1.5
 Stop_price_percent = 0.97
 close_criteria = 1.1
 GetInMoney=250
+Binance_commission = 0.0003
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
@@ -422,7 +423,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 else:
                     profit_rate_criteria = 1.0
 
-                upbit_diff = float(myUpbit.NumOfTickerCoin(balance_upbit,ticker_upbit)) * (now_price_upbit-float(myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)))
+                upbit_diff = float(myUpbit.NumOfTickerCoin(balance_upbit,ticker_upbit)) * (upbit_order_standard_close-float(myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)))
 
                 warning_price_binance = entryPrice_s * (1 + 1 / set_leverage) * 0.95
                 warning_percent=round((now_price_binance-entryPrice_s)/(warning_price_binance-entryPrice_s)*100,1)
@@ -430,11 +431,11 @@ for ticker_upbit in Sorted_topcoinlist:
                     warning_percent = 0.0
 
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round(unrealizedProfit*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff)/10000,1), warning_percent,round(Krate,2)]
+                                              round(unrealizedProfit*(1-Binance_commission)*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)/10000,1), warning_percent,round(Krate,2)]
 
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
-                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
+                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
                         # and Krate - Krate_average <= profit_rate*2.2:
                     isolated = True  # 격리모드인지
 
@@ -467,7 +468,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     # 다시 정의 할 필요 없어서 지움
                     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
 
-                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
+                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)
