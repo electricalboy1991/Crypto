@@ -7,7 +7,7 @@ import ende_key  #암복호화키
 import my_key    #업비트 시크릿 액세스키
 
 import line_alert #라인 메세지를 보내기 위함!
-
+import traceback
 import ccxt
 import requests
 import myBinance
@@ -253,8 +253,6 @@ if len(Krate_total) !=0:
 else:
     Sorted_topcoinlist=TopCoinList
 
-
-
 for ticker_upbit in Sorted_topcoinlist:
 
     time.sleep(0.1)
@@ -431,8 +429,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 if warning_percent<0:
                     warning_percent = 0.0
 
-                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,2),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round(unrealizedProfit*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff)/10000,1), warning_percent]
+                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
+                                              round(unrealizedProfit*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff)/10000,1), warning_percent,round(Krate,2)]
 
                 #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
@@ -1372,9 +1370,11 @@ for ticker_upbit in Sorted_topcoinlist:
             pass
         else:
             exc_type, exc_obj, exc_tb = sys.exc_info()
+            err = traceback.format_exc()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
-            line_alert.SendMessage_SP('[에러] : \n' + str(exc_type) + '\n[파일] : '+ str(fname)+ '\n[라인 넘버] : '+ str(exc_tb.tb_lineno))
+            line_alert.SendMessage_Trading('[에러] : \n' + str(err) + '\n[파일] : '+ str(fname)+ '\n[라인 넘버] : '+ str(exc_tb.tb_lineno))
+            line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
 
 time.sleep(0.1)
 balance_binanace = binanceX.fetch_balance(params={"type": "future"})
@@ -1400,8 +1400,8 @@ if len(Telegram_Log) !=0:
     for key, value in Telegram_Log.items():
         num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
-        Telegram_Log_str += str(num_type) + ". " + key_ticker + " p: " + str(value[0]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + " 물: " + str(value[3]) + "\n" \
-                            + "⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
+        Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0])+ " ↙" + str(value[8]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + "\n" + "물: " + str(value[3])  \
+                            + " ⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
     line_alert.SendMessage_Log("  ♥♥" +KR_time_sliced+"♥♥  \n"+Telegram_Log_str)
 
 Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * BUSDKRW) / 10000, 1)) + "만원"
