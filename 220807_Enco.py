@@ -517,9 +517,9 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Trade_infor, outfile)
 
                         line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_average,2)) + "% \n"
-                                                    +"[바낸 Profit] : " + str(round(unrealizedProfit*Temp_won_rate/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
+                                                    +"[바낸 Profit] : " + str(round(unrealizedProfit*BUSDKRW/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
                                                   +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " BUSD KRW ↙: " + str(Temp_won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
