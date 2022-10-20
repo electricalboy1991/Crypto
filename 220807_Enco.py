@@ -15,26 +15,30 @@ import json
 from datetime import datetime
 from pytz import timezone
 from bs4 import BeautifulSoup as bs
+import platform
 
-Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
-Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
-Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
-Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
-top_file_path = "/var/Autobot_seoul/TopCoinList.json"
-Trade_infor_path = "/var/Autobot_seoul/Trade_infor.json"
+if platform.system() == 'Windows':
+    Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
+    Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
+    Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
+    Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
+    top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
+    Trade_infor_path = "C:\\Users\world\PycharmProjects\Crypto\Trade_infor.json"
 
-# Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
-# Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
-# Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
-# Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
-# top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
-# Trade_infor_path = "C:\\Users\world\PycharmProjects\Crypto\Trade_infor.json"
+else:
+    Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
+    Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
+    Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
+    Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
+    top_file_path = "/var/Autobot_seoul/TopCoinList.json"
+    Trade_infor_path = "/var/Autobot_seoul/Trade_infor.json"
 
+""" Tether 가격은 더이상 쓸 필요가 없음
 page_USDT = requests.get("https://coinmarketcap.com/ko/currencies/tether/")
 soup_USDT = bs(page_USDT.text, "html.parser")
 str_TetherKRW = soup_USDT.select_one('div.priceValue span').get_text()
 TetherKRW=float(str_TetherKRW[1]+str_TetherKRW[3:9])
-
+"""
 page_BUSD = requests.get("https://coinmarketcap.com/ko/currencies/binance-usd/")
 soup_BUSD = bs(page_BUSD.text, "html.parser")
 str_BUSDKRW = soup_BUSD.select_one('div.priceValue span').get_text()
@@ -515,10 +519,8 @@ for ticker_upbit in Sorted_topcoinlist:
                         line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_average,2)) + "% \n"
                                                     +"[바낸 Profit] : " + str(round(unrealizedProfit*Temp_won_rate/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
                                                   +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
-
-
                     else:
                         continue
 
@@ -542,7 +544,6 @@ for ticker_upbit in Sorted_topcoinlist:
                     #
                     # orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
                     # upbit_order_standard = orderbook_upbit['orderbook_units'][1]['ask_price']
-
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
@@ -902,7 +903,6 @@ for ticker_upbit in Sorted_topcoinlist:
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
-
 
                         Situation_flag[ticker_upbit][3] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -1376,6 +1376,7 @@ for ticker_upbit in Sorted_topcoinlist:
             print(exc_type, fname, exc_tb.tb_lineno)
             line_alert.SendMessage_Trading('[에러] : \n' + str(err) + '\n[파일] : '+ str(fname)+ '\n[라인 넘버] : '+ str(exc_tb.tb_lineno))
             line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
+            line_alert.SendMessage_Trading(str(binance_orderbook_data)+ ' ' + str(binance_order_Nsum_close)+ ' ' +str(amt_s))
 
 time.sleep(0.1)
 balance_binanace = binanceX.fetch_balance(params={"type": "future"})
