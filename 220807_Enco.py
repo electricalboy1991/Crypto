@@ -577,7 +577,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
                     stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
-
+                    time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                     myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -687,7 +687,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -792,7 +792,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -897,7 +897,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -999,7 +999,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
                         stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -1106,7 +1106,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
                         stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (
                                     1 + 1 / set_leverage) * Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -1214,7 +1214,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
                         stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (
                                     1 + 1 / set_leverage) * Stop_price_percent
-
+                        time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
@@ -1328,7 +1328,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
                 stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
-
+                time.sleep(0.1)
                 myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
                 myUpbit.CancelCoinOrder(upbit, ticker_upbit)
