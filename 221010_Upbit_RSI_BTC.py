@@ -3,13 +3,17 @@ import myUpbit  # 우리가 만든 함수들이 들어있는 모듈
 import ende_key  # 암복호화키
 import my_key  # 업비트 시크릿 액세스키
 import json
-import datetime
 import time
-import line_alert  # 라인 메세지를 보내기 위함!
+import platform
+import line_alert #라인 메세지를 보내기 위함!
+from datetime import datetime
+from pytz import timezone
 
 
-time.sleep(30)
-
+if platform.system() != 'Windows':
+    time.sleep(30)
+else:
+    pass
 
 RSI_criteria_1 = 27.2
 RSI_criteria_2 = 17
@@ -26,8 +30,10 @@ Upbit_ScretKey = simpleEnDecrypt.decrypt(my_key.upbit_secret)
 
 upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)  # 업비트 객체를 만듭니다.
 
-# RSI_info_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info.json"
-RSI_info_path = "/var/Autobot_seoul/RSI_info.json"
+if platform.system() == 'Windows':
+    RSI_info_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info.json"
+else:
+    RSI_info_path = "/var/Autobot_seoul/RSI_info.json"
 
 RSI_info = dict()
 
@@ -41,7 +47,7 @@ except Exception as e:
     RSI_info["Pre_RSI_time_2"] = float(0)
     print("RSI 파일 없음")
 
-timestamp = datetime.datetime.now().timestamp()
+timestamp = datetime.now().timestamp()
 print(timestamp)
 
 # 비트코인의 140분봉(캔들) 정보를 가져온다.
@@ -53,8 +59,14 @@ rsi_hour = float(myUpbit.GetRSI(df, 14, -1))
 print("BTC_BOT_WORKING")
 print("NOW RSI:", rsi_hour)
 
-if rsi_hour <= RSI_criteria_1 and (
-        (float(RSI_info["Pre_RSI_time_1"]) - timestamp > 86400) or (float(RSI_info["Pre_RSI_time_1"]) == 0)):
+current_time = datetime.now(timezone('Asia/Seoul'))
+KR_time=str(current_time)
+KR_time_sliced =KR_time[:23]
+RSI_string = "  ♥♥" +KR_time_sliced+"♥♥  \n"+'[NOW 1hour RSI] : ' +str(rsi_hour)
+
+line_alert.SendMessage_1hourRSI(RSI_string)
+
+if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info["Pre_RSI_time_1"]) > 86400) or (float(RSI_info["Pre_RSI_time_1"]) == 0)):
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!IN")
     print(upbit.buy_market_order("KRW-BTC", RSI_criteria_1_buywon))
 
@@ -73,14 +85,12 @@ if rsi_hour <= RSI_criteria_1 and (
         json.dump(RSI_info, outfile)
     time.sleep(0.1)
 
-    rsi_messenger_1 = "[RSI_1] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(
-        round(RSI_criteria_1_buywon / 10000, 2)) + '万' + ' [투자액] : ' + str(invested_money) + \
+    rsi_messenger_1 = "[RSI_1] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_buywon / 10000, 2)) + '万' + ' [투자액] : ' + str(invested_money) + \
                       ' \n[수익률] : ' + str(Profit_rate) + ' [평가액] : ' + str(rated_money) + ' [차익] : ' + str(profit_money)
     line_alert.SendMessage_SP(rsi_messenger_1)
 
 
-elif rsi_hour <= RSI_criteria_2 and (
-        (float(RSI_info["Pre_RSI_time_2"]) - timestamp > 86400) or (float(RSI_info["Pre_RSI_time_2"]) == 0)):
+elif rsi_hour <= RSI_criteria_2 and ((timestamp-float(RSI_info["Pre_RSI_time_2"]) > 86400) or (float(RSI_info["Pre_RSI_time_2"]) == 0)):
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!IN")
     print(upbit.buy_market_order("KRW-BTC", RSI_criteria_2_buywon))
 
@@ -100,8 +110,7 @@ elif rsi_hour <= RSI_criteria_2 and (
     time.sleep(0.1)
     rsi_messenger_2 = "[RSI_2] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(
         round(RSI_criteria_2_buywon / 10000, 2)) + '万' + ' [투자액] : ' + str(invested_money) + ' ' \
-                                                                                             '\n[수익률] : ' + str(
-        Profit_rate) + ' [평가액] : ' + str(rated_money) + ' [차익] : ' + str(profit_money)
+                                                                                             '\n[수익률] : ' + str(Profit_rate) + ' [평가액] : ' + str(rated_money) + ' [차익] : ' + str(profit_money)
 
     line_alert.SendMessage_SP(rsi_messenger_2)
 
