@@ -172,7 +172,7 @@ except Exception as e:
 Invest_Rate = 0.21
 set_leverage = 3
 profit_rate_criteria = 1.5
-Krate_interval = 0.35
+Krate_interval = 0.4
 AD_criteria = 95
 Kimp_crit = 1.5
 Stop_price_percent = 0.97
