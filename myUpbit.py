@@ -37,6 +37,19 @@ class SimpleEnDecrypt:
             return ou
 
 
+def ProfitReturn(profit_range,average_range,average_percent):
+    if average_percent > 2:
+        profit_rate = 1
+    elif average_percent < -2:
+        profit_rate = 3
+    else:
+        slope = (profit_range[1]-profit_range[0])/(average_range[1]-average_range[0])
+        bias = profit_range[1]-slope*average_range[1]
+        profit_rate = slope*average_percent+bias
+
+    return profit_rate
+
+
 #RSI지표 수치를 구해준다. 첫번째: 분봉/일봉 정보, 두번째: 기간, 세번째: 기준 날짜
 def GetRSI(ohlcv,period,st):
     ohlcv["close"] = ohlcv["close"]

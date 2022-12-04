@@ -1,5 +1,5 @@
 #-*-coding:utf-8 -*-
-import myUpbit   #우리가 만든 함수들이 들어있는 모듈
+import myUpbit   #내가 만든 함수들이 들어있는 모듈
 import time
 import pyupbit
 import sys, os
@@ -24,6 +24,7 @@ if platform.system() == 'Windows':
     Krate_total_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_total.json"
     top_file_path = "C:\\Users\world\PycharmProjects\Crypto\TopCoinList.json"
     Trade_infor_path = "C:\\Users\world\PycharmProjects\Crypto\Trade_infor.json"
+    BUSD_MA_path = "C:\\Users\world\PycharmProjects\Crypto\BUSD_MA.json"
 
 else:
     Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
@@ -32,6 +33,7 @@ else:
     Krate_total_type_file_path = "/var/Autobot_seoul/Krate_total.json"
     top_file_path = "/var/Autobot_seoul/TopCoinList.json"
     Trade_infor_path = "/var/Autobot_seoul/Trade_infor.json"
+    BUSD_MA_path = "/var/Autobot_seoul/BUSD_MA.json"
 
 """ Tether 가격은 더이상 쓸 필요가 없음
 page_USDT = requests.get("https://coinmarketcap.com/ko/currencies/tether/")
@@ -39,10 +41,23 @@ soup_USDT = bs(page_USDT.text, "html.parser")
 str_TetherKRW = soup_USDT.select_one('div.priceValue span').get_text()
 TetherKRW=float(str_TetherKRW[1]+str_TetherKRW[3:9])
 """
+
+# BUSD 가격 크롤링 해서 가지고 옴
 page_BUSD = requests.get("https://coinmarketcap.com/ko/currencies/binance-usd/")
 soup_BUSD = bs(page_BUSD.text, "html.parser")
 str_BUSDKRW = soup_BUSD.select_one('div.priceValue span').get_text()
 BUSDKRW=float(str_BUSDKRW[1]+str_BUSDKRW[3:9])
+
+# # BUSD 24시간 Range로 평균 가격 가지고 오기
+# str_BUSDKRW_range=soup_BUSD.select('span.sc-d5c68954-5')
+#
+# str_BUSDKRW_lower = str_BUSDKRW_range[0].get_text()
+# BUSDKRW_lower = float(str_BUSDKRW_lower[1]+str_BUSDKRW_lower[3:9])
+#
+# str_BUSDKRW_upper = str_BUSDKRW_range[1].get_text()
+# BUSDKRW_upper = float(str_BUSDKRW_upper[1]+str_BUSDKRW_upper[3:9])
+#
+# BUSDKRW_Day_average = (BUSDKRW_lower+BUSDKRW_upper)*0.5
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myUpbit.SimpleEnDecrypt(ende_key.ende_key)
@@ -73,9 +88,8 @@ hour_crit = 20
 min_crit = 25
 print(hour, min)
 
-#빈 리스트를 선언합니다.
+#김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
 Kimplist = list()
-
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Kimplist_type_file_path, 'r', encoding="utf-8") as json_file:
@@ -85,8 +99,8 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 1")
 
+#김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
 Situation_flag = dict()
-
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Situation_flag_type_file_path, 'r', encoding="utf-8") as json_file:
@@ -95,8 +109,8 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 2")
 
+#전날 close 값 불러오기 위함. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
 Krate_ExClose= dict()
-
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_ExClose_type_file_path, 'r', encoding="utf-8") as json_file:
@@ -106,8 +120,8 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 3")
 
+#거래 김프 total 정보. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
 Krate_total = dict()
-
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Krate_total_type_file_path, 'r', encoding="utf-8") as json_file:
@@ -117,7 +131,6 @@ except Exception as e:
     print("Exception by First 4")
 
 Trade_infor = dict()
-
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(Trade_infor_path, 'r', encoding="utf-8") as json_file:
@@ -126,9 +139,10 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 5")
 
-TopCoinList = list()
 Telegram_Log = dict()
 
+#TopCoinList N 개를 저장시키기 위한 Code
+TopCoinList = list()
 try:
     with open(top_file_path, "r", encoding="utf-8") as json_file:
         TopCoinList = json.load(json_file)
@@ -140,6 +154,7 @@ try:
             setForFlag = set(Situation_flag.keys())
             setForTopcoin = set(TopCoinList)
 
+            #기존 list에 있는 값이랑 차이 있는 값에 대한 list를 만듦
             setDifference_Exclose = list(setForExclose.difference(setForTopcoin))
             setDifference_Total = list(setForTotal.difference(setForTopcoin))
             setDifference_Flag  = list(setForTotal.difference(setForFlag))
@@ -169,16 +184,41 @@ except Exception as e:
     TopCoinList = myUpbit.GetTopCoinList("day",30)
     print("Exception by First")
 
-Invest_Rate = 0.21
+# BUSDKRW_MA_List = list()
+# try:
+#     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+#     with open(BUSD_MA_path, 'r', encoding="utf-8") as json_file:
+#         BUSDKRW_MA_List = json.load(json_file)
+#         if hour == hour_crit and min % 60 == min_crit:
+#             del BUSDKRW_MA_List[0]
+#             BUSDKRW_MA_List.append(BUSDKRW_Day_average)
+#             with open(BUSD_MA_path, 'w', encoding="utf-8") as outfile:
+#                 json.dump(BUSDKRW_MA_List, outfile)
+#
+#
+# except Exception as e:
+#     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+#     print("Exception by First 6")
+
+
+#Invest_Rate = 0.21
 set_leverage = 3
+#profit_rate_criteria 기본 값
 profit_rate_criteria = 1.5
+#Krate_interval 물타기 범위 값
 Krate_interval = 0.4
 AD_criteria = 95
-Kimp_crit = 1.5
+Kimp_crit = -10
 Stop_price_percent = 0.97
+#close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.1
+#1회 진입 달러 수
 GetInMoney=250
 Binance_commission = 0.0003
+profit_range= [3, 1]
+average_range = [-2,2]
+
+# BUSDKRW_MA_value = sum(BUSDKRW_MA_List) / len(BUSDKRW_MA_List)
 
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
@@ -200,6 +240,7 @@ won_rate = myUpbit.upbit_get_usd_krw()
 
 upbit_remain_money=0
 
+#김프 리스트에 없는 값들은 저장에서 다 지우는 코드
 for jj in Kimplist:
     if not myUpbit.IsHasCoin(balance_upbit, jj):
         del Krate_ExClose[jj]
@@ -225,8 +266,10 @@ for upbit_asset in balance_upbit:
 
 characters = "KRW-"
 
+#거래에서 제외할 코인
 try:
     TopCoinList.remove("KRW-BTC")
+    TopCoinList.remove("KRW-TRX")
 except Exception as e:
     print("BTC remove error", e)
 
@@ -345,6 +388,7 @@ for ticker_upbit in Sorted_topcoinlist:
             Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
         else:
             Krate = ((upbit_order_standard / (binance_order_standard * BUSDKRW)) - 1) * 100
+            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * BUSDKRW)) - 1) * 100
         """
         if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
             profit_rate = 100 * ((upbit_order_standard - myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)) * myUpbit.NumOfTickerCoin(
@@ -416,6 +460,7 @@ for ticker_upbit in Sorted_topcoinlist:
             # 따라서 잔고도 있다.
             if myUpbit.IsHasCoin(balance_upbit, ticker_upbit) == True:
 
+                """
                 if Krate_average<=0:
                     profit_rate_criteria = 1.65
                 elif 0<Krate_average<=1:
@@ -426,11 +471,19 @@ for ticker_upbit in Sorted_topcoinlist:
                     profit_rate_criteria = 1.1
                 else:
                     profit_rate_criteria = 1.0
+                """
+
+                profit_rate_criteria = myUpbit.ProfitReturn(profit_range,average_range,Krate_average)
+
+
 
                 upbit_diff = float(myUpbit.NumOfTickerCoin(balance_upbit,ticker_upbit)) * (upbit_order_standard_close-float(myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)))
 
                 warning_price_binance = entryPrice_s * (1 + 1 / set_leverage) * 0.95
-                warning_percent=round((now_price_binance-entryPrice_s)/(warning_price_binance-entryPrice_s)*100,1)
+                if warning_price_binance-entryPrice_s ==0:
+                    warning_percent = 0
+                else:
+                    warning_percent=round((now_price_binance-entryPrice_s)/(warning_price_binance-entryPrice_s)*100,1)
                 if warning_percent<0:
                     warning_percent = 0.0
 
@@ -650,8 +703,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # 다시 정의 할 필요 없어서 지움
                     Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
 
-                    if Krate < 2 and Krate_total[ticker_upbit][0]-Krate >= Krate_interval\
-                            and Situation_flag[ticker_upbit][1] == False:
+                    if Krate < Kimp_crit and Krate_total[ticker_upbit][0]-Krate >= Krate_interval and Situation_flag[ticker_upbit][1] == False:
                         params = {'positionSide': 'SHORT'}
 
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
@@ -858,7 +910,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         # 다시 정의 할 필요 없어서 지움
                     Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < 2 \
+                    if Krate < Kimp_crit \
                         and Krate_total[ticker_upbit][2] - Krate >= Krate_interval \
                         and Situation_flag[ticker_upbit][3] == False:
 
@@ -960,7 +1012,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     ADMoney = Buy_Amt * upbit_order_standard
                     Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < 2 \
+                    if Krate < Kimp_crit \
                             and Krate_total[ticker_upbit][3] - Krate >= Krate_interval \
                             and Situation_flag[ticker_upbit][4] == False:
 
@@ -1065,7 +1117,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     ADMoney = Buy_Amt * upbit_order_standard
                     Krate = ((upbit_order_standard / (
                                 binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < 2 \
+                    if Krate < Kimp_crit \
                             and Krate_total[ticker_upbit][4] - Krate >= Krate_interval \
                             and Situation_flag[ticker_upbit][5] == False:
 
@@ -1174,7 +1226,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     ADMoney = Buy_Amt * upbit_order_standard
                     Krate = ((upbit_order_standard / (
                                 binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < 2 \
+                    if Krate < Kimp_crit \
                             and Krate_total[ticker_upbit][5] - Krate >= Krate_interval \
                             and Situation_flag[ticker_upbit][6] == False:
 
@@ -1293,76 +1345,76 @@ for ticker_upbit in Sorted_topcoinlist:
                     ADMoney = Buy_Amt * upbit_order_standard
                     Krate = ((upbit_order_standard / (binance_order_standard * BUSDKRW)) - 1) * 100
 
-                    if Krate < 2 and len(Kimplist) < CoinCnt\
-                        and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
+                    if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
                         print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                         time.sleep(0.1)
                         print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
                     else:
                         continue
+
+                    time.sleep(0.1)
+
+                    # 체결했으니까 내역 업데이트 해서 받아오기
+                    balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                    upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                    time.sleep(0.1)
+                    balance_upbit = upbit.get_balances()
+
+                    for posi in balance_binanace['info']['positions']:
+                        if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                            print(posi)
+                            amt_s = float(posi['positionAmt'])
+                            entryPrice_s = float(posi['entryPrice'])
+                            leverage = float(posi['leverage'])
+                            isolated = posi['isolated']
+                            break
+
+                    for upbit_asset in balance_upbit:
+                        if upbit_asset['currency'] == 'KRW':
+                            upbit_remain_money = float(upbit_asset['balance'])
+                        else:
+                            continue
+
+                    stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
+                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
+                    time.sleep(0.1)
+                    myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                    myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                    time.sleep(0.1)
+                    coin_volume = upbit.get_balance(ticker_upbit)
+                    time.sleep(0.1)
+                    myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
+
+                    Kimplist.append(ticker_upbit)
+                    # 파일에 리스트를 저장합니다
+                    with open(Kimplist_type_file_path, 'w') as outfile:
+                        json.dump(Kimplist, outfile)
+                    time.sleep(0.1)
+
+                    Situation_flag[ticker_upbit] = [True, False, False, False, False, False, False]
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+                    time.sleep(0.1)
+
+                    Krate_total[ticker_upbit] = [Krate, -100, -100, -100, -100, -100, -100]
+                    with open(Krate_total_type_file_path, 'w') as outfile:
+                        json.dump(Krate_total, outfile)
+                    time.sleep(0.1)
+
+                    # Trade_infor[ticker_upbit][1] = 0 여기서 0의 의미는 스탑로스 회피를 위한 물타기의 경우임
+                    Trade_infor[ticker_upbit] = [BUSDKRW, 0, None, None, None, None, None, None, None, None, None, None]
+                    with open(Trade_infor_path, 'w') as outfile:
+                        json.dump(Trade_infor, outfile)
+                    time.sleep(0.1)
+
+                    line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
+                    line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(BUSDKRW) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                                                   + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
+
                 else:
                     continue
-                time.sleep(0.1)
-
-                #체결했으니까 내역 업데이트 해서 받아오기
-                balance_binanace = binanceX.fetch_balance(params={"type": "future"})
-                upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
-                time.sleep(0.1)
-                balance_upbit = upbit.get_balances()
-
-                for posi in balance_binanace['info']['positions']:
-                    if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
-                        print(posi)
-                        amt_s = float(posi['positionAmt'])
-                        entryPrice_s = float(posi['entryPrice'])
-                        leverage = float(posi['leverage'])
-                        isolated = posi['isolated']
-                        break
-
-                for upbit_asset in balance_upbit:
-                    if upbit_asset['currency'] == 'KRW':
-                        upbit_remain_money = float(upbit_asset['balance'])
-                    else:
-                        continue
-
-                stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
-                time.sleep(0.1)
-                myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
-
-                myUpbit.CancelCoinOrder(upbit, ticker_upbit)
-                time.sleep(0.1)
-                coin_volume = upbit.get_balance(ticker_upbit)
-                time.sleep(0.1)
-                myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
-
-                Kimplist.append(ticker_upbit)
-                # 파일에 리스트를 저장합니다
-                with open(Kimplist_type_file_path, 'w') as outfile:
-                    json.dump(Kimplist, outfile)
-                time.sleep(0.1)
-
-                Situation_flag[ticker_upbit] = [True,False,False,False,False,False,False]
-                with open(Situation_flag_type_file_path, 'w') as outfile:
-                    json.dump(Situation_flag, outfile)
-                time.sleep(0.1)
-
-                Krate_total[ticker_upbit] = [Krate,-100,-100,-100,-100,-100,-100]
-                with open(Krate_total_type_file_path, 'w') as outfile:
-                    json.dump(Krate_total, outfile)
-                time.sleep(0.1)
-
-                #Trade_infor[ticker_upbit][1] = 0 여기서 0의 의미는 스탑로스 회피를 위한 물타기의 경우임
-                Trade_infor[ticker_upbit] = [BUSDKRW,0,None,None,None,None,None,None,None,None,None,None]
-                with open(Trade_infor_path, 'w') as outfile:
-                    json.dump(Trade_infor, outfile)
-                time.sleep(0.1)
-
-
-                line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 " +"김프 : "+ str(round(Krate,2)))
-                line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
-                    + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
     except Exception as e:
         # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!

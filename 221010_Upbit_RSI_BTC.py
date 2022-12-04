@@ -15,11 +15,11 @@ if platform.system() != 'Windows':
 else:
     pass
 
-RSI_criteria_1 = 27.2
-RSI_criteria_2 = 17
+RSI_criteria_1 = 29.2
+RSI_criteria_2 = 19
 
-RSI_criteria_1_buywon = 150000
-RSI_criteria_2_buywon = 400000
+RSI_criteria_1_buywon = 200000
+RSI_criteria_2_buywon = 500000
 
 # 암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myUpbit.SimpleEnDecrypt(ende_key.ende_key)
