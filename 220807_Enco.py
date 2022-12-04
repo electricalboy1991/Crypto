@@ -208,12 +208,12 @@ profit_rate_criteria = 1.5
 #Krate_interval 물타기 범위 값
 Krate_interval = 0.4
 AD_criteria = 95
-Kimp_crit = -10
+Kimp_crit = 1.6
 Stop_price_percent = 0.97
 #close_criteria 적어도 이 수치보단 클 때 팔기
-close_criteria = 1.1
+close_criteria = 1.2
 #1회 진입 달러 수
-GetInMoney=250
+GetInMoney=50
 Binance_commission = 0.0003
 profit_range= [3, 1]
 average_range = [-2,2]
