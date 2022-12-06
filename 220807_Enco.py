@@ -6,7 +6,7 @@ import sys, os
 import ende_key  #암복호화키
 import my_key    #업비트 시크릿 액세스키
 
-import line_alert #라인 메세지를 보내기 위함!
+import line_alert #라인,텔레그램 메세지를 보내기 위함!
 import traceback
 import ccxt
 import requests
@@ -246,6 +246,7 @@ for jj in Kimplist:
         del Krate_ExClose[jj]
         del Krate_total[jj]
         del Situation_flag[jj]
+        del Trade_infor[jj]
         Kimplist.remove(jj)
 
         with open(Krate_ExClose_type_file_path, 'w') as outfile:
@@ -254,6 +255,8 @@ for jj in Kimplist:
             json.dump(Krate_total, outfile)
         with open(Situation_flag_type_file_path, 'w') as outfile:
             json.dump(Situation_flag, outfile)
+        with open(Situation_flag_type_file_path, 'w') as outfile:
+            json.dump(Trade_infor, outfile)
         with open(Kimplist_type_file_path, 'w') as outfile:
             json.dump(Kimplist, outfile)
 
@@ -341,9 +344,9 @@ for ticker_upbit in Sorted_topcoinlist:
         binance_order_Nsum = 0
         for price_i, num_i in binance_orderbook_data['bids']:
             binance_order_Nsum +=float(num_i)
-            binance_order_index += 1 #버퍼로 하나 더해줌
             if binance_order_Nsum > abs(Buy_Amt):
                 break
+            binance_order_index += 1
         binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
         # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -355,9 +358,9 @@ for ticker_upbit in Sorted_topcoinlist:
 
         for upbit_order_data in orderbook_upbit['orderbook_units']:
             upbit_order_Nsum += upbit_order_data['ask_size']
-            upbit_order_index +=1
             if upbit_order_Nsum > abs(Buy_Amt):
                 break
+            upbit_order_index += 1
         upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
         # 바이낸스에서 팔 때 슬리피지는 다르게 해줘야지
@@ -365,9 +368,10 @@ for ticker_upbit in Sorted_topcoinlist:
         binance_order_Nsum_close = 0
         for price_i, num_i in binance_orderbook_data['asks']:
             binance_order_Nsum_close += float(num_i)
-            binance_order_index_close += 1  # 버퍼로 하나 더해줌
+
             if binance_order_Nsum_close > abs(amt_s):
                 break
+            binance_order_index_close += 1  # 버퍼로 하나 더해줌
         binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
 
         # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
@@ -376,9 +380,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
         for upbit_order_data in orderbook_upbit['orderbook_units']:
             upbit_order_Nsum_close += upbit_order_data['bid_size']
-            upbit_order_index_close += 1
+
             if upbit_order_Nsum_close > abs(amt_s):
                 break
+            upbit_order_index_close += 1
         upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
 
         ADMoney = Buy_Amt * upbit_order_standard
@@ -505,9 +510,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum_close = 0
                     for price_i, num_i in binance_orderbook_data['asks']:
                         binance_order_Nsum_close += float(num_i)
-                        binance_order_index_close += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum_close > abs(amt_s):
                             break
+                        binance_order_index_close += 1  # 버퍼로 하나 더해줌
                     binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
 
                     # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
@@ -517,9 +523,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum_close += upbit_order_data['bid_size']
-                        upbit_order_index_close += 1
+
                         if upbit_order_Nsum_close > abs(amt_s):
                             break
+                        upbit_order_index_close += 1
                     upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
 
                     # 다시 정의 할 필요 없어서 지움
@@ -682,9 +689,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -694,9 +702,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -785,9 +794,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -797,9 +807,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -889,9 +900,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -901,9 +913,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -993,9 +1006,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -1005,9 +1019,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1097,9 +1112,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -1109,9 +1125,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1206,9 +1223,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -1218,9 +1236,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1325,9 +1344,10 @@ for ticker_upbit in Sorted_topcoinlist:
                     binance_order_Nsum = 0
                     for price_i, num_i in binance_orderbook_data['bids']:
                         binance_order_Nsum += float(num_i)
-                        binance_order_index += 1  # 버퍼로 하나 더해줌
+
                         if binance_order_Nsum > abs(Buy_Amt):
                             break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
                     binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
                     # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
@@ -1337,9 +1357,10 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     for upbit_order_data in orderbook_upbit['orderbook_units']:
                         upbit_order_Nsum += upbit_order_data['ask_size']
-                        upbit_order_index += 1
+
                         if upbit_order_Nsum > abs(Buy_Amt):
                             break
+                        upbit_order_index += 1
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1462,4 +1483,3 @@ Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) *
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
 line_alert.SendMessage_Summary1minute("★자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : ㉥ " + str(BUSDKRW)+ "₩ ($ : "+ str(won_rate) + "₩)"+ "\n♥"
                                       +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won)
-

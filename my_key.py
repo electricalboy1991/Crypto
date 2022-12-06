@@ -49,7 +49,10 @@ print("scret_key: ", simpleEnDecrypt.encrypt(secret))
 
 '''
 
-upbit_access = "gAAAAABiwBpCWB_ArMZqjeCApgue6YfSO4lgxg32gN4UsqiKnls-q0RN20Smqhf8Dp0a0Aszad1uGWkpFWMtymec6Kzql8TtULvRkZ_mXZxTBUpiccwMU7RfvvRaY8ExYgH9GaO8wg6G"          # 본인 값으로 변경
+
+# 아래를 본인 값으로 변경
+
+upbit_access = "gAAAAABiwBpCWB_ArMZqjeCApgue6YfSO4lgxg32gN4UsqiKnls-q0RN20Smqhf8Dp0a0Aszad1uGWkpFWMtymec6Kzql8TtULvRkZ_mXZxTBUpiccwMU7RfvvRaY8ExYgH9GaO8wg6G"
 upbit_secret = "gAAAAABiwBpCmbivavaNxdKXGQmFjlW4DbxU0yufsAtzFOPCzbCQbDBpr_V5oUhwcL_iNE3JqFjlX4PndK7Z9RnPg6aeEoLcsJ-b_dSWAl6Y1R9isbV2P2l0Y107v_i2fvScOMMPo-tW"
 
 binance_access =  "gAAAAABiwzuSPey4dRm1SOQvIwSGD9lICuBkemdT8HMni_Nw3BrTAFTC4pxhboN2g5_rVFDhb94p-wgGOHyjkgSj81Ah0XXbteYG3rwKHLhE0Va5fIxQjFcXkuU0Wgdb9zPzP1U5rHhJDh0UyeHgTfcdTa-UldpekCnSbIOeXcKg9erHxKufFx4="

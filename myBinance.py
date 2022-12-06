@@ -7,9 +7,6 @@ import numpy
 from cryptography.fernet import Fernet
 
 
-'''
-여기에 바이낸스 봇에 사용될 함수들을 추가하세요!!
-'''
 
 #암호화 복호화 클래스
 class SimpleEnDecrypt:
