@@ -213,7 +213,7 @@ Stop_price_percent = 0.97
 #close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.2
 #1회 진입 달러 수
-GetInMoney=50
+GetInMoney=150
 Binance_commission = 0.0003
 profit_range= [3, 1]
 average_range = [-2,2]
@@ -636,7 +636,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
+                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -747,7 +747,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -854,7 +854,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -961,7 +961,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1065,7 +1065,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*Stop_price_percent
+                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1173,8 +1173,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (
-                                    1 + 1 / set_leverage) * Stop_price_percent
+                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1283,8 +1282,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (
-                                    1 + 1 / set_leverage) * Stop_price_percent
+                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1398,7 +1396,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * Stop_price_percent
+                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
