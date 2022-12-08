@@ -274,6 +274,8 @@ try:
     TopCoinList.remove("KRW-BTC")
     TopCoinList.remove("KRW-TRX")
     TopCoinList.remove("KRW-WEMIX")
+    TopCoinList.remove("KRW-ADA")
+    TopCoinList.remove("KRW-WAVES")
 except Exception as e:
     print("BTC remove error", e)
 
