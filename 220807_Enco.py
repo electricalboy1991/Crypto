@@ -206,7 +206,7 @@ set_leverage = 3
 #profit_rate_criteria 기본 값
 profit_rate_criteria = 1.5
 #Krate_interval 물타기 범위 값
-Krate_interval = 0.4
+Krate_interval = 0.5
 AD_criteria = 95
 Kimp_crit = 1.6
 Stop_price_percent = 0.97
@@ -255,7 +255,7 @@ for jj in Kimplist:
             json.dump(Krate_total, outfile)
         with open(Situation_flag_type_file_path, 'w') as outfile:
             json.dump(Situation_flag, outfile)
-        with open(Situation_flag_type_file_path, 'w') as outfile:
+        with open(Trade_infor_path, 'w') as outfile:
             json.dump(Trade_infor, outfile)
         with open(Kimplist_type_file_path, 'w') as outfile:
             json.dump(Kimplist, outfile)
