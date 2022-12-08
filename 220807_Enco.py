@@ -273,6 +273,7 @@ characters = "KRW-"
 try:
     TopCoinList.remove("KRW-BTC")
     TopCoinList.remove("KRW-TRX")
+    TopCoinList.remove("KRW-WEMIX")
 except Exception as e:
     print("BTC remove error", e)
 
