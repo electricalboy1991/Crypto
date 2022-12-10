@@ -495,6 +495,9 @@ for ticker_upbit in Sorted_topcoinlist:
                 if warning_percent<0:
                     warning_percent = 0.0
 
+                if warning_percent > 75:
+                    line_alert.SendMessage_SP( "[Stoploss 경고] : " + str(ticker_upbit[4:]) +" [Warning %] : " + str(round(warning_percent, 2))+" %")
+
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
                                               round(unrealizedProfit*(1-Binance_commission)*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)/10000,1), warning_percent,round(Krate,2)]
 
@@ -639,7 +642,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
+                    stop_price_upbit = stop_price_binance*BUSDKRW*0.98
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -648,7 +651,6 @@ for ticker_upbit in Sorted_topcoinlist:
                     myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
                     ADMoney_index=Situation_flag[ticker_upbit].index(False)
-
 
                     Situation_flag[ticker_upbit][ADMoney_index] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
@@ -723,7 +725,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -750,7 +752,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
+                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -820,9 +822,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         # 다시 정의 할 필요 없어서 지움
                     Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < Kimp_crit \
-                            and Krate_total[ticker_upbit][1] - Krate >= Krate_interval \
-                            and Situation_flag[ticker_upbit][2] == False:
+                    if Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][2] == False:
 
                         params = {'positionSide': 'SHORT'}
 
@@ -831,7 +831,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -857,7 +857,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
+                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -937,7 +937,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -964,7 +964,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
+                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1041,7 +1041,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -1068,7 +1068,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)*(1+1/set_leverage)*(Stop_price_percent-0.01)
+                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1149,7 +1149,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -1176,7 +1176,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
+                        stop_price_upbit = stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1258,7 +1258,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                         else:
-                            line_alert.SendMessage_SP('돈 없어서 물 못탐')
+                            line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
 
                         time.sleep(0.1)
@@ -1285,7 +1285,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
+                        stop_price_upbit = stop_price_binance*BUSDKRW*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1399,7 +1399,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) * (1 + 1 / set_leverage) * (Stop_price_percent-0.01)
+                    stop_price_upbit = stop_price_binance*BUSDKRW*0.98
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
