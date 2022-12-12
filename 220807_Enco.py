@@ -223,7 +223,7 @@ average_range = [-2,2]
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
 ####이거 늘릴 때, 최소 금액 맞춰주기
-CoinCnt = 10.0
+CoinCnt = 8.0
 
 # binance 객체 생성
 binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey,'secret': Binance_ScretKey,'enableRateLimit': True,'options': {'defaultType': 'future'}})
@@ -505,9 +505,6 @@ for ticker_upbit in Sorted_topcoinlist:
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
                 if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
                         # and Krate - Krate_average <= profit_rate*2.2:
-                    isolated = True  # 격리모드인지
-
-                    leverage = 0  # 레버리지
 
                     url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
                     binance_orderbook_data = requests.get(url).json()
