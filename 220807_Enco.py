@@ -214,7 +214,11 @@ Stop_price_percent = 0.97
 close_criteria = 1.2
 #1회 진입 달러 수
 GetInMoney=150
-Binance_commission = 0.0003
+
+#바이낸스 업비트 평균 커미션 (0.0003+0.0005)/2
+binance_commission = 0.0003
+upbit_commission = 0.0005
+commission = (upbit_commission+binance_commission)/2
 profit_range= [3, 1]
 average_range = [-2,2]
 
@@ -498,12 +502,15 @@ for ticker_upbit in Sorted_topcoinlist:
                 if warning_percent > 75:
                     line_alert.SendMessage_SP( "[Stoploss 경고] : " + str(ticker_upbit[4:]) +" [Warning %] : " + str(round(warning_percent, 2))+" %")
 
-                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round(unrealizedProfit*(1-Binance_commission)*BUSDKRW/10000,1),round(upbit_diff/10000,1),round((unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)/10000,1), warning_percent,round(Krate,2)]
 
-                #수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
+
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
-                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
+
+                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
+                                              round((unrealizedProfit*BUSDKRW-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
+
+                # 수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
+                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
                         # and Krate - Krate_average <= profit_rate*2.2:
 
                     url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
