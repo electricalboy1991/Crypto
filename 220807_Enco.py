@@ -399,13 +399,13 @@ for ticker_upbit in Sorted_topcoinlist:
             Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
             Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
         else:
-            Krate = ((upbit_order_standard / (binance_order_standard * BUSDKRW)) - 1) * 100
-            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * BUSDKRW)) - 1) * 100
+            Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
+            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
         """
         if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
             profit_rate = 100 * ((upbit_order_standard - myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)) * myUpbit.NumOfTickerCoin(
-                balance_upbit, ticker_upbit) - BUSDKRW * amt_s * (entryPrice_s - binance_order_standard)) / (myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit) 
-                * myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) - amt_s * entryPrice_s * BUSDKRW)
+                balance_upbit, ticker_upbit) - won_rate * amt_s * (entryPrice_s - binance_order_standard)) / (myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit) 
+                * myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit) - amt_s * entryPrice_s * won_rate)
         """
 
         #매수 Krate의 평균을 구하기 위한 code
@@ -507,10 +507,10 @@ for ticker_upbit in Sorted_topcoinlist:
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
 
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round((unrealizedProfit*BUSDKRW-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),round((unrealizedProfit*BUSDKRW+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
+                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
 
                 # 수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
-                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*BUSDKRW+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
+                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
                         # and Krate - Krate_average <= profit_rate*2.2:
 
                     url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
@@ -542,7 +542,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     # 다시 정의 할 필요 없어서 지움
                     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
 
-                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*(1-Binance_commission)*BUSDKRW+upbit_diff)>upbit_invested_money*profit_rate_criteria/100:
+                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)
@@ -558,10 +558,10 @@ for ticker_upbit in Sorted_topcoinlist:
                         time.sleep(0.1)
 
 
-                        coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*num_coin+BUSDKRW*(entryPrice_s-now_price_binance)*abs(amt_s)
+                        coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*num_coin+won_rate*(entryPrice_s-now_price_binance)*abs(amt_s)
                         coin_net_withCommision = round((coin_net-num_coin*now_price_upbit*0.05/100*2)/10000,2)
 
-                        total_asset = str(round((float(balance_binanace['BUSD']['total']) * BUSDKRW + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+                        total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
                         Kimplist.remove(ticker_upbit)
                         # 파일에 리스트를 저장합니다
@@ -587,9 +587,9 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Trade_infor, outfile)
 
                         line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_average,2)) + "% \n"
-                                                    +"[바낸 Profit] : " + str(round(unrealizedProfit*BUSDKRW/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
+                                                    +"[바낸 Profit] : " + str(round(unrealizedProfit*won_rate/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
                                                   +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+ " BUSD KRW ↙: " + str(Temp_won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+ " BUSD KRW ↙: " + str(Temp_won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -646,7 +646,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = stop_price_binance*BUSDKRW*0.98
+                    stop_price_upbit = stop_price_binance*won_rate*0.98
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -671,7 +671,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     time.sleep(0.1)
 
                     line_alert.SendMessage_SP("[청산 경고 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
-                    line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)+
+                    line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)+
                         "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                 #물타기 1회
@@ -756,7 +756,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit =stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -773,7 +773,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[1단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                     else:
@@ -861,7 +861,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit =stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -879,7 +879,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[2단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -968,7 +968,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit =stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -985,7 +985,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[3단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1072,7 +1072,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1+1/set_leverage)*Stop_price_percent
-                        stop_price_upbit =stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit =stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1089,7 +1089,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[4단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1180,7 +1180,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit = stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1199,7 +1199,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         line_alert.SendMessage_SP("[5단계 물] : " + str(ticker_upbit[4:]) + " " + str(
                             round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(
                             round(Krate, 2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                             + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1289,7 +1289,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                 continue
 
                         stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                        stop_price_upbit = stop_price_binance*BUSDKRW*0.98
+                        stop_price_upbit = stop_price_binance*won_rate*0.98
                         time.sleep(0.1)
                         myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1306,7 +1306,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             json.dump(Krate_total, outfile)
 
                         line_alert.SendMessage_SP("[6단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(BUSDKRW)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                             + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
                         continue
@@ -1369,7 +1369,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
                     ADMoney = Buy_Amt * upbit_order_standard
-                    Krate = ((upbit_order_standard / (binance_order_standard * BUSDKRW)) - 1) * 100
+                    Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
 
                     if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
@@ -1403,7 +1403,7 @@ for ticker_upbit in Sorted_topcoinlist:
                             continue
 
                     stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
-                    stop_price_upbit = stop_price_binance*BUSDKRW*0.98
+                    stop_price_upbit = stop_price_binance*won_rate*0.98
                     time.sleep(0.1)
                     myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
 
@@ -1430,13 +1430,13 @@ for ticker_upbit in Sorted_topcoinlist:
                     time.sleep(0.1)
 
                     # Trade_infor[ticker_upbit][1] = 0 여기서 0의 의미는 스탑로스 회피를 위한 물타기의 경우임
-                    Trade_infor[ticker_upbit] = [BUSDKRW, 0, None, None, None, None, None, None, None, None, None, None]
+                    Trade_infor[ticker_upbit] = [won_rate, 0, None, None, None, None, None, None, None, None, None, None]
                     with open(Trade_infor_path, 'w') as outfile:
                         json.dump(Trade_infor, outfile)
                     time.sleep(0.1)
 
                     line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
-                    line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(BUSDKRW) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                    line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                    + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                 else:
@@ -1461,15 +1461,15 @@ balance_binanace = binanceX.fetch_balance(params={"type": "future"})
 
 time.sleep(0.1)
 #수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
-total_asset = str(round((float(balance_binanace['BUSD']['total']) * BUSDKRW + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
 Binance_URP = 0
 for posi in balance_binanace['info']['positions']:
     if float(posi['unrealizedProfit']) != 0:
         Binance_URP+=float(posi['unrealizedProfit'])
 
-#Summary에 차액 구하는 구간임, 근데 여기는 BUSDKRW로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
-total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-upbit_diff_BTC-myUpbit.GetTotalMoney(balance_upbit)+BUSDKRW*Binance_URP)/10000,2))
+#Summary에 차액 구하는 구간임, 근데 여기는 won_rate로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
+total_difference=str(round((myUpbit.GetTotalRealMoney(balance_upbit)-upbit_diff_BTC-myUpbit.GetTotalMoney(balance_upbit)+won_rate*Binance_URP)/10000,2))
 
 if len(Telegram_Log) !=0:
     current_time = datetime.now(timezone('Asia/Seoul'))
@@ -1484,7 +1484,7 @@ if len(Telegram_Log) !=0:
                             + " ⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
     line_alert.SendMessage_Log("  ♥♥" +KR_time_sliced+"♥♥  \n"+Telegram_Log_str)
 
-Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * BUSDKRW) / 10000, 1)) + "만원"
+Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
-line_alert.SendMessage_Summary1minute("★자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : ㉥ " + str(BUSDKRW)+ "₩ ($ : "+ str(won_rate) + "₩)"+ "\n♥"
+line_alert.SendMessage_Summary1minute("★자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : $ " + str(won_rate)+ "₩ (㉥ : "+ str(BUSDKRW) + "₩)"+ "\n♥"
                                       +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won)
