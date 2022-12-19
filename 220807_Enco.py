@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup as bs
 import platform
 
 if platform.system() == 'Windows':
+    Month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Month_profit.json"
     Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
     Situation_flag_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Situation_flag.json"
     Krate_ExClose_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Krate_ExClose.json"
@@ -27,6 +28,7 @@ if platform.system() == 'Windows':
     BUSD_MA_path = "C:\\Users\world\PycharmProjects\Crypto\BUSD_MA.json"
 
 else:
+    Month_profit_type_file_path = "/var/Autobot_seoul/Month_profit.json"
     Kimplist_type_file_path = "/var/Autobot_seoul/Kimplist.json"
     Situation_flag_type_file_path = "/var/Autobot_seoul/Situation_flag.json"
     Krate_ExClose_type_file_path = "/var/Autobot_seoul/Krate_ExClose.json"
@@ -87,6 +89,17 @@ min = time_info.tm_min
 hour_crit = 20
 min_crit = 25
 print(hour, min)
+
+
+Month_profit = list()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(Month_profit_type_file_path, 'r', encoding="utf-8") as json_file:
+        Month_profit = json.load(json_file)
+
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First 0")
 
 #김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
 Kimplist = list()
@@ -507,7 +520,8 @@ for ticker_upbit in Sorted_topcoinlist:
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
 
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_average+profit_rate_criteria,2),TryNumber-1,
-                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
+                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),
+                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
 
                 # 수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
                 if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
@@ -586,9 +600,14 @@ for ticker_upbit in Sorted_topcoinlist:
                         with open(Trade_infor_path, 'w') as outfile:
                             json.dump(Trade_infor, outfile)
 
+                        Month_profit.append(coin_net_withCommision)
+                        with open(Month_profit_type_file_path, 'w') as outfile:
+                            json.dump(Month_profit, outfile)
+
                         line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_average,2)) + "% \n"
                                                     +"[바낸 Profit] : " + str(round(unrealizedProfit*won_rate/10000,2)) + "万("+str(round(unrealizedProfit,2))+"$)\n" + "[업빗 Profit] : " + str(round(upbit_diff/10000,2))+ "万"
-                                                  +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万")
+                                                  +"\n[번돈] : " + str(coin_net_withCommision) + "万 " + "[자산] : " + total_asset + "万"
+                                                  +"\n[환율] : " + str(won_rate) + "₩")
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+ " BUSD KRW ↙: " + str(Temp_won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
                     else:
@@ -1487,4 +1506,4 @@ if len(Telegram_Log) !=0:
 Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
 line_alert.SendMessage_Summary1minute("★자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"♣환율 : $ " + str(won_rate)+ "₩ (㉥ : "+ str(BUSDKRW) + "₩)"+ "\n♥"
-                                      +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won)
+                                      +Telegram_Summary+" \n♠" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won+" \n" + "♬월 실현 수익 : " + str(round(sum(Month_profit),2))+"万")
