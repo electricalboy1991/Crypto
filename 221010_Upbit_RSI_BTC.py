@@ -64,7 +64,7 @@ KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
 RSI_string = "  ♥♥" +KR_time_sliced+"♥♥  \n"+'[NOW 1hour RSI] : ' +str(rsi_hour)
 
-line_alert.SendMessage_1hourRSI(RSI_string)
+# line_alert.SendMessage_1hourRSI(RSI_string)
 
 if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info["Pre_RSI_time_1"]) > 86400) or (float(RSI_info["Pre_RSI_time_1"]) == 0)):
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!IN")
