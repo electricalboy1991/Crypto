@@ -232,7 +232,10 @@ GetInMoney=150
 binance_commission = 0.0003
 upbit_commission = 0.0005
 commission = (upbit_commission+binance_commission)/2
-profit_range= [3, 1]
+# profit_range= [3, 1]
+# average_range = [-2,2]
+
+profit_range= [0.5, 0.2]
 average_range = [-2,2]
 
 # BUSDKRW_MA_value = sum(BUSDKRW_MA_List) / len(BUSDKRW_MA_List)
@@ -240,7 +243,7 @@ average_range = [-2,2]
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
 ####이거 늘릴 때, 최소 금액 맞춰주기
-CoinCnt = 8.0
+CoinCnt = 0.0
 
 # binance 객체 생성
 binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey,'secret': Binance_ScretKey,'enableRateLimit': True,'options': {'defaultType': 'future'}})
