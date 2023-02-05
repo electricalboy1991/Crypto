@@ -503,8 +503,6 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 profit_rate_criteria = myUpbit.ProfitReturn(profit_range,average_range,Krate_average)
 
-
-
                 upbit_diff = float(myUpbit.NumOfTickerCoin(balance_upbit,ticker_upbit)) * (upbit_order_standard_close-float(myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)))
 
                 warning_price_binance = entryPrice_s * (1 + 1 / set_leverage) * 0.95
@@ -527,7 +525,7 @@ for ticker_upbit in Sorted_topcoinlist:
                                               round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
 
                 # 수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
-                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
+                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
                         # and Krate - Krate_average <= profit_rate*2.2:
 
                     url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
@@ -559,7 +557,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     # 다시 정의 할 필요 없어서 지움
                     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
 
-                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>upbit_invested_money*profit_rate_criteria/100:
+                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)

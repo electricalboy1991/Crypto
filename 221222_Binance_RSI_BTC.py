@@ -23,8 +23,8 @@ RSI_criteria_2 = 19
 
 profit_rate = 1.05
 
-RSI_criteria_1_GetInMoney = 500
-RSI_criteria_2_GetInMoney = 1200
+RSI_criteria_1_GetInMoney = 700
+RSI_criteria_2_GetInMoney = 1500
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -120,8 +120,9 @@ if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info_Binance["Pre_RSI_ti
 
     print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
     time.sleep(0.1)
-    print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*1.05,0)))
-    time.sleep(0.1)
+    # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
+    # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*1.05,0)))
+    # time.sleep(0.1)
 
 
 
@@ -141,8 +142,9 @@ elif rsi_hour <= RSI_criteria_2 and ((timestamp-float(RSI_info_Binance["Pre_RSI_
 
     print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
     time.sleep(0.1)
-    print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * 1.05, 0)))
-    time.sleep(0.1)
+    # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
+    # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * 1.05, 0)))
+    # time.sleep(0.1)
 
     """
     rated_money = round((1 + Profit_rate / 100) * invested_money, 2)
