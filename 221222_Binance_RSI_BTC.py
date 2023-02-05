@@ -21,7 +21,7 @@ else:
 RSI_criteria_1 = 29.2
 RSI_criteria_2 = 19
 
-profit_rate = 1.05
+profit_rate = 2
 
 RSI_criteria_1_GetInMoney = 700
 RSI_criteria_2_GetInMoney = 1500
@@ -80,6 +80,8 @@ print("NOW RSI:", rsi_hour)
 
 profit_rate_list = list()
 invested_money = list()
+
+# 내가 매도 가격 설정을 안해놓으니까, BTC를 사도
 for i, open_order in enumerate(order):
     profit_rate_list.append(round((now_price_binance - float(order[i]['price']) / profit_rate) / (float(order[i]['price']) / profit_rate) * 100, 2))
     invested_money.append(float(order[i]['price']) / profit_rate * float(order[i]['origQty']))
@@ -124,8 +126,6 @@ if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info_Binance["Pre_RSI_ti
     # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*1.05,0)))
     # time.sleep(0.1)
 
-
-
     RSI_info_Binance["Pre_RSI_time_1"] = timestamp
     with open(RSI_info_Binance_path, 'w') as outfile:
         json.dump(RSI_info_Binance, outfile)
@@ -146,14 +146,11 @@ elif rsi_hour <= RSI_criteria_2 and ((timestamp-float(RSI_info_Binance["Pre_RSI_
     # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * 1.05, 0)))
     # time.sleep(0.1)
 
-    """
-    rated_money = round((1 + Profit_rate / 100) * invested_money, 2)
-    profit_money = round(rated_money - invested_money, 2)
-    RSI_info["Pre_RSI_time_2"] = timestamp
-    with open(RSI_info_path, 'w') as outfile:
-        json.dump(RSI_info, outfile)
+    RSI_info_Binance["Pre_RSI_time_2"] = timestamp
+    with open(RSI_info_Binance_path, 'w') as outfile:
+        json.dump(RSI_info_Binance, outfile)
     time.sleep(0.1)
-    """
+
 
     rsi_messenger_2 = "[RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$'+ '[목표가 $]' + str(round(now_price_binance*1.05,0))
     line_alert.SendMessage_SP(rsi_messenger_2)
