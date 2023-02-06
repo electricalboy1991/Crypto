@@ -641,7 +641,7 @@ def GetHasCoinCnt(binance):
     #모든 선물 거래가능한 코인을 가져온다.
     for ticker in Tickers:
 
-        if "/BUSD" in ticker:
+        if "/USDT" in ticker:
             Target_Coin_Symbol = ticker.replace("/", "")
 
             amt = 0
@@ -672,7 +672,7 @@ def GetTopCoinList(binance, top):
 
         try: 
 
-            if "/BUSD" in ticker:
+            if "/USDT" in ticker:
                 print(ticker,"----- \n",Tickers[ticker]['baseVolume'] * Tickers[ticker]['close'])
 
                 dic_coin_money[ticker] = Tickers[ticker]['baseVolume'] * Tickers[ticker]['close']
