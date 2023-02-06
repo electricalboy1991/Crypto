@@ -37,6 +37,9 @@ Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 8.0
+k_parameter = 0.49
+GetInMoney=150
+set_leverage=2
 
 time.sleep(0.05)
 
@@ -58,7 +61,6 @@ if CoinMoney < 100:
 print("-----------------------------------------------")
 print ("TotalWon:", balance_binance['BUSD']['free'])
 print ("CoinMoney:", CoinMoney)
-
 
 
 
@@ -94,7 +96,7 @@ try:
         TopCoinList = json.load(json_file)
 
 except Exception as e:
-    TopCoinList = myBinance.GetTopCoinList("day",30)
+    TopCoinList = myBinance.GetTopCoinList(binanceX,20)
     print("TopCoinList Exception by First")
 
 
@@ -137,62 +139,99 @@ print(hour, min)
 for ticker in TopCoinList:
     try: 
         print("Coin Ticker: ",ticker)
-
+        Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파리스트에 없다. 즉 아직 변동성 돌파 전략에 의해 매수되지 않았다.
-        if myUpbit.CheckCoinInList(DolPaCoinList,ticker) == False:
+        if myBinance.CheckCoinInList(BV_coinlist,ticker) == False:
             
             time.sleep(0.05)
-            df = pyupbit.get_ohlcv(ticker,interval="day") #일봉 데이타를 가져온다.
+            df = myBinance.GetOhlcv(binanceX,ticker, '1d') #일봉 데이타를 가져온다.
             
             #어제의 고가와 저가의 변동폭에 0.5를 곱해서
             #오늘의 시가와 더해주면 목표 가격이 나온다!
-            target_price = float(df['open'][-1]) + (float(df['high'][-2]) - float(df['low'][-2])) * 0.5
+            up_target = float(df['open'][-1]) + (float(df['high'][-2]) - float(df['low'][-2])) * k_parameter
+            down_target = float(df['open'][-1]) - (float(df['high'][-2]) - float(df['low'][-2])) * k_parameter
             
             #현재가
             now_price = float(df['close'][-1])
 
-            print(now_price , " > ", target_price)
+            print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
             #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-            if now_price > target_price and len(DolPaCoinList) < MaxCoinCnt: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+            if now_price > up_target and len(BV_coinlist) < MaxCoinCnt: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
 
 
+                for posi in balance_binance['info']['positions']:
+                    print('1')
+                    if posi['symbol'] == Target_Coin_Symbol:
+                        back_2_ticker = False
 
-                #보유하고 있지 않은 코인 (매수되지 않은 코인)일 경우만 매수한다!
-                if myUpbit.IsHasCoin(balances, ticker) == False:
+                        #사는 구간
+                        if float(posi['positionAmt']) ==0:
+                            leverage = float(posi['leverage'])
+                            isolated = posi['isolated']
+                            break
+                        else:
+                            #다음 ticker로 넘어가는 구간
+                            back_2_ticker = True
+                            break
+
+                if back_2_ticker ==True:
+                    continue
+
+                print("!!!!!!!!!!!!!!!BV GoGoGo!!!!!!!!!!!!!!!!!!!!!!!!")
+
+                minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                Buy_Amt = float(binanceX.amount_to_precision(ticker, GetInMoney / now_price * set_leverage))
+                # 최소 주문 수량보다 작다면 이렇게 셋팅!
+                if Buy_Amt < minimun_amount:
+                    Buy_Amt = minimun_amount
+
+                #################################################################################################################
+                # 레버리지 셋팅
+                if leverage != set_leverage:
+
+                    try:
+                        print(binanceX.fapiPrivate_post_leverage(
+                            {'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
+                    except Exception as e:
+                        print("Exception:", e)
+
+                #################################################################################################################
+
+                #################################################################################################################
+                # 격리 모드로 설정
+                if isolated == False:
+                    try:
+                        print(binanceX.fapiPrivate_post_margintype(
+                            {'symbol': Target_Coin_Symbol, 'marginType': 'ISOLATED'}))
+                    except Exception as e:
+                        print("Exception:", e)
+                #################################################################################################################
 
 
+                #시장가 매수를 한다.
+                params = {'positionSide': 'LONG'}
 
-                    print("!!!!!!!!!!!!!!!DolPa GoGoGo!!!!!!!!!!!!!!!!!!!!!!!!")
-                    #시장가 매수를 한다.
-                    balances = myUpbit.BuyCoinMarket(upbit,ticker,CoinMoney)
-            
+                print(binanceX.create_order(ticker, 'market', 'buy', Buy_Amt, None, params))
 
+                #매수된 코인을 BV_coinlist 리스트에 넣고 이를 파일로 저장해둔다!
+                BV_coinlist.append(ticker)
 
-                    #매수된 코인을 DolPaCoinList 리스트에 넣고 이를 파일로 저장해둔다!
-                    DolPaCoinList.append(ticker)
-                    
-                    #파일에 리스트를 저장합니다
-                    with open(dolpha_type_file_path, 'w') as outfile:
-                        json.dump(DolPaCoinList, outfile)
+                #파일에 리스트를 저장합니다
+                with open(BV_file_path, 'w') as outfile:
+                    json.dump(BV_coinlist, outfile)
 
+                ##############################################################
+                #매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
+                BV_revenue_dict[ticker] = 0
 
-                    ##############################################################
-                    #매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
-                    BV_revenue_dict[ticker] = 0
-                    
-                    #파일에 딕셔너리를 저장합니다
-                    with open(revenue_type_file_path, 'w') as outfile:
-                        json.dump(BV_revenue_dict, outfile)
-                    ##############################################################
+                #파일에 딕셔너리를 저장합니다
+                with open(revenue_type_file_path, 'w') as outfile:
+                    json.dump(BV_revenue_dict, outfile)
+                ##############################################################
 
-
-
-
-                    #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage("Start DolPa Coin : " + ticker)
-
-
+                #이렇게 매수했다고 메세지를 보낼수도 있다
+                line_alert.SendMessage_SP("Start DolPa Coin : " + ticker)
 
     except Exception as e:
         print("---:", e)
@@ -215,7 +254,7 @@ for ticker in Tickers:
         print("Coin Ticker: ",ticker)
 
         #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
-        if myUpbit.CheckCoinInList(DolPaCoinList,ticker) == True:
+        if myUpbit.CheckCoinInList(BV_coinlist,ticker) == True:
 
 
             #아침 9시 0분에 체크해서 보유 중이라면 (아직 익절이나 손절이 안된 경우) 매도하고 리스트에서 빼준다!
@@ -227,11 +266,11 @@ for ticker in Tickers:
                     balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
 
                 #리스트에서 코인을 빼 버린다.
-                DolPaCoinList.remove(ticker)
+                BV_coinlist.remove(ticker)
 
                 #파일에 리스트를 저장합니다
                 with open(dolpha_type_file_path, 'w') as outfile:
-                    json.dump(DolPaCoinList, outfile)
+                    json.dump(BV_coinlist, outfile)
             
 
 
