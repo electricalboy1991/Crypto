@@ -27,6 +27,10 @@ https://blog.naver.com/zacra/222670663136
 # 여러가지 자신만의 전략을 보완하여 수정해 나가세요!
 #############################################################
 
+if platform.system() == 'Windows':
+    pass
+else:
+    time.sleep(15)
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -35,11 +39,23 @@ simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
 Binance_AccessKey = simpleEnDecrypt.decrypt(my_key.binance_access)
 Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
 
+#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
+time_info = time.gmtime()
+hour = time_info.tm_hour
+minute = time_info.tm_min
+month = time_info.tm_mon
+
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 8.0
 k_parameter = 0.49
-GetInMoney=150
-set_leverage=2
+GetInMoney=50
+set_leverage=1
+average_noise = 0.5
+
+if month ==11 or  month ==12 or  month ==1 or  month ==2 or  month ==3 or  month ==4:
+    season_weight = 1.3
+else:
+    season_weight = 1.0
 
 time.sleep(0.05)
 
@@ -119,15 +135,13 @@ except Exception as e:
 stop_revenue = 1
 ##############################################################
 
-#시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
-time_info = time.gmtime()
-hour = time_info.tm_hour
-min = time_info.tm_min
+
+
 
 #한국시간 9시 -> 0
 hour_crit = 20
 min_crit = 25
-print(hour, min)
+print(hour, minute)
 
 #베스트봇 과정 진행하면서 탑코인 리스트 만들때 아래 같은 경로에 저장하게 만들었기에
 #일단 그대로 사용합니다. https://blog.naver.com/zacra/222670663136
@@ -144,12 +158,12 @@ for ticker in TopCoinList:
         if myBinance.CheckCoinInList(BV_coinlist,ticker) == False:
             
             time.sleep(0.05)
-            df = myBinance.GetOhlcv(binanceX,ticker, '1d') #일봉 데이타를 가져온다.
+            df = myBinance.GetOhlcv(binanceX,ticker, '1h') #일봉 데이타를 가져온다.
             
             #어제의 고가와 저가의 변동폭에 0.5를 곱해서
             #오늘의 시가와 더해주면 목표 가격이 나온다!
-            up_target = float(df['open'][-1]) + (float(df['high'][-2]) - float(df['low'][-2])) * k_parameter
-            down_target = float(df['open'][-1]) - (float(df['high'][-2]) - float(df['low'][-2])) * k_parameter
+            up_target = float(df['open'][-(hour+1)]) + (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
+            down_target = float(df['open'][-(hour+1)]) - (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
             
             #현재가
             now_price = float(df['close'][-1])
@@ -161,7 +175,6 @@ for ticker in TopCoinList:
 
 
                 for posi in balance_binance['info']['positions']:
-                    print('1')
                     if posi['symbol'] == Target_Coin_Symbol:
                         back_2_ticker = False
 
@@ -178,10 +191,21 @@ for ticker in TopCoinList:
                 if back_2_ticker ==True:
                     continue
 
-                print("!!!!!!!!!!!!!!!BV GoGoGo!!!!!!!!!!!!!!!!!!!!!!!!")
+                print("!!!!!!!!!!!!!!!BV go up!!!!!!!!!!!!!!!!!!!!!!!!")
+
+                #노이즈 계산 구간
+                noise_range_max = float(max(df['high'][-24:]))
+                noise_range_min = float(min(df['low'][-24:]))
+                noise_range_open = float(df['open'][-24])
+                noise_now = 1-abs((now_price-noise_range_open)/(noise_range_max-noise_range_min))
+
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                Buy_Amt = float(binanceX.amount_to_precision(ticker, GetInMoney / now_price * set_leverage))
+                Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(average_noise/noise_now)*(GetInMoney / now_price) * set_leverage))
+                Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
+
+                if Buy_Amt>=Buy_Amt_limit:
+                    Buy_Amt = Buy_Amt_limit
                 # 최소 주문 수량보다 작다면 이렇게 셋팅!
                 if Buy_Amt < minimun_amount:
                     Buy_Amt = minimun_amount
@@ -209,9 +233,10 @@ for ticker in TopCoinList:
                 #################################################################################################################
 
 
-                #시장가 매수를 한다.
-                params = {'positionSide': 'LONG'}
 
+                #시장가 매수를 한다.
+
+                params = {'positionSide': 'LONG'}
                 print(binanceX.create_order(ticker, 'market', 'buy', Buy_Amt, None, params))
 
                 #매수된 코인을 BV_coinlist 리스트에 넣고 이를 파일로 저장해둔다!
@@ -232,6 +257,77 @@ for ticker in TopCoinList:
 
                 #이렇게 매수했다고 메세지를 보낼수도 있다
                 line_alert.SendMessage_SP("Start DolPa Coin : " + ticker)
+
+            elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
+                for posi in balance_binance['info']['positions']:
+                    if posi['symbol'] == Target_Coin_Symbol:
+                        back_2_ticker = False
+
+                        # 사는 구간
+                        if float(posi['positionAmt']) == 0:
+                            leverage = float(posi['leverage'])
+                            isolated = posi['isolated']
+                            break
+
+                        # 이미 포지션 잡고 있는 코인이기 때문에, 다음 티커로 넘어가는 코드
+                        else:
+                            # 다음 ticker로 넘어가는 구간
+                            back_2_ticker = True
+                            break
+
+                if back_2_ticker == True:
+                    continue
+                print("!!!!!!!!!!!!!!!BV go down!!!!!!!!!!!!!!!!!!!!!!!!")
+
+                # 노이즈 계산 구간
+                noise_range_max = float(max(df['high'][-24:]))
+                noise_range_min = float(min(df['low'][-24:]))
+                noise_range_open = float(df['open'][-24])
+                noise_now = 1 - abs((now_price - noise_range_open) / (noise_range_max - noise_range_min))
+
+                minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(average_noise/noise_now)*(GetInMoney / now_price) * set_leverage))
+
+                Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
+
+                if Buy_Amt >= Buy_Amt_limit:
+                    Buy_Amt = Buy_Amt_limit
+
+                if Buy_Amt < minimun_amount:
+                    Buy_Amt = minimun_amount
+
+                    try:
+                        print(binanceX.fapiPrivate_post_leverage({'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
+                    except Exception as e:
+                        print("Exception:", e)
+
+                params = {'positionSide': 'SHORT'}
+                print(binanceX.create_order(ticker, 'market', 'sell', Buy_Amt, None, params))
+
+                # 매수된 코인을 BV_coinlist 리스트에 넣고 이를 파일로 저장해둔다!
+                BV_coinlist.append(ticker)
+
+                # 파일에 리스트를 저장합니다
+                with open(BV_file_path, 'w') as outfile:
+                    json.dump(BV_coinlist, outfile)
+
+                ##############################################################
+                # 매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
+                BV_revenue_dict[ticker] = 0
+
+                # 파일에 딕셔너리를 저장합니다
+                with open(revenue_type_file_path, 'w') as outfile:
+                    json.dump(BV_revenue_dict, outfile)
+                ##############################################################
+
+                # 이렇게 매수했다고 메세지를 보낼수도 있다
+                line_alert.SendMessage_SP("Start DolPa Coin : " + ticker)
+
+        else:
+            print("기준시간에 모두 매도하게 코드 짜줘")
+
+
+
 
     except Exception as e:
         print("---:", e)
