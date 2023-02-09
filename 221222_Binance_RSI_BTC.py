@@ -22,8 +22,8 @@ RSI_criteria_2 = 19
 
 profit_rate = 2
 
-RSI_criteria_1_GetInMoney = 400
-RSI_criteria_2_GetInMoney = 800
+RSI_criteria_1_GetInMoney = 200
+RSI_criteria_2_GetInMoney = 500
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -89,7 +89,7 @@ current_time = datetime.now(timezone('Asia/Seoul'))
 KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
 RSI_string = "  ♥♥" +KR_time_sliced+"♥♥  \n"+'[NOW 1hour RSI_바이낸스] : ' +str(round(rsi_hour,2))\
-             +"\n"+ '[NOW 가격] : ' + str(round(now_price_binance,2))+" $" 
+             +"\n"+ '[NOW 가격] : ' + str(round(now_price_binance,2))+" $"
 
 
 for j,profit_rate_i in enumerate(profit_rate_list):
