@@ -51,6 +51,15 @@ k_parameter = 0.49
 GetInMoney=50
 set_leverage=1
 average_noise = 0.5
+commission_rate = 0.002
+
+##############################################################
+#수익율 0.5%를 트레일링 스탑 기준으로 잡는다. 즉 고점 대비 0.5% 하락하면 매도 처리 한다!
+#이 수치는 코인에 따라 한 틱만 움직여도 손절 처리 될 수 있으니
+#1.0 이나 1.5 등 다양하게 변경해서 테스트 해보세요!
+stop_revenue = 1
+##############################################################
+
 
 if month ==11 or  month ==12 or  month ==1 or  month ==2 or  month ==3 or  month ==4:
     season_weight = 1.3
@@ -128,16 +137,6 @@ except Exception as e:
     print("BV_revenue_dict Exception by First")
 
 
-##############################################################
-#수익율 0.5%를 트레일링 스탑 기준으로 잡는다. 즉 고점 대비 0.5% 하락하면 매도 처리 한다!
-#이 수치는 코인에 따라 한 틱만 움직여도 손절 처리 될 수 있으니 
-#1.0 이나 1.5 등 다양하게 변경해서 테스트 해보세요!
-stop_revenue = 1
-##############################################################
-
-
-
-
 #한국시간 9시 -> 0
 hour_crit = 20
 min_crit = 25
@@ -151,20 +150,20 @@ print(hour, minute)
 #거래대금 탑 코인 리스트를 1위부터 내려가며 매수 대상을 찾는다.
 #전체 원화 마켓의 코인이 아니라 탑 순위 TopCoinList 안에 있는 코인만 체크해서 매수한다는 걸 알아두세요!
 for ticker in TopCoinList:
-    try: 
+    try:
         print("Coin Ticker: ",ticker)
         Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파리스트에 없다. 즉 아직 변동성 돌파 전략에 의해 매수되지 않았다.
         if myBinance.CheckCoinInList(BV_coinlist,ticker) == False:
-            
+
             time.sleep(0.05)
             df = myBinance.GetOhlcv(binanceX,ticker, '1h') #일봉 데이타를 가져온다.
-            
+
             #어제의 고가와 저가의 변동폭에 0.5를 곱해서
             #오늘의 시가와 더해주면 목표 가격이 나온다!
             up_target = float(df['open'][-(hour+1)]) + (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
             down_target = float(df['open'][-(hour+1)]) - (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
-            
+
             #현재가
             now_price = float(df['close'][-1])
 
@@ -333,75 +332,92 @@ for ticker in TopCoinList:
         print("---:", e)
 
 
-
-
-
 #모든 원화마켓의 코인을 순회하여 체크한다!
 # 이렇게 두번에 걸쳐서 for문을 도는 이유는
 # 매수된 코인이 거래대금 탑순위에 (TopCoinList) 빠져서 아예 체크되지 않은 걸 방지하고자
 # 매수 후 체크하는 로직은 전체 코인 대상으로 체크하고
 # 매수 할때는 TopCoinList안의 코인만 체크해서 매수 합니다.
 
+off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
 
-Tickers = pyupbit.get_tickers("KRW")
-
-for ticker in Tickers:
+for ticker in off_ticker_list:
     try: 
         print("Coin Ticker: ",ticker)
-
+        Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
-        if myUpbit.CheckCoinInList(BV_coinlist,ticker) == True:
-
+        if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
 
             #아침 9시 0분에 체크해서 보유 중이라면 (아직 익절이나 손절이 안된 경우) 매도하고 리스트에서 빼준다!
-            if hour == 0 and min == 0:
+            if hour == 23 and min == 54:
 
                 #매수한 코인이라면.
-                if myUpbit.IsHasCoin(balances, ticker) == True:
-                    #시장가로 모두 매도!
-                    balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
+                for posi in balance_binance['info']['positions']:
+                    if posi['symbol'] == Target_Coin_Symbol:
+                        # 사는 구간
+                        if float(posi['positionAmt']) != 0:
+                            amt = float(posi['positionAmt'])
+                            #시장가로 모두 매도!
+                            if float(posi['positionAmt']) < 0:
+                                params = {'positionSide': 'SHORT'}
+                                print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                            elif float(posi['positionAmt']) > 0:
+                                params = {'positionSide': 'LONG'}
+                                print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+
 
                 #리스트에서 코인을 빼 버린다.
                 BV_coinlist.remove(ticker)
 
                 #파일에 리스트를 저장합니다
-                with open(dolpha_type_file_path, 'w') as outfile:
+                with open(BV_file_path, 'w') as outfile:
                     json.dump(BV_coinlist, outfile)
-            
 
 
-            #영상에 빠져 있지만 이렇게 매수된 상태의 코인인지 체크하고 난뒤 진행합니다~!
-            if myUpbit.IsHasCoin(balances, ticker) == True:
-
-                #수익율을 구한다.
-                revenue_rate = myUpbit.GetRevenueRate(balances,ticker)
-
-                ##############################################################
-                #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다!
-                if revenue_rate > BV_revenue_dict[ticker]:
-
-                    #이렇게 딕셔너리에 값을 넣어주면 된다.
-                    BV_revenue_dict[ticker] = revenue_rate
-                    
-                    #파일에 딕셔너리를 저장합니다
-                    with open(revenue_type_file_path, 'w') as outfile:
-                        json.dump(BV_revenue_dict, outfile)
-
-                #그게 아닌데 
-                else:
-                    #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 0.5% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
-                    if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
-                        #시장가로 모두 매도!
-                        balances = myUpbit.SellCoinMarket(upbit,ticker,upbit.get_balance(ticker))
-
-                        #이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage("Finish DolPa Coin : " + ticker + " Revenue rate:" + str(revenue_rate))
-
-                ##############################################################
+            # 매수한 상태에서의 수익률을 계산하기 위함임
+            for posi in balance_binance['info']['positions']:
+                if posi['symbol'] == Target_Coin_Symbol:
+                    # 사는 구간
+                    entryPrice = float(posi['entryPrice'])
+                    if float(posi['positionAmt']) != 0:
+                        now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
+                        if float(posi['positionAmt']) < 0:
+                            revenue_rate = (entryPrice-now_price)*(1-commission_rate)/(now_price*(1+commission_rate))
+                        elif float(posi['positionAmt']) > 0:
+                            revenue_rate = (now_price)*(1-commission_rate)/(entryPrice*(1+commission_rate))
 
 
+                        #수익율을 구한다.
 
 
+            ##############################################################
+            #트레일링 스탑 구현을 위한 부분..
+
+            #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다! 최고 수익률을 산정하는 거임.
+            if revenue_rate > BV_revenue_dict[ticker]:
+
+                #이렇게 딕셔너리에 값을 넣어주면 된다.
+                BV_revenue_dict[ticker] = revenue_rate
+
+                #파일에 딕셔너리를 저장합니다
+                with open(revenue_type_file_path, 'w') as outfile:
+                    json.dump(BV_revenue_dict, outfile)
+
+            #그게 아닌데
+            else:
+                #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 x% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
+                if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
+                    #시장가로 모두 매도!
+                    if float(posi['positionAmt']) < 0:
+                        params = {'positionSide': 'SHORT'}
+                        print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                    elif float(posi['positionAmt']) > 0:
+                        params = {'positionSide': 'LONG'}
+                        print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+
+                    #이렇게 손절했다고 메세지를 보낼수도 있다
+                    line_alert.SendMessage("Finish DolPa Coin : " + ticker + " Revenue rate:" + str(revenue_rate))
+
+            ##############################################################
 
     except Exception as e:
         print("---:", e)
