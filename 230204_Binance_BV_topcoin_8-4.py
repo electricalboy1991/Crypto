@@ -41,6 +41,8 @@ GetInMoney=50
 set_leverage=1
 average_noise = 0.5
 commission_rate = 0.002
+sum_PNL = 0
+num_BV_ing_ticker = 0
 
 Telegram_Log = dict()
 
@@ -381,13 +383,15 @@ for ticker in off_ticker_list:
                             amt = float(posi['positionAmt'])
                             revenue_rate = ((PNL)/(GetInMoney))*100
                             break
-
+            sum_PNL = sum_PNL + PNL
             if amt == 0:
                 status = 'Done'
             elif amt > 0:
                 status = 'Long'
+                num_BV_ing_ticker = num_BV_ing_ticker + 1
             else:
                 status = 'Short'
+                num_BV_ing_ticker = num_BV_ing_ticker + 1
 
             Telegram_Log[ticker] = [status, round(revenue_rate,2), round(PNL,2)]
 
@@ -418,7 +422,7 @@ for ticker in off_ticker_list:
                         print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
 
                     #이렇게 손절했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("Finish BV : " + ticker + " Revenue rate:" + str(revenue_rate))
+                    line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
 
             ##############################################################
 
@@ -435,7 +439,7 @@ if len(Telegram_Log) !=0:
         key_ticker = key.replace('/BUSD', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
                             + " 수익률 : "+ str(value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(GetInMoney)+"\n"
-    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n"+Telegram_Log_str)
-
+    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] 수익률 : ' + str(round(sum_PNL/(num_BV_ing_ticker*GetInMoney)*100,2))+ "% 수익$ : "
+                              + str(round(sum_PNL,2)) + "$\n\n"+Telegram_Log_str)
 else:
     line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥" )
