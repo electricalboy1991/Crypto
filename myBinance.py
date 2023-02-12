@@ -664,7 +664,7 @@ def GetTopCoinList(binance, top):
 
     #선물 마켓에서 거래중인 코인을 가져옵니다.
     Tickers = binance.fetch_tickers()
-    pprint.pprint(Tickers)
+    #pprint.pprint(Tickers)
 
     dic_coin_money = dict()
     #모든 선물 거래가능한 코인을 가져온다.
@@ -673,7 +673,7 @@ def GetTopCoinList(binance, top):
         try: 
 
             if "/BUSD" in ticker:
-                print(ticker,"----- \n",Tickers[ticker]['baseVolume'] * Tickers[ticker]['close'])
+                #print(ticker,"----- \n",Tickers[ticker]['baseVolume'] * Tickers[ticker]['close'])
 
                 dic_coin_money[ticker] = Tickers[ticker]['baseVolume'] * Tickers[ticker]['close']
 
@@ -687,7 +687,7 @@ def GetTopCoinList(binance, top):
     coin_list = list()
     cnt = 0
     for coin_data in dic_sorted_coin_money:
-        print("####-------------", coin_data[0], coin_data[1])
+        #print("####-------------", coin_data[0], coin_data[1])
         cnt += 1
         if cnt <= top:
             coin_list.append(coin_data[0])

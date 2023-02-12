@@ -7,7 +7,9 @@ import my_key    #업비트 시크릿 액세스키
 import line_alert
 import json
 import platform
+from datetime import datetime
 import numpy as np
+from pytz import timezone
 
 #############################################################
 # 파일 저장을 배우기 위한 샘플 예제로 수익을 담보하지 않으니 
@@ -17,7 +19,7 @@ import numpy as np
 if platform.system() == 'Windows':
     pass
 else:
-    time.sleep(15)
+    time.sleep(10)
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -39,6 +41,8 @@ GetInMoney=50
 set_leverage=1
 average_noise = 0.5
 commission_rate = 0.002
+
+Telegram_Log = dict()
 
 hour_crit = 23
 min_crit = 54
@@ -73,7 +77,7 @@ if CoinMoney < 100:
     CoinMoney = 100
 
 print("-----------------------------------------------")
-print ("TotalWon:", balance_binance['BUSD']['free'])
+print ("Total $:", balance_binance['BUSD']['free'])
 print ("CoinMoney:", CoinMoney)
 
 
@@ -129,10 +133,9 @@ except Exception as e:
 
 #한국시간 9시 -> 0
 
-
 #거래대금 탑 코인 리스트를 1위부터 내려가며 매수 대상을 찾는다.
 #전체 마켓의 코인이 아니라 탑 순위 TopCoinList 안에 있는 코인만 체크해서 매수
-"""
+#"""
 if hour ==23 and (minute ==54 or minute ==55  or minute ==56  or minute ==57  or minute ==58  or minute ==59 ):
     pass
 else:
@@ -243,7 +246,8 @@ else:
                     ##############################################################
 
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("BV goes up : " + ticker + "\n현재 가격 : " + str(round(now_price,2)))
+                    line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
+                                              "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
 
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average:
                 elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
@@ -309,17 +313,15 @@ else:
                     ##############################################################
 
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("BV goes down : " + ticker + "\n현재 가격 : " + str(round(now_price,2)))
-
+                    line_alert.SendMessage_SP("[Short BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
+                                              "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
             else:
-                print("기준시간에 모두 매도하게 코드 짜줘")
-
+                pass
         except Exception as e:
             print("---:", e)
+#"""
 
-"""
-
-#모든 원화마켓의 코인을 순회하여 체크한다!
+# 바이낸스 기준 모든 코인을 순회하여 체크한다!
 # 이렇게 두번에 걸쳐서 for문을 도는 이유는
 # 매수된 코인이 거래대금 탑순위에 (TopCoinList) 빠져서 아예 체크되지 않은 걸 방지하고자
 # 매수 후 체크하는 로직은 전체 코인 대상으로 체크하고
@@ -329,7 +331,7 @@ off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
 
 for ticker in off_ticker_list:
     try: 
-        print("Coin Ticker: ",ticker)
+        print("Condition checked coin ticker: ",ticker)
         Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
         if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
@@ -361,30 +363,37 @@ for ticker in off_ticker_list:
 
 
             # 매수한 상태에서의 수익률을 계산하기 위함임
+            amt = 0
+            revenue_rate = 0
+            PNL = 0
             for posi in balance_binance['info']['positions']:
-                if posi['symbol'] == Target_Coin_Symbol:
+                if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                     # 사는 구간
                     entryPrice = float(posi['entryPrice'])
                     PNL = float(posi['unrealizedProfit'])
                     if float(posi['positionAmt']) != 0:
-                        amt = float(posi['positionAmt'])
                         now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
+                            amt = float(posi['positionAmt'])
                             revenue_rate = ((entryPrice-now_price-commission_rate*GetInMoney)/(now_price))*100
                             break
                         elif float(posi['positionAmt']) > 0:
+                            amt = float(posi['positionAmt'])
                             revenue_rate = ((now_price-commission_rate*GetInMoney)/(entryPrice)-1)*100
                             break
 
+            if amt == 0:
+                status = 'Done'
+            elif amt > 0:
+                status = 'Long'
+            else:
+                status = 'Short'
 
-                        #수익율을 구한다. PNL 이용해서 수익률 보여줘 ...
+            Telegram_Log[ticker] = [status, round(revenue_rate,2), round(PNL,2)]
 
-
-            ##############################################################
-            #트레일링 스탑 구현을 위한 부분..
-
-            #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다! 최고 수익률을 산정하는 거임.
-            if revenue_rate > BV_revenue_dict[ticker]:
+            ############################트레일링 스탑 구현을 위한 부분..###################################
+            #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다. 최고 수익률을 산정하는 거임.
+            if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
 
                 #이렇게 딕셔너리에 값을 넣어주면 된다.
                 BV_revenue_dict[ticker] = revenue_rate
@@ -392,6 +401,9 @@ for ticker in off_ticker_list:
                 #파일에 딕셔너리를 저장합니다
                 with open(revenue_type_file_path, 'w') as outfile:
                     json.dump(BV_revenue_dict, outfile)
+
+            elif status == 'Done':
+                pass
 
             #그게 아닌데
             else:
@@ -412,4 +424,18 @@ for ticker in off_ticker_list:
 
     except Exception as e:
         print("---:", e)
+current_time = datetime.now(timezone('Asia/Seoul'))
+KR_time=str(current_time)
+KR_time_sliced =KR_time[:23]
+if len(Telegram_Log) !=0:
+    Telegram_Log_str = str()
+    num_type=0
+    for key, value in Telegram_Log.items():
+        num_type=num_type+1
+        key_ticker = key.replace('/BUSD', '')
+        Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
+                            + " 수익률 : "+ str(value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(GetInMoney)+"\n"
+    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n"+Telegram_Log_str)
 
+else:
+    line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥" )
