@@ -91,7 +91,7 @@ if platform.system() == 'Windows':
 else:
     BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
     BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
-    revenue_type_file_path = "/var/autobot/Binance_BV_revenue.json"
+    revenue_type_file_path = "/var/Autobot_seoul/Binance_BV_revenue.json"
 
 
 
@@ -375,11 +375,11 @@ for ticker in off_ticker_list:
                         now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((entryPrice-now_price-commission_rate*GetInMoney)/(now_price))*100
+                            revenue_rate = ((PNL)/(GetInMoney))*100
                             break
                         elif float(posi['positionAmt']) > 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((now_price-commission_rate*GetInMoney)/(entryPrice)-1)*100
+                            revenue_rate = ((PNL)/(GetInMoney))*100
                             break
 
             if amt == 0:
