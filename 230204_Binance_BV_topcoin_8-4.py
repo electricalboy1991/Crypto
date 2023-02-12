@@ -33,6 +33,7 @@ time_info = time.gmtime()
 hour = time_info.tm_hour
 minute = time_info.tm_min
 month = time_info.tm_mon
+day = time_info.tm_mday
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 8.0
@@ -90,18 +91,23 @@ if platform.system() == 'Windows':
     BV_file_path = "C:\\Users\world\PycharmProjects\Crypto\Binance_BV_coin.json"
     BV_top_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_TopCoinList.json"
     revenue_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Binance_BV_revenue.json"
+    BV_daily_month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_daily_month_profit.json"
 else:
     BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
     BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
     revenue_type_file_path = "/var/Autobot_seoul/Binance_BV_revenue.json"
-
-
+    BV_daily_month_profit_type_file_path = "/var/Autobot_seoul/BV_daily_month_profit.json"
 
 BV_coinlist = list()
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다. 
     with open(BV_file_path, 'r') as json_file:
-        BV_coinlist = json.load(json_file)
+        if hour == hour_crit and minute == min_crit+2:
+            BV_coinlist = list()
+            with open(BV_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(BV_coinlist, outfile)
+        else:
+            BV_coinlist = json.load(json_file)
 
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
@@ -127,11 +133,33 @@ BV_revenue_dict = dict()
 try:
     #이 부분이 파일을 읽어서 딕셔너리에 넣어주는 로직입니다. 
     with open(revenue_type_file_path, 'r') as json_file:
-        BV_revenue_dict = json.load(json_file)
-
+        if hour == hour_crit and minute == min_crit+2:
+            BV_revenue_dict = dict()
+            with open(revenue_type_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(BV_revenue_dict, outfile)
+        else:
+            BV_revenue_dict = json.load(json_file)
 except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("BV_revenue_dict Exception by First")
+
+BV_daily_month_profit = {"month" : 0, "daily" : 0}
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(BV_daily_month_profit_type_file_path, 'r', encoding="utf-8") as json_file:
+        if hour == hour_crit and minute == min_crit + 2:
+            BV_daily_month_profit = json.load(json_file)
+            BV_daily_month_profit["daily"] = 0
+            if day ==1:
+                BV_daily_month_profit["month"] = 0
+
+            with open(BV_daily_month_profit_type_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(BV_daily_month_profit, outfile)
+        else:
+            BV_daily_month_profit = json.load(json_file)
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("BV_daily_month_profit Exception by First 0")
 
 #한국시간 9시 -> 0
 
@@ -421,6 +449,16 @@ for ticker in off_ticker_list:
                         params = {'positionSide': 'LONG'}
                         print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
 
+                    BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                    BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+
+                    #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+                    sum_PNL = sum_PNL-PNL
+
+                    # 파일에 딕셔너리를 저장합니다
+                    with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                        json.dump(BV_daily_month_profit, outfile)
+
                     #이렇게 손절했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
 
@@ -431,6 +469,9 @@ for ticker in off_ticker_list:
 current_time = datetime.now(timezone('Asia/Seoul'))
 KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
+day_PNL = sum_PNL + BV_daily_month_profit["daily"]
+month_PNL = sum_PNL + BV_daily_month_profit["month"]
+
 if len(Telegram_Log) !=0:
     Telegram_Log_str = str()
     num_type=0
@@ -439,7 +480,7 @@ if len(Telegram_Log) !=0:
         key_ticker = key.replace('/BUSD', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
                             + " 수익률 : "+ str(value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(GetInMoney)+"\n"
-    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] 수익률 : ' + str(round(sum_PNL/(num_BV_ing_ticker*GetInMoney)*100,2))+ "% 수익$ : "
-                              + str(round(sum_PNL,2)) + "$\n\n"+Telegram_Log_str)
+    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(len(Telegram_Log)*GetInMoney)*100,2))+ "% 일 수익$ : "
+                              + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
     line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥" )
