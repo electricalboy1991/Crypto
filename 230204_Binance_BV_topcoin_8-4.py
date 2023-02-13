@@ -54,7 +54,7 @@ print(hour, minute)
 #수익율 0.5%를 트레일링 스탑 기준으로 잡는다. 즉 고점 대비 0.5% 하락하면 매도 처리 한다!
 #이 수치는 코인에 따라 한 틱만 움직여도 손절 처리 될 수 있으니
 #1.0 이나 1.5 등 다양하게 변경해서 테스트 해보세요!
-stop_revenue = 4
+stop_revenue = 15
 ##############################################################
 
 if month ==11 or  month ==12 or  month ==1 or  month ==2 or  month ==3 or  month ==4:
@@ -195,8 +195,8 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>volume_average: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>volume_average: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
                             back_2_ticker = False
@@ -279,8 +279,8 @@ else:
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
                                               "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
 
-                #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average:
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average:
+                #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
                             back_2_ticker = False
