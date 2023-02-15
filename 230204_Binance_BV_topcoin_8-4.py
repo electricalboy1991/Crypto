@@ -32,8 +32,8 @@ day = time_info.tm_mday
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 10.0
-k_parameter = 0.49
-GetInMoney = 300
+k_parameter = 0.48
+GetInMoney = 600
 variability_range = 0.02
 set_leverage=1
 average_noise = 0.5
@@ -183,7 +183,7 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]): #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]) and hour !=23: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -267,7 +267,7 @@ else:
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
                                               "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]):
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]) and hour !=23:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
