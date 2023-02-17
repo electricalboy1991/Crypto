@@ -82,11 +82,13 @@ if platform.system() == 'Windows':
     BV_top_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_TopCoinList.json"
     revenue_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Binance_BV_revenue.json"
     BV_daily_month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_daily_month_profit.json"
+    BV_pole_point_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_pole_point.json"
 else:
     BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
     BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
     revenue_type_file_path = "/var/Autobot_seoul/Binance_BV_revenue.json"
     BV_daily_month_profit_type_file_path = "/var/Autobot_seoul/BV_daily_month_profit.json"
+    BV_pole_point_file_path = "/var/Autobot_seoul/BV_pole_point.json"
 
 BV_coinlist = list()
 try:
@@ -131,6 +133,21 @@ try:
 except Exception as e:
     print("BV_revenue_dict Exception by First")
 
+
+BV_pole_point_dict = dict()
+try:
+    #이 부분이 파일을 읽어서 딕셔너리에 넣어주는 로직입니다.
+    with open(BV_pole_point_file_path, 'r') as json_file:
+        if hour == hour_crit and minute == min_crit+2:
+            BV_pole_point_dict = dict()
+            with open(BV_pole_point_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(BV_pole_point_dict, outfile)
+        else:
+            BV_pole_point_dict = json.load(json_file)
+except Exception as e:
+    print("BV_pole_point_dict Exception by First")
+
+
 BV_daily_month_profit = {"month" : 0, "daily" : 0}
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
@@ -169,8 +186,9 @@ else:
 
                 #어제의 고가와 저가의 변동폭에 0.5를 곱해서
                 #오늘의 시가와 더해주면 목표 가격이 나온다!
-                up_target = float(df['open'][-(hour+1)]) + (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
-                down_target = float(df['open'][-(hour+1)]) - (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
+                BV_range = (float(max(df['high'][-(hour+25):-(hour+1)])) - float(min(df['low'][-(hour+25):-(hour+1)]))) * k_parameter
+                up_target = float(df['open'][-(hour+1)]) + BV_range
+                down_target = float(df['open'][-(hour+1)]) - BV_range
 
                 #현재가
                 now_price = float(df['close'][-1])
@@ -263,6 +281,14 @@ else:
                         json.dump(BV_revenue_dict, outfile)
                     ##############################################################
 
+                    ##############################################################
+                    # 매수와 동시에 초기 값을 넣는다.
+                    BV_pole_point_dict[ticker] = now_price
+                    # 파일에 딕셔너리를 저장합니다
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
+                    ##############################################################
+
                     #이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
                                               "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
@@ -330,6 +356,13 @@ else:
                         json.dump(BV_revenue_dict, outfile)
                     ##############################################################
 
+                    ##############################################################
+                    # 매수와 동시에 초기 값을 넣는다.
+                    BV_pole_point_dict[ticker] = now_price
+                    # 파일에 딕셔너리를 저장합니다
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
+                    ##############################################################
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Short BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+
                                               "$\n투입액 : " + str(round(GetInMoney,2))+ "$")
@@ -412,43 +445,123 @@ for ticker in off_ticker_list:
                     json.dump(BV_coinlist, outfile)
 
             ############################트레일링 스탑 구현을 위한 부분..###################################
-            #방금 구한 수익율이 파일에 저장된 수익율보다 높다면 갱신시켜준다. 최고 수익률을 산정하는 거임.
-            if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
+            # 수익률 기준이 아닌 변동성 range로 트레일링 스탑 구현
 
-                #이렇게 딕셔너리에 값을 넣어주면 된다.
-                BV_revenue_dict[ticker] = revenue_rate
+            if amt < 0:
+                if now_price <= BV_pole_point_dict[ticker] and status != 'Done':
 
-                #파일에 딕셔너리를 저장합니다
-                with open(revenue_type_file_path, 'w') as outfile:
-                    json.dump(BV_revenue_dict, outfile)
+                    #이렇게 딕셔너리에 값을 넣어주면 된다.
+                    BV_pole_point_dict[ticker] = now_price
 
-            elif status == 'Done':
-                pass
+                    #파일에 딕셔너리를 저장합니다
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
 
-            #그게 아닌데
-            else:
-                #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 x% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
-                if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
-                    #시장가로 모두 매도!
-                    if float(posi['positionAmt']) < 0:
-                        params = {'positionSide': 'SHORT'}
-                        print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
-                    elif float(posi['positionAmt']) > 0:
-                        params = {'positionSide': 'LONG'}
-                        print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+                elif status == 'Done':
+                    pass
 
-                    BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
-                    BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+                else:
+                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+                    BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
+                    if now_price - BV_pole_point_dict[ticker] > BV_range:
+                        #시장가로 모두 매도!
+                        if float(posi['positionAmt']) < 0:
+                            params = {'positionSide': 'SHORT'}
+                            print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                        elif float(posi['positionAmt']) > 0:
+                            params = {'positionSide': 'LONG'}
+                            print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
 
-                    #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
-                    sum_PNL = sum_PNL-PNL
+                        #일 확정 수익에 넣어 주는 거임
+                        BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                        BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+
+                        #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+                        sum_PNL = sum_PNL-PNL
+
+                        # 파일에 딕셔너리를 저장합니다
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
+
+                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
+
+            elif amt > 0:
+                if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
+
+                    # 이렇게 딕셔너리에 값을 넣어주면 된다.
+                    BV_pole_point_dict[ticker] = now_price
 
                     # 파일에 딕셔너리를 저장합니다
-                    with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                        json.dump(BV_daily_month_profit, outfile)
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
 
-                    #이렇게 손절했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
+                elif status == 'Done':
+                    pass
+
+                # 그게 아닌데
+                else:
+                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+                    BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
+                    if BV_pole_point_dict[ticker] - now_price > BV_range:
+                        # 시장가로 모두 매도!
+                        if float(posi['positionAmt']) < 0:
+                            params = {'positionSide': 'SHORT'}
+                            print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                        elif float(posi['positionAmt']) > 0:
+                            params = {'positionSide': 'LONG'}
+                            print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+
+                        # 일 확정 수익에 넣어 주는 거임
+                        BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                        BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+
+                        # 빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+                        sum_PNL = sum_PNL - PNL
+
+                        # 파일에 딕셔너리를 저장합니다
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
+
+                        # 이렇게 손절했다고 메세지를 보낼수도 있다
+                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$")
+
+
+            # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
+            #
+            #     #이렇게 딕셔너리에 값을 넣어주면 된다.
+            #     BV_revenue_dict[ticker] = revenue_rate
+            #
+            #     #파일에 딕셔너리를 저장합니다
+            #     with open(revenue_type_file_path, 'w') as outfile:
+            #         json.dump(BV_revenue_dict, outfile)
+            #
+            # elif status == 'Done':
+            #     pass
+            #
+            # #그게 아닌데
+            # else:
+            #     #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 x% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
+            #     if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
+            #         #시장가로 모두 매도!
+            #         if float(posi['positionAmt']) < 0:
+            #             params = {'positionSide': 'SHORT'}
+            #             print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+            #         elif float(posi['positionAmt']) > 0:
+            #             params = {'positionSide': 'LONG'}
+            #             print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+            #
+            #         BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+            #         BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+            #
+            #         #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+            #         sum_PNL = sum_PNL-PNL
+            #
+            #         # 파일에 딕셔너리를 저장합니다
+            #         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+            #             json.dump(BV_daily_month_profit, outfile)
+            #
+            #         #이렇게 손절했다고 메세지를 보낼수도 있다
+            #         line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
 
     except Exception as e:
         print("---:", e)
