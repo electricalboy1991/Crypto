@@ -39,6 +39,7 @@ set_leverage=1
 average_noise = 0.5
 commission_rate = 0.002
 sum_PNL = 0
+sum_isolated_cost = 0
 num_BV_ing_ticker = 0
 
 Telegram_Log = dict()
@@ -391,11 +392,13 @@ for ticker in off_ticker_list:
             amt = 0
             revenue_rate = 0
             PNL = 0
+            isolated_cost = 0
             for posi in balance_binance['info']['positions']:
                 if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                     # 사는 구간
                     entryPrice = float(posi['entryPrice'])
                     PNL = float(posi['unrealizedProfit'])
+                    isolated_cost = float(posi['isolatedWallet'])
                     if float(posi['positionAmt']) != 0:
                         now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
@@ -406,7 +409,9 @@ for ticker in off_ticker_list:
                             amt = float(posi['positionAmt'])
                             revenue_rate = ((PNL) / (GetInMoney)) * 100
                             break
+
             sum_PNL = sum_PNL + PNL
+            sum_isolated_cost = sum_isolated_cost + isolated_cost
 
             if amt == 0:
                 status = 'Done'
@@ -417,7 +422,7 @@ for ticker in off_ticker_list:
                 status = 'Short'
                 num_BV_ing_ticker = num_BV_ing_ticker + 1
 
-            Telegram_Log[ticker] = [status, round(revenue_rate, 2), round(PNL, 2)]
+            Telegram_Log[ticker] = [status, round(revenue_rate, 2), round(PNL, 2), round(isolated_cost, 2)]
 
             #아침 9시 0분에 체크해서 보유 중이라면 (아직 익절이나 손절이 안된 경우) 매도하고 리스트에서 빼준다!
             if hour == hour_crit and minute == min_crit:
@@ -578,8 +583,8 @@ if len(Telegram_Log) !=0:
         num_type=num_type+1
         key_ticker = key.replace('/BUSD', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
-                            + " 수익률 : "+ str(value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(GetInMoney)+"\n"
-    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(len(Telegram_Log)*GetInMoney)*100,2))+ "% 일 수익$ : "
+                            + " 수익률 : "+ str(value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(value[3])+"\n"
+    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(len(Telegram_Log)*sum_isolated_cost)*100,2))+ "% 일 수익$ : "
                               + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
     line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥" )
