@@ -14,6 +14,13 @@ telegram_id_Summary1minute = '5781986806'
 telegram_token_1hourRSI = '5665272058:AAGwNJm80OfDarnzbqAp_ZLwAau3QRTYai8'
 telegram_id_1hourRSI = '5781986806'
 
+
+telegram_token_BV = '6044269270:AAG43ub5Pm6BlnRfngXbZZQq97oxRgg8JnY'
+telegram_id_BV = '5781986806'
+
+
+
+
 #메세지를 보냅니다.
 def SendMessage_Trading(msg):
     try:
@@ -82,6 +89,20 @@ def SendMessage_1hourRSI(message):
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_1hourRSI)
         res = bot.sendMessage(chat_id=telegram_id_1hourRSI, text=message)
+
+        return res
+
+    # ----------------------------------------
+    # 모든 함수의 공통 부분(Exception 처리)
+    # ----------------------------------------
+    except Exception:
+        raise
+
+def SendMessage_BV(message):
+    try:
+        # 텔레그램 메세지 발송
+        bot = telegram.Bot(telegram_token_BV)
+        res = bot.sendMessage(chat_id=telegram_id_BV, text=message)
 
         return res
 

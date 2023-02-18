@@ -147,7 +147,7 @@ for ticker in Tickers:
                     #이렇게 손절했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage("Cut DolPa Coin : " + ticker)
 
-                ''' 
+
                 #익절 순간 메세지를 보내려면 아래 지정가 익절 주문을 주석처리 하고 이 부분을 해제!
                 if revenue_rate >= 2.0:
                     #시장가로 모두 매도!
@@ -156,7 +156,7 @@ for ticker in Tickers:
 
                     #이렇게 익절했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage("Revenue DolPa Coin : " + ticker)
-                '''
+
 
 
         #아니다!
@@ -186,19 +186,19 @@ for ticker in Tickers:
                     balances = myUpbit.BuyCoinMarket(upbit,ticker,CoinMoney)
             
             
-                    ########################################################################
-                    ####익절 순간 메세지를 받고 싶다면 이 로직을 주석처리 하고 위에서 시장가로 익절한다.####
-
-                    #평균매입단가와 매수개수를 구해서 2% 상승한 가격으로 지정가 매도주문을 걸어놓는다.
-                    avgPrice = myUpbit.GetAvgBuyPrice(balances,ticker)
-                    coin_volume = upbit.get_balance(ticker)
-
-                    targetPrice = avgPrice * 1.02
-
-                    #지정가 매도 익절 라인을 그어 놓는다!
-                    myUpbit.SellCoinLimit(upbit,ticker,targetPrice,coin_volume)
-
-                    ########################################################################
+                    # ########################################################################
+                    # ####익절 순간 메세지를 받고 싶다면 이 로직을 주석처리 하고 위에서 시장가로 익절한다.####
+                    #
+                    # #평균매입단가와 매수개수를 구해서 2% 상승한 가격으로 지정가 매도주문을 걸어놓는다.
+                    # avgPrice = myUpbit.GetAvgBuyPrice(balances,ticker)
+                    # coin_volume = upbit.get_balance(ticker)
+                    #
+                    # targetPrice = avgPrice * 1.02
+                    #
+                    # #지정가 매도 익절 라인을 그어 놓는다!
+                    # myUpbit.SellCoinLimit(upbit,ticker,targetPrice,coin_volume)
+                    #
+                    # ########################################################################
 
 
                     #매수된 코인을 DolPaCoinList 리스트에 넣고 이를 파일로 저장해둔다!
