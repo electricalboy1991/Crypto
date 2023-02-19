@@ -29,19 +29,23 @@ hour = time_info.tm_hour
 minute = time_info.tm_min
 month = time_info.tm_mon
 day = time_info.tm_mday
+wday = time_info.tm_wday
+
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 10.0
 k_parameter = 0.48
 k_parameter_2 = 0.58
 GetInMoney = 600
-variability_range = 0.02
-set_leverage=1
+variability_range = 0.05
+set_leverage=2
 average_noise = 0.58
 commission_rate = 0.002
 sum_PNL = 0
 sum_isolated_cost = 0
 num_BV_ing_ticker = 0
+#short투입시에는 long투입과 비교 시, 손실이 길게 가끔나는 편이라, 손실을 좀 길게 가져가도...
+short_stoploss_ratio = 1.1
 
 Telegram_Log = dict()
 
@@ -85,12 +89,14 @@ if platform.system() == 'Windows':
     revenue_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Binance_BV_revenue.json"
     BV_daily_month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_daily_month_profit.json"
     BV_pole_point_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_pole_point.json"
+    BV_noise_median_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_noise_median.json"
 else:
     BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
     BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
     revenue_type_file_path = "/var/Autobot_seoul/Binance_BV_revenue.json"
     BV_daily_month_profit_type_file_path = "/var/Autobot_seoul/BV_daily_month_profit.json"
     BV_pole_point_file_path = "/var/Autobot_seoul/BV_pole_point.json"
+    BV_noise_median_file_path = "/var/Autobot_seoul/BV_noise_median.json"
 
 BV_coinlist = list()
 try:
@@ -112,7 +118,7 @@ try:
     with open(BV_top_file_path, "r") as json_file:
         TopCoinList = json.load(json_file)
         if hour == hour_crit and minute == min_crit+2 and len(BV_coinlist) == 0:
-            TopCoinList = myBinance.GetTopCoinList(binanceX, 20)
+            TopCoinList = myBinance.GetTopCoinList(binanceX, 50)
             with open(BV_top_file_path, 'w', encoding="utf-8") as outfile:
                 json.dump(TopCoinList, outfile)
 
@@ -168,18 +174,36 @@ except Exception as e:
     print("BV_daily_month_profit Exception by First 0")
 
 #노이즈에 따라서 coin 걸러 내려고 했는데, 수익률이 높은 코인들이 걸러지는 것 같아서 일단 보류
-noise_dict = dict()
-if day ==1 and hour==hour_crit and minute == min_crit + 2:
-    for ticker in TopCoinList:
-        df_day = myBinance.GetOhlcv(binanceX, ticker, '1d')
-        df_day_for_noise=df_day[:][-365:]
-        df_day_for_noise['noise'] = noise_now = 1-abs((df_day_for_noise['open']-df_day_for_noise['close'])/(df_day_for_noise['high']-df_day_for_noise['low']))
-        noise_dict[ticker] = df_day_for_noise['noise'].median()
+noise_median_dict = dict()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(BV_noise_median_file_path, 'r', encoding="utf-8") as json_file:
+        if hour == hour_crit and minute == min_crit + 2:
+            noise_median_dict = json.load(json_file)
+            if day == 1 and hour == hour_crit and minute == min_crit + 2:
+                for ticker in TopCoinList:
+                    df_day = myBinance.GetOhlcv(binanceX, ticker, '1d')
+                    df_day_for_noise = df_day[:][-365:]
+                    df_day_for_noise['noise'] = noise_now = 1 - abs((df_day_for_noise['open'] - df_day_for_noise['close']) / (df_day_for_noise['high'] - df_day_for_noise['low']))
+                    noise_median_dict[ticker] = df_day_for_noise['noise'].median()
+
+            with open(BV_noise_median_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(noise_median_dict, outfile)
+        else:
+            noise_median_dict = json.load(json_file)
+except Exception as e:
+    print("BV_noise_median_dict Exception by First 0")
+
+
+
 #한국시간 9시 -> 0
 
 #거래대금 탑 코인 리스트를 1위부터 내려가며 매수 대상을 찾는다.
 #전체 마켓의 코인이 아니라 탑 순위 TopCoinList 안에 있는 코인만 체크해서 매수
 #"""
+remove_list = ["FIL/BUSD","ICP/BUSD","DOT/BUSD","GAL/BUSD"]
+for i in remove_list:
+    TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
     pass
 else:
@@ -227,11 +251,13 @@ else:
                 # 거래량 계산 구간
                 volume_average = float(np.mean(df_day['volume'][-4:-1]))
                 volume_now = float(np.sum(df['volume'][-24:]))
+                if wday ==6 or wday==7:
+                    volume_average = volume_now
 
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]) and hour !=23: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>=volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]) and hour !=23: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -259,7 +285,7 @@ else:
                     noise_now = 1-abs((now_price-noise_range_open)/(noise_range_max-noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
                     if Buy_Amt>=Buy_Amt_limit:
@@ -278,9 +304,6 @@ else:
                         except Exception as e:
                             print("Exception:", e)
 
-                    #################################################################################################################
-
-                    #################################################################################################################
                     # 격리 모드로 설정
                     if isolated == False:
                         try:
@@ -298,7 +321,6 @@ else:
                     #매수된 코인을 BV_coinlist 리스트에 넣고 이를 파일로 저장해둔다!
                     BV_coinlist.append(ticker)
 
-
                     #파일에 리스트를 저장합니다
                     with open(BV_file_path, 'w') as outfile:
                         json.dump(BV_coinlist, outfile)
@@ -312,7 +334,6 @@ else:
                         json.dump(BV_revenue_dict, outfile)
                     ##############################################################
 
-                    ##############################################################
                     # 매수와 동시에 초기 값을 넣는다.
                     BV_pole_point_dict[ticker] = now_price
                     # 파일에 딕셔너리를 저장합니다
@@ -320,6 +341,7 @@ else:
                         json.dump(BV_pole_point_dict, outfile)
                     ##############################################################
 
+                    balance_binance = binanceX.fetch_balance(params={"type": "future"})
                     isolated_cost = 0
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
@@ -329,7 +351,7 @@ else:
                     #이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now > volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]) and hour !=23:
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now >= volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]) and hour !=23:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -358,7 +380,7 @@ else:
                     noise_now = 1 - abs((now_price - noise_range_open) / (noise_range_max - noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
 
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
@@ -368,10 +390,24 @@ else:
                     if Buy_Amt < minimun_amount:
                         Buy_Amt = minimun_amount
 
+                    #################################################################################################################
+                    # 레버리지 셋팅
+                    if leverage != set_leverage:
+
                         try:
-                            print(binanceX.fapiPrivate_post_leverage({'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
+                            print(binanceX.fapiPrivate_post_leverage(
+                                {'symbol': Target_Coin_Symbol, 'leverage': set_leverage}))
                         except Exception as e:
                             print("Exception:", e)
+
+                    # 격리 모드로 설정
+                    if isolated == False:
+                        try:
+                            print(binanceX.fapiPrivate_post_margintype(
+                                {'symbol': Target_Coin_Symbol, 'marginType': 'ISOLATED'}))
+                        except Exception as e:
+                            print("Exception:", e)
+                    #################################################################################################################
 
                     params = {'positionSide': 'SHORT'}
                     print(binanceX.create_order(ticker, 'market', 'sell', Buy_Amt, None, params))
@@ -401,6 +437,7 @@ else:
                     ##############################################################
 
                     isolated_cost = 0
+                    balance_binance = binanceX.fetch_balance(params={"type": "future"})
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                             # 사는 구간
@@ -441,6 +478,7 @@ else:
                 # 매수와 동시에 수익률
                 PNL = 0
                 isolated_cost = 0
+                balance_binance = binanceX.fetch_balance(params={"type": "future"})
                 for posi in balance_binance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                         # 사는 구간
@@ -497,6 +535,7 @@ else:
                 # 매수와 동시에 수익률
                 PNL = 0
                 isolated_cost = 0
+                balance_binance = binanceX.fetch_balance(params={"type": "future"})
                 for posi in balance_binance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                         # 사는 구간
@@ -621,7 +660,8 @@ for ticker in off_ticker_list:
                 else:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
-                    if now_price - BV_pole_point_dict[ticker] > BV_range:
+                    #short의 경우 손절라인을 좀 더 길게 가져감
+                    if now_price - BV_pole_point_dict[ticker] > BV_range*short_stoploss_ratio:
                         #시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -641,7 +681,8 @@ for ticker in off_ticker_list:
                         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
                             json.dump(BV_daily_month_profit, outfile)
 
-                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
+                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,2))+ " 수익$ : " + str(round(PNL,2))+ "$"
+                                                  + " 현재 가격$ : " + str(round(now_price,2))+ "$")
 
             elif amt > 0:
                 if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
@@ -658,7 +699,7 @@ for ticker in off_ticker_list:
 
                 # 그게 아닌데
                 else:
-                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     if BV_pole_point_dict[ticker] - now_price > BV_range:
                         # 시장가로 모두 매도!
@@ -729,7 +770,7 @@ KR_time_sliced =KR_time[:23]
 day_PNL = sum_PNL + BV_daily_month_profit["daily"]
 month_PNL = sum_PNL + BV_daily_month_profit["month"]
 
-if len(Telegram_Log) !=0:
+if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
     Telegram_Log_str = str()
     num_type=0
     for key, value in Telegram_Log.items():
@@ -740,7 +781,7 @@ if len(Telegram_Log) !=0:
     line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(len(Telegram_Log)*sum_isolated_cost)*100,2))+ "% 일 수익$ : "
                               + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
-    line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥" )
+    line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n 일 수익$ : "+ str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2)) )
 
 if hour == hour_crit and minute == min_crit:
     BV_daily_month_profit["month"] = month_PNL
