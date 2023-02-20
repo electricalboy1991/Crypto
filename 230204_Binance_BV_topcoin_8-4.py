@@ -36,7 +36,7 @@ wday = time_info.tm_wday
 MaxCoinCnt = 10.0
 k_parameter = 0.48
 k_parameter_2 = 0.58
-GetInMoney = 600
+GetInMoney = 50
 variability_range = 0.05
 set_leverage=2
 average_noise = 0.58
@@ -49,7 +49,7 @@ short_stoploss_ratio = 1.1
 
 Telegram_Log = dict()
 
-hour_crit = 23
+hour_crit = 8
 min_crit = 54
 print(hour, minute)
 ##############################################################
@@ -58,9 +58,11 @@ stop_revenue = 0.15
 ##############################################################
 
 if month ==11 or  month ==12 or  month ==1 or  month ==2 or  month ==3 or  month ==4:
-    season_weight = 1.3
+    season_weight_long = 1.3
+    season_weight_short = 1.0
 else:
-    season_weight = 1.0
+    season_weight_long = 1.0
+    season_weight_short = 1.3
 
 time.sleep(0.05)
 
@@ -90,6 +92,7 @@ if platform.system() == 'Windows':
     BV_daily_month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_daily_month_profit.json"
     BV_pole_point_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_pole_point.json"
     BV_noise_median_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_noise_median.json"
+    BV_cnt_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_cnt.json"
 else:
     BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
     BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
@@ -97,6 +100,20 @@ else:
     BV_daily_month_profit_type_file_path = "/var/Autobot_seoul/BV_daily_month_profit.json"
     BV_pole_point_file_path = "/var/Autobot_seoul/BV_pole_point.json"
     BV_noise_median_file_path = "/var/Autobot_seoul/BV_noise_median.json"
+    BV_cnt_file_path = "/var/Autobot_seoul/BV_cnt.json"
+
+BV_cnt = dict()
+try:
+    #이 부분이 파일을 읽어서 딕셔너리에 넣어주는 로직입니다.
+    with open(BV_cnt_file_path, 'r') as json_file:
+        if hour == hour_crit and minute == min_crit+2:
+            BV_cnt = dict()
+            with open(BV_cnt_file_path, 'w', encoding="utf-8") as outfile:
+                json.dump(BV_cnt, outfile)
+        else:
+            BV_cnt = json.load(json_file)
+except Exception as e:
+    print("BV_cnt Exception by First")
 
 BV_coinlist = list()
 try:
@@ -155,7 +172,6 @@ try:
 except Exception as e:
     print("BV_pole_point_dict Exception by First")
 
-
 BV_daily_month_profit = {"month" : 0, "daily" : 0}
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
@@ -194,16 +210,16 @@ try:
 except Exception as e:
     print("BV_noise_median_dict Exception by First 0")
 
-
-
 #한국시간 9시 -> 0
 
 #거래대금 탑 코인 리스트를 1위부터 내려가며 매수 대상을 찾는다.
 #전체 마켓의 코인이 아니라 탑 순위 TopCoinList 안에 있는 코인만 체크해서 매수
+
 #"""
-remove_list = ["FIL/BUSD","ICP/BUSD","DOT/BUSD","GAL/BUSD"]
-for i in remove_list:
-    TopCoinList.remove(i)
+#
+# remove_list = ["FIL/BUSD","SOL/BUSD","ICP/BUSD","DOT/BUSD","1000SHIB/BUSD","AVAX/BUSD","SAND/BUSD","UNI/BUSD","WAVES/BUSD"]
+# for i in remove_list:
+#     TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
     pass
 else:
@@ -257,7 +273,7 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>=volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]) and hour !=23: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>=volume_average and df_day['open'][-1] > np.mean(df_day['close'][-4:-1]) and hour !=hour_crit: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -285,7 +301,7 @@ else:
                     noise_now = 1-abs((now_price-noise_range_open)/(noise_range_max-noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight_long*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
                     if Buy_Amt>=Buy_Amt_limit:
@@ -325,21 +341,22 @@ else:
                     with open(BV_file_path, 'w') as outfile:
                         json.dump(BV_coinlist, outfile)
 
-                    ##############################################################
                     #매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
                     BV_revenue_dict[ticker] = 0
 
                     #파일에 딕셔너리를 저장합니다
                     with open(revenue_type_file_path, 'w') as outfile:
                         json.dump(BV_revenue_dict, outfile)
-                    ##############################################################
 
                     # 매수와 동시에 초기 값을 넣는다.
                     BV_pole_point_dict[ticker] = now_price
                     # 파일에 딕셔너리를 저장합니다
                     with open(BV_pole_point_file_path, 'w') as outfile:
                         json.dump(BV_pole_point_dict, outfile)
-                    ##############################################################
+
+                    BV_cnt[ticker] = 1
+                    with open(BV_cnt_file_path, 'w') as outfile:
+                        json.dump(BV_cnt, outfile)
 
                     balance_binance = binanceX.fetch_balance(params={"type": "future"})
                     isolated_cost = 0
@@ -349,9 +366,9 @@ else:
                             isolated_cost = float(posi['isolatedWallet'])
 
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
+                    line_alert.SendMessage_SP("[Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now >= volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]) and hour !=23:
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now >= volume_average and df_day['open'][-1] < np.mean(df_day['close'][-4:-1]) and hour !=hour_crit:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -380,7 +397,7 @@ else:
                     noise_now = 1 - abs((now_price - noise_range_open) / (noise_range_max - noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight_short*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
 
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
@@ -419,22 +436,22 @@ else:
                     with open(BV_file_path, 'w') as outfile:
                         json.dump(BV_coinlist, outfile)
 
-                    ##############################################################
                     # 매수와 동시에 초기 수익율을 넣는다. (당연히 0일테니 0을 넣고)
                     BV_revenue_dict[ticker] = 0
 
                     # 파일에 딕셔너리를 저장합니다
                     with open(revenue_type_file_path, 'w') as outfile:
                         json.dump(BV_revenue_dict, outfile)
-                    ##############################################################
 
-                    ##############################################################
                     # 매수와 동시에 초기 값을 넣는다.
                     BV_pole_point_dict[ticker] = now_price
                     # 파일에 딕셔너리를 저장합니다
                     with open(BV_pole_point_file_path, 'w') as outfile:
                         json.dump(BV_pole_point_dict, outfile)
-                    ##############################################################
+
+                    BV_cnt[ticker] = -1
+                    with open(BV_cnt_file_path, 'w') as outfile:
+                        json.dump(BV_cnt, outfile)
 
                     isolated_cost = 0
                     balance_binance = binanceX.fetch_balance(params={"type": "future"})
@@ -444,10 +461,10 @@ else:
                             isolated_cost = float(posi['isolatedWallet'])
 
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[Short BV] : " + ticker + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
+                    line_alert.SendMessage_SP("[Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
             # 롱 불 타기 1회
-            elif amt >=0 and now_price > entryPrice + BV_range_2 :
+            elif amt >=0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker]==1 :
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
@@ -490,22 +507,24 @@ else:
                 # 파일에 딕셔너리를 저장합니다
                 with open(revenue_type_file_path, 'w') as outfile:
                     json.dump(BV_revenue_dict, outfile)
-                ##############################################################
 
-                ##############################################################
                 # 매수와 동시에 초기 값을 넣는다.
                 BV_pole_point_dict[ticker] = now_price
                 # 파일에 딕셔너리를 저장합니다
                 with open(BV_pole_point_file_path, 'w') as outfile:
                     json.dump(BV_pole_point_dict, outfile)
-                ##############################################################
+
+                # cnt 2의 의미는 진입했다가 -> 이미 불 탔다
+                BV_cnt[ticker] = 2
+                with open(BV_cnt_file_path, 'w') as outfile:
+                    json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price, 2)) +"$\n투입액 : " + str(round(isolated_cost, 2)) + "$")
+                line_alert.SendMessage_SP("[불 Long BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) +"\n현재 가격 : " + str(round(now_price, 2)) +"$\n투입액 : " + str(round(isolated_cost, 2)) + "$")
                 pass
 
             #숏 불타기 1회
-            elif amt <=0 and now_price < entryPrice - BV_range_2 :
+            elif amt <=0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker]==-1 :
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
 
@@ -547,18 +566,20 @@ else:
                 # 파일에 딕셔너리를 저장합니다
                 with open(revenue_type_file_path, 'w') as outfile:
                     json.dump(BV_revenue_dict, outfile)
-                ##############################################################
 
-                ##############################################################
                 # 매수와 동시에 초기 값을 넣는다.
                 BV_pole_point_dict[ticker] = now_price
                 # 파일에 딕셔너리를 저장합니다
                 with open(BV_pole_point_file_path, 'w') as outfile:
                     json.dump(BV_pole_point_dict, outfile)
-                ##############################################################
+
+                # cnt 2의 의미는 진입했다가 -> 이미 불 탔다
+                BV_cnt[ticker] = -2
+                with open(BV_cnt_file_path, 'w') as outfile:
+                    json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[Long BV] : " + ticker + "\n현재 가격 : " + str(round(now_price, 2)) + "$\n투입액 : " + str(round(isolated_cost, 2)) + "$")
+                line_alert.SendMessage_SP("[불 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 2)) + "$\n투입액 : " + str(round(isolated_cost, 2)) + "$")
 
                 pass
             else:
@@ -681,9 +702,13 @@ for ticker in off_ticker_list:
                         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
                             json.dump(BV_daily_month_profit, outfile)
 
-                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,2))+ " 수익$ : " + str(round(PNL,2))+ "$"
-                                                  + " 현재 가격$ : " + str(round(now_price,2))+ "$")
+                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
+                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재 가격$ : " + str(round(now_price,2))+ "$")
 
+                        # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
+                        BV_cnt[ticker] = 0
+                        with open(BV_cnt_file_path, 'w') as outfile:
+                            json.dump(BV_cnt, outfile)
             elif amt > 0:
                 if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
 
@@ -722,7 +747,13 @@ for ticker in off_ticker_list:
                             json.dump(BV_daily_month_profit, outfile)
 
                         # 이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$")
+                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
+                                                  + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$")
+
+                        # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
+                        BV_cnt[ticker] = 0
+                        with open(BV_cnt_file_path, 'w') as outfile:
+                            json.dump(BV_cnt, outfile)
 
 
             # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
@@ -760,7 +791,7 @@ for ticker in off_ticker_list:
             #             json.dump(BV_daily_month_profit, outfile)
             #
             #         #이렇게 손절했다고 메세지를 보낼수도 있다
-            #         line_alert.SendMessage_SP("트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
+            #         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,2))+ " 수익$ : " + str(round(PNL,2))+ "$")
 
     except Exception as e:
         print("---:", e)

@@ -22,8 +22,8 @@ RSI_criteria_2 = 19
 
 profit_rate = 2
 
-RSI_criteria_1_GetInMoney = 200
-RSI_criteria_2_GetInMoney = 500
+RSI_criteria_1_GetInMoney = 400
+RSI_criteria_2_GetInMoney = 600
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
