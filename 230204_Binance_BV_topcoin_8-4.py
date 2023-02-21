@@ -36,7 +36,7 @@ wday = time_info.tm_wday
 MaxCoinCnt = 10.0
 k_parameter = 0.48
 k_parameter_2 = 0.58
-GetInMoney = 50
+GetInMoney = 100
 variability_range = 0.05
 set_leverage=2
 average_noise = 0.58
@@ -46,6 +46,7 @@ sum_isolated_cost = 0
 num_BV_ing_ticker = 0
 #short투입시에는 long투입과 비교 시, 손실이 길게 가끔나는 편이라, 손실을 좀 길게 가져가도...
 short_stoploss_ratio = 1.1
+loss_cut_ratio = 0.02
 
 Telegram_Log = dict()
 
@@ -172,7 +173,12 @@ try:
 except Exception as e:
     print("BV_pole_point_dict Exception by First")
 
-BV_daily_month_profit = {"month" : 0, "daily" : 0}
+BV_daily_month_profit = {"month" : 0, "daily" : 0,"day_based_win" : 0,"day_based_lose" : 0,
+                         "totol_profit_ratio" : 0,"cumulative_win_dollor" : 0,"cumulative_lose_dollor" : 0}
+for jjj in TopCoinList:
+    #각 코인별 승,패,누적 승$,누적 패$, 손익비
+    BV_daily_month_profit[jjj] =[1,1,1,-1,0]
+
 try:
     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
     with open(BV_daily_month_profit_type_file_path, 'r', encoding="utf-8") as json_file:
@@ -217,9 +223,9 @@ except Exception as e:
 
 #"""
 #
-# remove_list = ["FIL/BUSD","SOL/BUSD","ICP/BUSD","DOT/BUSD","1000SHIB/BUSD","AVAX/BUSD","SAND/BUSD","UNI/BUSD","WAVES/BUSD"]
-# for i in remove_list:
-#     TopCoinList.remove(i)
+remove_list = ["TLM/BUSD"]
+for i in remove_list:
+    TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
     pass
 else:
@@ -682,7 +688,7 @@ for ticker in off_ticker_list:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #short의 경우 손절라인을 좀 더 길게 가져감
-                    if now_price - BV_pole_point_dict[ticker] > BV_range*short_stoploss_ratio:
+                    if now_price - BV_pole_point_dict[ticker] > BV_range*short_stoploss_ratio or PNL<-balance_binance['BUSD']['total']*loss_cut_ratio/MaxCoinCnt:
                         #시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -703,12 +709,22 @@ for ticker in off_ticker_list:
                             json.dump(BV_daily_month_profit, outfile)
 
                         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
-                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재 가격$ : " + str(round(now_price,2))+ "$")
+                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$")
 
                         # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
                         BV_cnt[ticker] = 0
                         with open(BV_cnt_file_path, 'w') as outfile:
                             json.dump(BV_cnt, outfile)
+
+                        # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
+                        if PNL > 0:
+                            BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
+                            BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2]/BV_daily_month_profit[ticker][3]
+                        elif PNL < 0:
+                            BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
+                            BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
             elif amt > 0:
                 if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
 
@@ -726,7 +742,7 @@ for ticker in off_ticker_list:
                 else:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
-                    if BV_pole_point_dict[ticker] - now_price > BV_range:
+                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-balance_binance['BUSD']['total']*loss_cut_ratio/MaxCoinCnt:
                         # 시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -748,13 +764,22 @@ for ticker in off_ticker_list:
 
                         # 이렇게 손절했다고 메세지를 보낼수도 있다
                         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
-                                                  + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$")
+                                                  + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$" )
 
                         # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
                         BV_cnt[ticker] = 0
                         with open(BV_cnt_file_path, 'w') as outfile:
                             json.dump(BV_cnt, outfile)
 
+                        # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
+                        if PNL > 0:
+                            BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
+                            BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+                        elif PNL < 0:
+                            BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
+                            BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
 
             # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
             #
@@ -812,9 +837,22 @@ if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
     line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(len(Telegram_Log)*sum_isolated_cost)*100,2))+ "% 일 수익$ : "
                               + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
-    line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n 일 수익$ : "+ str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2)) )
+    line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n일 수익$ : "+ str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+
+                              "\n승리 : " + str(BV_daily_month_profit["day_based_win"]) +"  패배 :" + str(BV_daily_month_profit["day_based_lose"]) +
+                              "  승률 : " + str(round(100*BV_daily_month_profit["day_based_win"]/(BV_daily_month_profit["day_based_lose"]+BV_daily_month_profit["day_based_win"]),2))+
+                              "\n누적 승리액 $ : " + str(BV_daily_month_profit["cumulative_win_dollor"]) + "  누적 패배액 $ : " + str(BV_daily_month_profit["cumulative_lose_dollor"]) +
+                              "\n누적 손익비 : " + str(round(-BV_daily_month_profit["cumulative_win_dollor"]/BV_daily_month_profit["cumulative_lose_dollor"],2)))
 
 if hour == hour_crit and minute == min_crit:
+    if day_PNL > 0:
+        BV_daily_month_profit["day_based_win"] = BV_daily_month_profit["day_based_win"] + 1
+        BV_daily_month_profit["cumulative_win_dollor"] = BV_daily_month_profit["cumulative_win_dollor"] + day_PNL
+        BV_daily_month_profit["totol_profit_ratio"]= -BV_daily_month_profit["cumulative_win_dollor"]/BV_daily_month_profit["cumulative_lose_dollor"]
+    else:
+        BV_daily_month_profit["day_based_lose"] = BV_daily_month_profit["day_based_lose"] + 1
+        BV_daily_month_profit["cumulative_lose_dollor"] = BV_daily_month_profit["cumulative_lose_dollor"] + day_PNL
+        BV_daily_month_profit["totol_profit_ratio"] = -BV_daily_month_profit["cumulative_win_dollor"] / BV_daily_month_profit["cumulative_lose_dollor"]
+
     BV_daily_month_profit["month"] = month_PNL
     day_PNL = 0
     with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
