@@ -277,7 +277,7 @@ else:
 
                 df_day = myBinance.GetOhlcv(binanceX, ticker, '1d')
 
-                range_rate=(float(df_day['high'][-2]) - float(df_day['low'][-2])) / float(df_day['open'][-1])
+                range_rate=(float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) / float(df_day['open'][-1])
 
                 # 거래량 계산 구간
                 volume_average = float(np.sum(df['volume'][-72:])/3)
