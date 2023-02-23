@@ -48,7 +48,7 @@ print(hour, minute)
 MaxCoinCnt = 10.0
 k_parameter = 0.48
 k_parameter_2 = 0.58
-GetInMoney = 100
+GetInMoney = 10
 variability_range = 0.05
 set_leverage=2
 average_noise = 0.58
@@ -289,7 +289,7 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and volume_now>=volume_average and \
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and \
                         df['open'][-(hour + 1)] > np.mean([df['open'][-(hour + 1+24)],df['open'][-(hour + 1+48)],df['open'][-(hour + 1+72)]]) and hour !=hour_crit: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
@@ -318,7 +318,7 @@ else:
                     noise_now = 1-abs((now_price-noise_range_open)/(noise_range_max-noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight_long*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, (volume_now/volume_average)*season_weight_long*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
                     if Buy_Amt>=Buy_Amt_limit:
@@ -385,7 +385,7 @@ else:
                     #이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and volume_now >= volume_average and \
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and \
                         df['open'][-(hour + 1)] < np.mean([df['open'][-(hour + 1+24)],df['open'][-(hour + 1+48)],df['open'][-(hour + 1+72)]]) and hour !=hour_crit:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
@@ -415,7 +415,7 @@ else:
                     noise_now = 1 - abs((now_price - noise_range_open) / (noise_range_max - noise_range_min))
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker, season_weight_short*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker, (volume_now/volume_average)*season_weight_short*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
 
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
@@ -859,7 +859,7 @@ if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
         num_type=num_type+1
         key_ticker = key.replace('/BUSD', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
-                            + " 수익률 : "+ str(100*value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(value[3])+"\n"
+                            + " 수익률 : "+ str(100*value[1]) + "%" + "\n 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(value[3])+"\n"
     line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(GetInMoney*MaxCoinCnt)*100,2))+ "% \n일 수익$ : "
                               + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
