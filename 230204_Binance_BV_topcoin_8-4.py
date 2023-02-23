@@ -860,15 +860,22 @@ if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
         key_ticker = key.replace('/BUSD', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
                             + " 수익률 : "+ str(100*value[1]) + "%" + " 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(value[3])+"\n"
-    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(GetInMoney*MaxCoinCnt)*100,2))+ "% 일 수익$ : "
+    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(GetInMoney*MaxCoinCnt)*100,2))+ "% \n일 수익$ : "
                               + str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+ "$\n\n"+Telegram_Log_str)
 else:
-    if hour == hour_crit and minute==min_crit:
+    if hour == hour_crit and minute==min_crit+1:
         line_alert.SendMessage_SP("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n일 수익$ : "+ str(round(day_PNL,2)) + " 월 수익$ : "+ str(round(month_PNL,2))+
                                   "\n승리 : " + str(BV_daily_month_profit["day_based_win"]) +"  패배 :" + str(BV_daily_month_profit["day_based_lose"]) +
                                   "  승률 : " + str(round(100*BV_daily_month_profit["day_based_win"]/(BV_daily_month_profit["day_based_lose"]+BV_daily_month_profit["day_based_win"]),2))+
-                                  "\n누적 승리액 $ : " + str(BV_daily_month_profit["cumulative_win_dollor"]) + "  누적 패배액 $ : " + str(BV_daily_month_profit["cumulative_lose_dollor"]) +
+                                  "\n누적 승리액 $ : " + str(round(BV_daily_month_profit["cumulative_win_dollor"],2)) + "  누적 패배액 $ : " + str(BV_daily_month_profit["cumulative_lose_dollor"]) +
                                   "\n누적 손익비 : " + str(round(-BV_daily_month_profit["cumulative_win_dollor"]/BV_daily_month_profit["cumulative_lose_dollor"],2)))
+    else:
+        line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n일 수익$ : " + str(round(day_PNL, 2)) + " 월 수익$ : " + str(round(month_PNL, 2)) +
+                                  "\n승리 : " + str(BV_daily_month_profit["day_based_win"]) + "  패배 :" + str(BV_daily_month_profit["day_based_lose"]) +
+                                  "  승률 : " + str(round(100 * BV_daily_month_profit["day_based_win"] / (BV_daily_month_profit["day_based_lose"] + BV_daily_month_profit["day_based_win"]), 2)) +
+                                  "\n누적 승리액 $ : " + str(round(BV_daily_month_profit["cumulative_win_dollor"],2))+ "  누적 패배액 $ : " + str(BV_daily_month_profit["cumulative_lose_dollor"]) +
+                                  "\n누적 손익비 : " + str(round(-BV_daily_month_profit["cumulative_win_dollor"] / BV_daily_month_profit["cumulative_lose_dollor"], 2)))
+
 
 if hour == hour_crit and minute == min_crit:
     if day_PNL > 0:
