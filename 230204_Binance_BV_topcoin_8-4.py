@@ -46,8 +46,8 @@ print(hour, minute)
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 10.0
-k_parameter = 0.48
-k_parameter_2 = 0.58
+k_parameter = 0.45
+k_parameter_2 = 0.525
 GetInMoney = 10
 variability_range = 0.05
 set_leverage=2
@@ -289,7 +289,7 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and \
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and now_price>=max(df['high'][-(hour+1):]) and \
                         df['open'][-(hour + 1)] > np.mean([df['open'][-(hour + 1+24)],df['open'][-(hour + 1+48)],df['open'][-(hour + 1+72)]]) and hour !=hour_crit: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
@@ -385,7 +385,7 @@ else:
                     #이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and \
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour+1):]) and \
                         df['open'][-(hour + 1)] < np.mean([df['open'][-(hour + 1+24)],df['open'][-(hour + 1+48)],df['open'][-(hour + 1+72)]]) and hour !=hour_crit:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
@@ -723,10 +723,6 @@ for ticker in off_ticker_list:
                         with open(BV_file_path, 'w') as outfile:
                             json.dump(BV_coinlist, outfile)
 
-                        # 파일에 딕셔너리를 저장합니다
-                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                            json.dump(BV_daily_month_profit, outfile)
-
                         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
                                                   " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$")
 
@@ -744,6 +740,11 @@ for ticker in off_ticker_list:
                             BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
                             BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
                             BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+
+                        # 파일에 딕셔너리를 저장합니다
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
+
             elif amt > 0:
                 if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
 
@@ -784,10 +785,6 @@ for ticker in off_ticker_list:
                         with open(BV_file_path, 'w') as outfile:
                             json.dump(BV_coinlist, outfile)
 
-                        # 파일에 딕셔너리를 저장합니다
-                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                            json.dump(BV_daily_month_profit, outfile)
-
                         # 이렇게 손절했다고 메세지를 보낼수도 있다
                         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
                                                   + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$" )
@@ -806,6 +803,10 @@ for ticker in off_ticker_list:
                             BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
                             BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
                             BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+
+                        # 파일에 딕셔너리를 저장합니다
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
 
             # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
             #
