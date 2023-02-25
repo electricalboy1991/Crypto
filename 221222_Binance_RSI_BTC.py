@@ -61,7 +61,7 @@ except Exception as e:
 timestamp = datetime.now().timestamp()
 print(timestamp)
 
-Target_Coin_Ticker = 'BTC/USDT'
+Target_Coin_Ticker = 'BTC/BUSD'
 Target_Coin_Ticker_splited, Stable_coin_type =Target_Coin_Ticker.split('/')
 
 now_price_binance = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
