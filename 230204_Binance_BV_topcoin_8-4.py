@@ -59,9 +59,11 @@ num_BV_ing_ticker = 0
 #short투입시에는 long투입과 비교 시, 손실이 길게 가끔나는 편이라, 손실을 좀 길게 가져가도...
 short_stoploss_ratio = 1.1
 loss_cut_ratio = 0.03
-rsi_crit_bottom = 19
-rsi_crit_top = 100 - rsi_crit_bottom
-rsi_ticker = 'BTC/BUSD'
+rsi_crit_bottom_BTC = 19
+rsi_crit_top_BTC = 100 - rsi_crit_bottom_BTC
+rsi_crit_bottom_ticker = 15
+rsi_crit_top_ticker = 100 - rsi_crit_bottom_ticker
+rsi_BTC_ticker = 'BTC/BUSD'
 
 Telegram_Log = dict()
 
@@ -240,8 +242,8 @@ except Exception as e:
 #     TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
     pass
-elif (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
-    pass
+# elif (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
+#     pass
 else:
     for ticker in TopCoinList:
         try:
@@ -617,105 +619,63 @@ else:
 # 매수 후 체크하는 로직은 전체 코인 대상으로 체크하고
 # 매수 할때는 TopCoinList안의 코인만 체크해서 매수 합니다.
 
-if (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
-    pass
-else:
+# if (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
+#     pass
+# else:
 
-    off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
+off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
 
-    for ticker in off_ticker_list:
-        try:
-            print("Condition checked coin ticker: ",ticker)
-            Target_Coin_Symbol = ticker.replace("/", "")
-            #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
-            if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
+for ticker in off_ticker_list:
+    try:
+        print("Condition checked coin ticker: ",ticker)
+        Target_Coin_Symbol = ticker.replace("/", "")
+        #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
+        if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
 
-                # 매수한 상태에서의 수익률을 계산하기 위함임
-                amt = 0
-                revenue_rate = 0
-                PNL = 0
-                isolated_cost = 0
+            # 매수한 상태에서의 수익률을 계산하기 위함임
+            amt = 0
+            revenue_rate = 0
+            PNL = 0
+            isolated_cost = 0
+            for posi in balance_binance['info']['positions']:
+                if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
+                    # 사는 구간
+                    PNL = float(posi['unrealizedProfit'])
+                    isolated_cost = float(posi['isolatedWallet'])
+                    if float(posi['positionAmt']) != 0:
+                        now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
+                        if float(posi['positionAmt']) < 0:
+                            amt = float(posi['positionAmt'])
+                            revenue_rate = ((PNL) / (isolated_cost))
+                            break
+                        elif float(posi['positionAmt']) > 0:
+                            amt = float(posi['positionAmt'])
+                            revenue_rate = ((PNL) / (isolated_cost))
+                            break
+
+            sum_PNL = sum_PNL + PNL
+            sum_isolated_cost = sum_isolated_cost + isolated_cost
+
+            if amt == 0:
+                status = 'Done'
+            elif amt > 0:
+                status = 'Long'
+                num_BV_ing_ticker = num_BV_ing_ticker + 1
+            else:
+                status = 'Short'
+                num_BV_ing_ticker = num_BV_ing_ticker + 1
+
+            Telegram_Log[ticker] = [status, round(revenue_rate, 4), round(PNL, 2), round(isolated_cost, 2)]
+
+            #청산 시간
+            if hour == hour_crit and minute == min_crit:
+
+                #매수한 코인이라면.
                 for posi in balance_binance['info']['positions']:
-                    if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
+                    if posi['symbol'] == Target_Coin_Symbol:
                         # 사는 구간
-                        PNL = float(posi['unrealizedProfit'])
-                        isolated_cost = float(posi['isolatedWallet'])
                         if float(posi['positionAmt']) != 0:
-                            now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
-                            if float(posi['positionAmt']) < 0:
-                                amt = float(posi['positionAmt'])
-                                revenue_rate = ((PNL) / (isolated_cost))
-                                break
-                            elif float(posi['positionAmt']) > 0:
-                                amt = float(posi['positionAmt'])
-                                revenue_rate = ((PNL) / (isolated_cost))
-                                break
-
-                sum_PNL = sum_PNL + PNL
-                sum_isolated_cost = sum_isolated_cost + isolated_cost
-
-                if amt == 0:
-                    status = 'Done'
-                elif amt > 0:
-                    status = 'Long'
-                    num_BV_ing_ticker = num_BV_ing_ticker + 1
-                else:
-                    status = 'Short'
-                    num_BV_ing_ticker = num_BV_ing_ticker + 1
-
-                Telegram_Log[ticker] = [status, round(revenue_rate, 4), round(PNL, 2), round(isolated_cost, 2)]
-
-                #청산 시간
-                if hour == hour_crit and minute == min_crit:
-
-                    #매수한 코인이라면.
-                    for posi in balance_binance['info']['positions']:
-                        if posi['symbol'] == Target_Coin_Symbol:
-                            # 사는 구간
-                            if float(posi['positionAmt']) != 0:
-                                amt = float(posi['positionAmt'])
-                                #시장가로 모두 매도!
-                                if float(posi['positionAmt']) < 0:
-                                    params = {'positionSide': 'SHORT'}
-                                    print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
-                                elif float(posi['positionAmt']) > 0:
-                                    params = {'positionSide': 'LONG'}
-                                    print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
-
-                    #T/S 으로 손절한 경우 바로 리스트에서 제거하지 않고, 청산 기준 시간에 다같이 제거
-                    #리스트에서 코인을 빼 버린다.
-                    BV_coinlist.remove(ticker)
-
-                    #파일에 리스트를 저장합니다
-                    with open(BV_file_path, 'w') as outfile:
-                        json.dump(BV_coinlist, outfile)
-
-                ############################트레일링 스탑 구현을 위한 부분..###################################
-                # 수익률 기준이 아닌 변동성 range로 트레일링 스탑 구현
-
-
-                df_rsi = myBinance.GetOhlcv(binanceX, rsi_ticker, '1h')
-                rsi_hour = float(myBinance.GetRSI(df_rsi, 14, -1))
-
-                if amt < 0:
-                    if now_price <= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour > rsi_crit_bottom:
-
-                        #이렇게 딕셔너리에 값을 넣어주면 된다.
-                        BV_pole_point_dict[ticker] = now_price
-
-                        #파일에 딕셔너리를 저장합니다
-                        with open(BV_pole_point_file_path, 'w') as outfile:
-                            json.dump(BV_pole_point_dict, outfile)
-
-                    elif status == 'Done':
-                        pass
-
-                    else:
-                        df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
-                        BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
-                        #short 손절 라인
-                        # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                        if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour <= rsi_crit_bottom:
+                            amt = float(posi['positionAmt'])
                             #시장가로 모두 매도!
                             if float(posi['positionAmt']) < 0:
                                 params = {'positionSide': 'SHORT'}
@@ -724,143 +684,188 @@ else:
                                 params = {'positionSide': 'LONG'}
                                 print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
 
-                            #일 확정 수익에 넣어 주는 거임
-                            BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
-                            BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+                #T/S 으로 손절한 경우 바로 리스트에서 제거하지 않고, 청산 기준 시간에 다같이 제거
+                #리스트에서 코인을 빼 버린다.
+                BV_coinlist.remove(ticker)
 
-                            #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
-                            sum_PNL = sum_PNL-PNL
+                #파일에 리스트를 저장합니다
+                with open(BV_file_path, 'w') as outfile:
+                    json.dump(BV_coinlist, outfile)
 
-                            #해당 코인을 구매 리스트에서 빼주기 but cnt는 0이 쓰여서, 하루동안 동일 코인을 또 사진 않음
-                            BV_coinlist.remove(ticker)
-                            # 파일에 리스트를 저장합니다
-                            with open(BV_file_path, 'w') as outfile:
-                                json.dump(BV_coinlist, outfile)
+            ############################트레일링 스탑 구현을 위한 부분..###################################
+            # 수익률 기준이 아닌 변동성 range로 트레일링 스탑 구현
 
-                            line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
-                                                      " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$")
 
-                            # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
-                            BV_cnt[ticker] = 0
-                            with open(BV_cnt_file_path, 'w') as outfile:
-                                json.dump(BV_cnt, outfile)
+            df_rsi_BTC = myBinance.GetOhlcv(binanceX, rsi_BTC_ticker, '1h')
+            rsi_hour_BTC = float(myBinance.GetRSI(df_rsi_BTC, 14, -1))
 
-                            # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
-                            if PNL > 0:
-                                BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
-                                BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
-                                BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2]/BV_daily_month_profit[ticker][3]
-                            elif PNL < 0:
-                                BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
-                                BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
-                                BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+            df_rsi_ticker = myBinance.GetOhlcv(binanceX, ticker, '1h')
+            rsi_hour_ticker = float(myBinance.GetRSI(df_rsi_ticker, 14, -1))
 
-                            # 파일에 딕셔너리를 저장합니다
-                            with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                                json.dump(BV_daily_month_profit, outfile)
+            if amt < 0:
+                if now_price <= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
 
-                elif amt > 0:
-                    if now_price >= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour < rsi_crit_top:
+                    #이렇게 딕셔너리에 값을 넣어주면 된다.
+                    BV_pole_point_dict[ticker] = now_price
 
-                        # 이렇게 딕셔너리에 값을 넣어주면 된다.
-                        BV_pole_point_dict[ticker] = now_price
+                    #파일에 딕셔너리를 저장합니다
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
+
+                elif status == 'Done':
+                    pass
+
+                else:
+                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+                    BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
+                    #short 손절 라인
+                    # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
+                    if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC <= rsi_crit_bottom_BTC or rsi_hour_ticker <= rsi_crit_bottom_ticker:
+                        #시장가로 모두 매도!
+                        if float(posi['positionAmt']) < 0:
+                            params = {'positionSide': 'SHORT'}
+                            print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                        elif float(posi['positionAmt']) > 0:
+                            params = {'positionSide': 'LONG'}
+                            print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+
+                        #일 확정 수익에 넣어 주는 거임
+                        BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                        BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+
+                        #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+                        sum_PNL = sum_PNL-PNL
+
+                        #해당 코인을 구매 리스트에서 빼주기 but cnt는 0이 쓰여서, 하루동안 동일 코인을 또 사진 않음
+                        BV_coinlist.remove(ticker)
+                        # 파일에 리스트를 저장합니다
+                        with open(BV_file_path, 'w') as outfile:
+                            json.dump(BV_coinlist, outfile)
+
+                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
+                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$")
+
+                        # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
+                        BV_cnt[ticker] = 0
+                        with open(BV_cnt_file_path, 'w') as outfile:
+                            json.dump(BV_cnt, outfile)
+
+                        # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
+                        if PNL > 0:
+                            BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
+                            BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2]/BV_daily_month_profit[ticker][3]
+                        elif PNL < 0:
+                            BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
+                            BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
 
                         # 파일에 딕셔너리를 저장합니다
-                        with open(BV_pole_point_file_path, 'w') as outfile:
-                            json.dump(BV_pole_point_dict, outfile)
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
 
-                    elif status == 'Done':
-                        pass
+            elif amt > 0:
+                if now_price >= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
 
-                    # long 손절 라인
-                    else:
-                        df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
-                        BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
-                        #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                        if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour >= rsi_crit_top:
-                            # 시장가로 모두 매도!
-                            if float(posi['positionAmt']) < 0:
-                                params = {'positionSide': 'SHORT'}
-                                print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
-                            elif float(posi['positionAmt']) > 0:
-                                params = {'positionSide': 'LONG'}
-                                print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+                    # 이렇게 딕셔너리에 값을 넣어주면 된다.
+                    BV_pole_point_dict[ticker] = now_price
 
-                            # 일 확정 수익에 넣어 주는 거임
-                            BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
-                            BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+                    # 파일에 딕셔너리를 저장합니다
+                    with open(BV_pole_point_file_path, 'w') as outfile:
+                        json.dump(BV_pole_point_dict, outfile)
 
-                            # 빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
-                            sum_PNL = sum_PNL - PNL
+                elif status == 'Done':
+                    pass
 
-                            # 해당 코인을 구매 리스트에서 빼주기 but cnt는 0이 쓰여서, 하루동안 동일 코인을 또 사진 않음
-                            BV_coinlist.remove(ticker)
-                            # 파일에 리스트를 저장합니다
-                            with open(BV_file_path, 'w') as outfile:
-                                json.dump(BV_coinlist, outfile)
+                # long 손절 라인
+                else:
+                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
+                    BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
+                    #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
+                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC >= rsi_crit_top_BTC or rsi_hour_ticker >= rsi_crit_top_ticker:
+                        # 시장가로 모두 매도!
+                        if float(posi['positionAmt']) < 0:
+                            params = {'positionSide': 'SHORT'}
+                            print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+                        elif float(posi['positionAmt']) > 0:
+                            params = {'positionSide': 'LONG'}
+                            print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
 
-                            # 이렇게 손절했다고 메세지를 보낼수도 있다
-                            line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
-                                                      + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$" )
+                        # 일 확정 수익에 넣어 주는 거임
+                        BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                        BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
 
-                            # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
-                            BV_cnt[ticker] = 0
-                            with open(BV_cnt_file_path, 'w') as outfile:
-                                json.dump(BV_cnt, outfile)
+                        # 빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+                        sum_PNL = sum_PNL - PNL
 
-                            # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
-                            if PNL > 0:
-                                BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
-                                BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
-                                BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
-                            elif PNL < 0:
-                                BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
-                                BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
-                                BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+                        # 해당 코인을 구매 리스트에서 빼주기 but cnt는 0이 쓰여서, 하루동안 동일 코인을 또 사진 않음
+                        BV_coinlist.remove(ticker)
+                        # 파일에 리스트를 저장합니다
+                        with open(BV_file_path, 'w') as outfile:
+                            json.dump(BV_coinlist, outfile)
 
-                            # 파일에 딕셔너리를 저장합니다
-                            with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                                json.dump(BV_daily_month_profit, outfile)
+                        # 이렇게 손절했다고 메세지를 보낼수도 있다
+                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
+                                                  + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$" )
 
-                # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
-                #
-                #     #이렇게 딕셔너리에 값을 넣어주면 된다.
-                #     BV_revenue_dict[ticker] = revenue_rate
-                #
-                #     #파일에 딕셔너리를 저장합니다
-                #     with open(revenue_type_file_path, 'w') as outfile:
-                #         json.dump(BV_revenue_dict, outfile)
-                #
-                # elif status == 'Done':
-                #     pass
-                #
-                # #그게 아닌데
-                # else:
-                #     #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 x% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
-                #     if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
-                #         #시장가로 모두 매도!
-                #         if float(posi['positionAmt']) < 0:
-                #             params = {'positionSide': 'SHORT'}
-                #             print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
-                #         elif float(posi['positionAmt']) > 0:
-                #             params = {'positionSide': 'LONG'}
-                #             print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
-                #
-                #         BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
-                #         BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
-                #
-                #         #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
-                #         sum_PNL = sum_PNL-PNL
-                #
-                #         # 파일에 딕셔너리를 저장합니다
-                #         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
-                #             json.dump(BV_daily_month_profit, outfile)
-                #
-                #         #이렇게 손절했다고 메세지를 보낼수도 있다
-                #         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,3))+ " 수익$ : " + str(round(PNL,2))+ "$")
+                        # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
+                        BV_cnt[ticker] = 0
+                        with open(BV_cnt_file_path, 'w') as outfile:
+                            json.dump(BV_cnt, outfile)
 
-        except Exception as e:
-            print("---:", e)
+                        # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
+                        if PNL > 0:
+                            BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
+                            BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+                        elif PNL < 0:
+                            BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
+                            BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
+                            BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+
+                        # 파일에 딕셔너리를 저장합니다
+                        with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                            json.dump(BV_daily_month_profit, outfile)
+
+            # if revenue_rate > BV_revenue_dict[ticker] and status != 'Done':
+            #
+            #     #이렇게 딕셔너리에 값을 넣어주면 된다.
+            #     BV_revenue_dict[ticker] = revenue_rate
+            #
+            #     #파일에 딕셔너리를 저장합니다
+            #     with open(revenue_type_file_path, 'w') as outfile:
+            #         json.dump(BV_revenue_dict, outfile)
+            #
+            # elif status == 'Done':
+            #     pass
+            #
+            # #그게 아닌데
+            # else:
+            #     #고점 수익율 - 스탑 수익율 >= 현재 수익율... 즉 고점 대비 x% 떨어진 상황이라면 트레일링 스탑!!! 모두 매도한다!
+            #     if (BV_revenue_dict[ticker] - stop_revenue) >= revenue_rate:
+            #         #시장가로 모두 매도!
+            #         if float(posi['positionAmt']) < 0:
+            #             params = {'positionSide': 'SHORT'}
+            #             print(binanceX.create_order(ticker, 'market', 'buy', abs(amt), None, params))
+            #         elif float(posi['positionAmt']) > 0:
+            #             params = {'positionSide': 'LONG'}
+            #             print(binanceX.create_order(ticker, 'market', 'sell', abs(amt), None, params))
+            #
+            #         BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+            #         BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
+            #
+            #         #빼주는 이유는 밑에 sum_PNL = sum_PNL + BV_daily_month_profit["daily"] 이거 구할 때, 이미 daily 값에 반영이 되어 있으니까 빼줌
+            #         sum_PNL = sum_PNL-PNL
+            #
+            #         # 파일에 딕셔너리를 저장합니다
+            #         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+            #             json.dump(BV_daily_month_profit, outfile)
+            #
+            #         #이렇게 손절했다고 메세지를 보낼수도 있다
+            #         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker + "\n 수익률 : " + str(round(revenue_rate*100,3))+ " 수익$ : " + str(round(PNL,2))+ "$")
+
+    except Exception as e:
+        print("---:", e)
 current_time = datetime.now(timezone('Asia/Seoul'))
 KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
@@ -897,10 +902,12 @@ if hour == hour_crit and minute == min_crit:
         BV_daily_month_profit["day_based_win"] = BV_daily_month_profit["day_based_win"] + 1
         BV_daily_month_profit["cumulative_win_dollor"] = BV_daily_month_profit["cumulative_win_dollor"] + day_PNL
         BV_daily_month_profit["totol_profit_ratio"]= -BV_daily_month_profit["cumulative_win_dollor"]/BV_daily_month_profit["cumulative_lose_dollor"]
-    else:
+    elif day_PNL < 0:
         BV_daily_month_profit["day_based_lose"] = BV_daily_month_profit["day_based_lose"] + 1
         BV_daily_month_profit["cumulative_lose_dollor"] = BV_daily_month_profit["cumulative_lose_dollor"] + day_PNL
         BV_daily_month_profit["totol_profit_ratio"] = -BV_daily_month_profit["cumulative_win_dollor"] / BV_daily_month_profit["cumulative_lose_dollor"]
+    else:
+        pass
 
     BV_daily_month_profit["month"] = month_PNL
     day_PNL = 0
