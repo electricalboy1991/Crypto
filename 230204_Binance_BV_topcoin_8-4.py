@@ -70,6 +70,7 @@ Telegram_Log = dict()
 ##############################################################
 #수익율 0.5%를 트레일링 스탑 기준으로 잡는다. 즉 고점 대비 0.5% 하락하면 매도 처리 한다!
 stop_revenue = 0.15
+trailing_stop_ratio = 0.3
 ##############################################################
 
 if month ==11 or  month ==12 or  month ==1 or  month ==2 or  month ==3 or  month ==4:
@@ -237,9 +238,9 @@ except Exception as e:
 
 #"""
 #
-# remove_list = ["LTC/BUSD"]
-# for i in remove_list:
-#     TopCoinList.remove(i)
+remove_list = ["BTC/BUSD","ETH/BUSD","XRP/BUSD"]
+for i in remove_list:
+    TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
     pass
 # elif (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
@@ -691,6 +692,20 @@ for ticker in off_ticker_list:
                 #파일에 리스트를 저장합니다
                 with open(BV_file_path, 'w') as outfile:
                     json.dump(BV_coinlist, outfile)
+
+                # 코인별 승,패,승 누적 달러, 패 누적 달러, 손익비 저장
+                if PNL > 0:
+                    BV_daily_month_profit[ticker][0] = BV_daily_month_profit[ticker][0] + 1
+                    BV_daily_month_profit[ticker][2] = BV_daily_month_profit[ticker][2] + PNL
+                    BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+                elif PNL < 0:
+                    BV_daily_month_profit[ticker][1] = BV_daily_month_profit[ticker][1] + 1
+                    BV_daily_month_profit[ticker][3] = BV_daily_month_profit[ticker][3] + PNL
+                    BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
+
+                # 파일에 딕셔너리를 저장합니다
+                with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
+                    json.dump(BV_daily_month_profit, outfile)
 
             ############################트레일링 스탑 구현을 위한 부분..###################################
             # 수익률 기준이 아닌 변동성 range로 트레일링 스탑 구현
