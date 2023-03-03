@@ -48,9 +48,9 @@ print(hour, minute)
 MaxCoinCnt = 10.0
 k_parameter = 0.45
 k_parameter_2 = 0.525
-GetInMoney = 500
+GetInMoney = 5
 variability_range = 0.05
-set_leverage=2
+set_leverage=3
 average_noise = 0.58
 commission_rate = 0.002
 sum_PNL = 0
@@ -64,6 +64,8 @@ rsi_crit_top_BTC = 100 - rsi_crit_bottom_BTC
 rsi_crit_bottom_ticker = 15
 rsi_crit_top_ticker = 100 - rsi_crit_bottom_ticker
 rsi_BTC_ticker = 'BTC/BUSD'
+MA_cut_num = 7
+revenue_rate_cut = 0.01
 
 Telegram_Log = dict()
 
@@ -717,6 +719,9 @@ for ticker in off_ticker_list:
             df_rsi_ticker = myBinance.GetOhlcv(binanceX, ticker, '1h')
             rsi_hour_ticker = float(myBinance.GetRSI(df_rsi_ticker, 14, -1))
 
+            df_MA_ticker = myBinance.GetOhlcv(binanceX, ticker, '1m')
+            MA_1m_ticker = myBinance.GetMA(df_MA_ticker, 14, -1)
+
             if amt < 0:
                 if now_price <= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
 
@@ -735,7 +740,8 @@ for ticker in off_ticker_list:
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #short 손절 라인
                     # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                    if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC <= rsi_crit_bottom_BTC or rsi_hour_ticker <= rsi_crit_bottom_ticker:
+                    if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC <= rsi_crit_bottom_BTC \
+                            or rsi_hour_ticker <= rsi_crit_bottom_ticker or (len(BV_coinlist) <= MA_cut_num and  now_price>MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         #시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -797,7 +803,8 @@ for ticker in off_ticker_list:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC >= rsi_crit_top_BTC or rsi_hour_ticker >= rsi_crit_top_ticker:
+                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC >= rsi_crit_top_BTC or \
+                            rsi_hour_ticker >= rsi_crit_top_ticker or (len(BV_coinlist) <= MA_cut_num and  now_price<MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         # 시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}

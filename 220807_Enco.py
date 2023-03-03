@@ -216,7 +216,7 @@ except Exception as e:
 
 #Invest_Rate = 0.21
 set_leverage = 3
-#profit_rate_criteria 기본 값
+#profit_rate_criteria 기본 값 -> 아래에 함수에 의해서 바뀜
 profit_rate_criteria = 1.5
 #Krate_interval 물타기 범위 값
 Krate_interval = 0.5
@@ -226,7 +226,7 @@ Stop_price_percent = 0.97
 #close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.2
 #1회 진입 달러 수
-GetInMoney=150
+GetInMoney=9
 
 #바이낸스 업비트 평균 커미션 (0.0003+0.0005)/2
 binance_commission = 0.0003
@@ -235,7 +235,7 @@ commission = (upbit_commission+binance_commission)/2
 # profit_range= [3, 1]
 # average_range = [-2,2]
 
-profit_range= [0.5, 0.2]
+profit_range= [1.5, 1.0]
 average_range = [-2,2]
 
 # BUSDKRW_MA_value = sum(BUSDKRW_MA_List) / len(BUSDKRW_MA_List)
@@ -243,7 +243,7 @@ average_range = [-2,2]
 ####이거 나중에 갯수 늘려야지.. 지금은 일단 5개로 test
 
 ####이거 늘릴 때, 최소 금액 맞춰주기
-CoinCnt = 0.0
+CoinCnt = 4
 
 # binance 객체 생성
 binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey,'secret': Binance_ScretKey,'enableRateLimit': True,'options': {'defaultType': 'future'}})
@@ -254,7 +254,10 @@ time.sleep(0.1)
 
 #내가 가진 잔고 데이터를 다 가져온다.
 balance_upbit = upbit.get_balances()
-upbit_diff_BTC = float(myUpbit.NumOfTickerCoin(balance_upbit, "KRW-BTC")) * (pyupbit.get_current_price("KRW-BTC") - float(myUpbit.GetAvgBuyPrice(balance_upbit, "KRW-BTC")))
+
+#업비트에서 비트코인 사기 전까지 아래 값은 0이지
+# upbit_diff_BTC = float(myUpbit.NumOfTickerCoin(balance_upbit, "KRW-BTC")) * (pyupbit.get_current_price("KRW-BTC") - float(myUpbit.GetAvgBuyPrice(balance_upbit, "KRW-BTC")))
+upbit_diff_BTC = 0
 
 won_rate = myUpbit.upbit_get_usd_krw()
 
@@ -291,10 +294,8 @@ characters = "KRW-"
 
 #거래에서 제외할 코인
 try:
-    TopCoinList.remove("KRW-BTC")
     TopCoinList.remove("KRW-TRX")
     TopCoinList.remove("KRW-WEMIX")
-    TopCoinList.remove("KRW-ADA")
     TopCoinList.remove("KRW-WAVES")
 except Exception as e:
     print("BTC remove error", e)
@@ -308,8 +309,8 @@ if len(Krate_total) !=0:
 
     for temp_ticker in Krate_total:
         temp_Krate_dummy=Krate_total[temp_ticker]
-        while -100 in temp_Krate_dummy:
-            temp_Krate_dummy.remove(-100)
+        while False in temp_Krate_dummy:
+            temp_Krate_dummy.remove(False)
         Krate_average = sum(temp_Krate_dummy) / len(temp_Krate_dummy)
         Krate_aver_total[temp_ticker] = Krate_average
 
@@ -326,7 +327,9 @@ if len(Krate_total) !=0:
 
 else:
     Sorted_topcoinlist=TopCoinList
-
+Kimp_target_coin = ['KRW-BTC','KRW-ETH','KRW-XRP','KRW-ADA']
+remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
+Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
 for ticker_upbit in Sorted_topcoinlist:
 
     time.sleep(0.1)
@@ -411,12 +414,18 @@ for ticker_upbit in Sorted_topcoinlist:
 
         ADMoney = Buy_Amt * upbit_order_standard
 
-        if ticker_upbit in Kimplist:
-            Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
-        else:
-            Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
-            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
+        # 김프를 절대 환율로 보지 않게 다시 수정
+        # if ticker_upbit in Kimplist:
+        #     Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
+        #     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
+        # else:
+        #     Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
+        #     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
+
+        Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
+        Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
+
+
         """
         if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
             profit_rate = 100 * ((upbit_order_standard - myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)) * myUpbit.NumOfTickerCoin(
@@ -427,8 +436,8 @@ for ticker_upbit in Sorted_topcoinlist:
         #매수 Krate의 평균을 구하기 위한 code
         if ticker_upbit in Krate_total:
             temp_Krate_dummy2 = Krate_total[ticker_upbit]
-            while -100 in temp_Krate_dummy2:
-                temp_Krate_dummy2.remove(-100)
+            while False in temp_Krate_dummy2:
+                temp_Krate_dummy2.remove(False)
                 Krate_average = sum(temp_Krate_dummy2) / len(temp_Krate_dummy2)
             TryNumber = len(temp_Krate_dummy2)
         else:
@@ -448,7 +457,7 @@ for ticker_upbit in Sorted_topcoinlist:
             with open(Krate_ExClose_type_file_path, 'w') as outfile:
                 json.dump(Krate_ExClose, outfile)
 
-        # 종가를 저장하는 로직
+        # 종가를 저장하는 로직 // 적어도 전날 기준 몇 이하에서 사도록 코딩
         if hour == hour_crit and min % 60 ==min_crit:
                 Krate_ExClose[ticker_upbit] = Krate
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
@@ -524,9 +533,13 @@ for ticker_upbit in Sorted_topcoinlist:
                                               round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),
                                               round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
 
-                # 수익화  // 수익화 절대 기준은 매번 좀 보고 바꿔줘야되나,,,,
-                if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
+                # 수익화  // 아래 주석은 절대 김프로 수익화 할 때임
+
+                # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
+                #         (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
                         # and Krate - Krate_average <= profit_rate*2.2:
+                Situation_index = Situation_flag[ticker_upbit].index(False)
+                if Krate_close - Krate_total[ticker_upbit][Situation_index-1] > profit_rate_criteria:
 
                     url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
                     binance_orderbook_data = requests.get(url).json()
@@ -555,43 +568,78 @@ for ticker_upbit in Sorted_topcoinlist:
                     upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
 
                     # 다시 정의 할 필요 없어서 지움
-                    Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * Trade_infor[ticker_upbit][0])) - 1) * 100
+                    Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
 
-                    if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
+                    # 김프 절대 환율에서 바꿈
+                    # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
+                    #         (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
+                    if Krate_close - Krate_total[ticker_upbit][Situation_index-1]  > profit_rate_criteria:
+
                         # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                         params = {'positionSide': 'SHORT'}
                         binanceX.cancel_all_orders(ticker_binance)
                         # print(binanceX.create_order(ticker_binance, 'limit', 'buy', abs(amt_s), now_price_binance, params))
-                        print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(amt_s), None, params))
+                        sell_Amt = float(binanceX.amount_to_precision(ticker_binance, amt_s / Situation_index))
+                        print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(sell_Amt), None, params))
 
                         #주문 취소해줘야 매도 됨
                         myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         time.sleep(0.1)
                         num_coin=upbit.get_balance(ticker_upbit)
-                        print(myUpbit.SellCoinMarket(upbit, ticker_upbit,upbit.get_balance(ticker_upbit)))
+                        print(myUpbit.SellCoinMarket(upbit, ticker_upbit,upbit.get_balance(ticker_upbit)/Situation_index))
 
                         time.sleep(0.1)
 
+                        # 체결했으니까 내역 업데이트 해서 받아오기// 리밋 주문 새로 넣어주기
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
+
+                        for posi in balance_binanace['info']['positions']:
+                            if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
+                                print(posi)
+                                amt_s = float(posi['positionAmt'])
+                                entryPrice_s = float(posi['entryPrice'])
+                                leverage = float(posi['leverage'])
+                                isolated = posi['isolated']
+                                break
+
+                        for upbit_asset in balance_upbit:
+                            if upbit_asset['currency'] == 'KRW':
+                                upbit_remain_money = float(upbit_asset['balance'])
+                            else:
+                                continue
+
+                        stop_price_binance = entryPrice_s * (1 + 1 / set_leverage) * Stop_price_percent
+                        stop_price_upbit = stop_price_binance * won_rate * 0.98
+                        time.sleep(0.1)
+                        myBinance.SetStopLossShortPrice(binanceX, ticker_binance, stop_price_binance, False)
+
+                        myUpbit.CancelCoinOrder(upbit, ticker_upbit)
+                        coin_volume = upbit.get_balance(ticker_upbit)
+                        myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
                         coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*num_coin+won_rate*(entryPrice_s-now_price_binance)*abs(amt_s)
                         coin_net_withCommision = round((coin_net-num_coin*now_price_upbit*0.05/100*2)/10000,2)
 
                         total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
-                        Kimplist.remove(ticker_upbit)
-                        # 파일에 리스트를 저장합니다
-                        with open(Kimplist_type_file_path, 'w') as outfile:
-                            json.dump(Kimplist, outfile)
+
+                        # Kimplist.remove(ticker_upbit)
+                        # # 파일에 리스트를 저장합니다
+                        # with open(Kimplist_type_file_path, 'w') as outfile:
+                        #     json.dump(Kimplist, outfile)
 
                         # Situation_flag[ticker_upbit] = [False,False,False,False,False]
                         #매도하는 여기서 해당 딕셔너리를 그냥 제거하면 될 듯. 어차피 로직의 시작은 매도인데, 매도하면 새로 반영 되니까
-                        del Situation_flag[ticker_upbit]
+                        Situation_flag[ticker_upbit][Situation_index-1] = False
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
                         # Krate_total[ticker_upbit] = [2,2,2,2,2]
                         #매도하는 여기서 해당 딕셔너리를 그냥 제거하면 될 듯. 어차피 로직의 시작은 매도인데, 매도하면 새로 반영 되니까
-                        del Krate_total[ticker_upbit]
+                        Krate_total[ticker_upbit][Situation_index-1] = False
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -674,13 +722,13 @@ for ticker_upbit in Sorted_topcoinlist:
                     coin_volume = upbit.get_balance(ticker_upbit)
                     myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                    ADMoney_index=Situation_flag[ticker_upbit].index(False)
+                    Situation_index=Situation_flag[ticker_upbit].index(False)
 
-                    Situation_flag[ticker_upbit][ADMoney_index] = True
+                    Situation_flag[ticker_upbit][Situation_index] = True
                     with open(Situation_flag_type_file_path, 'w') as outfile:
                         json.dump(Situation_flag, outfile)
 
-                    Krate_total[ticker_upbit][ADMoney_index] = Krate
+                    Krate_total[ticker_upbit][Situation_index] = Krate
                     with open(Krate_total_type_file_path, 'w') as outfile:
                         json.dump(Krate_total, outfile)
 
@@ -695,7 +743,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                 #물타기 1회
-                elif Krate <Kimp_crit and Krate_total[ticker_upbit][0]-Krate >= Krate_interval and Situation_flag[ticker_upbit][1] == False:
+                elif Krate <Kimp_crit and Krate_total[ticker_upbit][0]-Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -739,7 +787,8 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     ADMoney = Buy_Amt * upbit_order_standard
                         # 다시 정의 할 필요 없어서 지움
-                    Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
+                    # Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
+                    Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
 
                     if Krate < Kimp_crit and Krate_total[ticker_upbit][0]-Krate >= Krate_interval and Situation_flag[ticker_upbit][1] == False:
                         params = {'positionSide': 'SHORT'}
@@ -784,11 +833,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                        Situation_flag[ticker_upbit][1] = True
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
+
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][1] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -799,7 +850,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 2회
-                elif Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][2] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -845,8 +896,9 @@ for ticker_upbit in Sorted_topcoinlist:
                     ADMoney = Buy_Amt * upbit_order_standard
 
                         # 다시 정의 할 필요 없어서 지움
-                    Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
-                    if Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][2] == False:
+                    # Krate = ((upbit_order_standard / (binance_order_standard * Trade_infor[ticker_upbit][0])) - 1) * 100
+                    Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
+                    if Krate < Kimp_crit and Krate_total[ticker_upbit][1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
 
                         params = {'positionSide': 'SHORT'}
 
@@ -889,12 +941,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
 
-                        Situation_flag[ticker_upbit][2] = True
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][2] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -904,7 +957,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 3회
-                elif Krate < Kimp_crit and Krate_total[ticker_upbit][2] - Krate >= Krate_interval and Situation_flag[ticker_upbit][3] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][2] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -996,11 +1049,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                        Situation_flag[ticker_upbit][3] = True
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
+
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][3] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -1010,7 +1065,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     else:
                         continue
                 # 물타기 4회
-                elif Krate < Kimp_crit and Krate_total[ticker_upbit][3] - Krate >= Krate_interval and Situation_flag[ticker_upbit][4] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][3] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1100,11 +1155,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                        Situation_flag[ticker_upbit][4] = True
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
+
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][4] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -1115,7 +1172,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         continue
 
                         # 물타기 5회
-                elif Krate < Kimp_crit and Krate_total[ticker_upbit][4] - Krate >= Krate_interval and Situation_flag[ticker_upbit][5] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][4] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1208,11 +1265,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                        Situation_flag[ticker_upbit][5] = True
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
+
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][5] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -1225,7 +1284,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         continue
 
                 #물타기 6회
-                elif Krate < Kimp_crit and Krate_total[ticker_upbit][5] - Krate >= Krate_interval and Situation_flag[ticker_upbit][6] == False:
+                elif Krate < Kimp_crit and Krate_total[ticker_upbit][5] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1317,11 +1376,13 @@ for ticker_upbit in Sorted_topcoinlist:
                         coin_volume = upbit.get_balance(ticker_upbit)
                         myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
 
-                        Situation_flag[ticker_upbit][6] = True
+                        Situation_index = Situation_flag[ticker_upbit].index(False)
+
+                        Situation_flag[ticker_upbit][Situation_index] = True
                         with open(Situation_flag_type_file_path, 'w') as outfile:
                             json.dump(Situation_flag, outfile)
 
-                        Krate_total[ticker_upbit][6] = Krate
+                        Krate_total[ticker_upbit][Situation_index] = Krate
                         with open(Krate_total_type_file_path, 'w') as outfile:
                             json.dump(Krate_total, outfile)
 
@@ -1335,6 +1396,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     continue
         # 아직 김프 포지션 못 잡은 상태
         else:
+            #김프가 전날 기준보다 어느정도 낮아야 사게 만들었네.
             if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
@@ -1444,7 +1506,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         json.dump(Situation_flag, outfile)
                     time.sleep(0.1)
 
-                    Krate_total[ticker_upbit] = [Krate, -100, -100, -100, -100, -100, -100]
+                    Krate_total[ticker_upbit] = [Krate, False, False, False, False, False, False]
                     with open(Krate_total_type_file_path, 'w') as outfile:
                         json.dump(Krate_total, outfile)
                     time.sleep(0.1)
