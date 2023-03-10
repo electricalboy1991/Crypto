@@ -14,7 +14,7 @@ from pytz import timezone
 if platform.system() == 'Windows':
     pass
 else:
-    time.sleep(10)
+    time.sleep(0.01)
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -58,7 +58,7 @@ sum_isolated_cost = 0
 num_BV_ing_ticker = 0
 #short투입시에는 long투입과 비교 시, 손실이 길게 가끔나는 편이라, 손실을 좀 길게 가져가도...
 short_stoploss_ratio = 1.1
-loss_cut_ratio = 0.03
+loss_cut_ratio = 0.02
 rsi_crit_bottom_BTC = 19
 rsi_crit_top_BTC = 100 - rsi_crit_bottom_BTC
 rsi_crit_bottom_ticker = 15
@@ -112,13 +112,13 @@ if platform.system() == 'Windows':
     BV_noise_median_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_noise_median.json"
     BV_cnt_file_path = "C:\\Users\world\PycharmProjects\Crypto\BV_cnt.json"
 else:
-    BV_file_path = "/var/Autobot_seoul/Binance_BV_coin.json"
-    BV_top_file_path = "/var/Autobot_seoul/BV_TopCoinList.json"
-    revenue_type_file_path = "/var/Autobot_seoul/Binance_BV_revenue.json"
-    BV_daily_month_profit_type_file_path = "/var/Autobot_seoul/BV_daily_month_profit.json"
-    BV_pole_point_file_path = "/var/Autobot_seoul/BV_pole_point.json"
-    BV_noise_median_file_path = "/var/Autobot_seoul/BV_noise_median.json"
-    BV_cnt_file_path = "/var/Autobot_seoul/BV_cnt.json"
+    BV_file_path = "/var/autobot/Binance_BV_coin.json"
+    BV_top_file_path = "/var/autobot/BV_TopCoinList.json"
+    revenue_type_file_path = "/var/autobot/Binance_BV_revenue.json"
+    BV_daily_month_profit_type_file_path = "/var/autobot/BV_daily_month_profit.json"
+    BV_pole_point_file_path = "/var/autobot/BV_pole_point.json"
+    BV_noise_median_file_path = "/var/autobot/BV_noise_median.json"
+    BV_cnt_file_path = "/var/autobot/BV_cnt.json"
 
 BV_cnt = dict()
 try:
@@ -240,7 +240,13 @@ except Exception as e:
 
 #"""
 #
+temp_TopCoinList = []
 remove_list = ["BTC/BUSD","ETH/BUSD","XRP/BUSD"]
+for tt in TopCoinList:
+    temp_ticker=tt.replace(":BUSD", "")
+    temp_TopCoinList.append(temp_ticker)
+
+TopCoinList=temp_TopCoinList
 for i in remove_list:
     TopCoinList.remove(i)
 if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==min_crit+2  or minute ==min_crit+3  or minute ==min_crit+4  or minute ==min_crit+5 ):
@@ -306,8 +312,9 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
 
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and now_price>=max(df['high'][-(hour+1):]) and hour !=hour_crit and rsi_hour_BTC < rsi_crit_top_BTC\
-                        and rsi_hour_ticker < rsi_crit_top_ticker: #and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
+                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and now_price>=max(df['high'][-(hour+1):]) and hour !=hour_crit :
+                # if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and now_price >= max(df['high'][-(hour + 1):]) and hour != hour_crit and rsi_hour_BTC < rsi_crit_top_BTC \
+                #         and rsi_hour_ticker < rsi_crit_top_ticker:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -402,8 +409,9 @@ else:
                     #이렇게 매수했다고 메세지를 보낼수도 있다
                     line_alert.SendMessage_SP("[Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour+1):]) and hour !=hour_crit \
-                        and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
+                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour+1):]) and hour !=hour_crit :
+                # elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour + 1):]) and hour != hour_crit \
+                #         and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol:
@@ -499,7 +507,8 @@ else:
                     line_alert.SendMessage_SP("[Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price,2))+"$\n투입액 : " + str(round(isolated_cost,2))+ "$")
 
             # 롱 불 타기 1회
-            elif amt >0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker]==1 and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
+            elif amt >0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker]==1:
+            # elif amt > 0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker] == 1 and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
@@ -559,7 +568,9 @@ else:
                 pass
 
             #숏 불타기 1회
-            elif amt <0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker]==-1 and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
+            elif amt <0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker]==-1:
+            # elif amt < 0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker] == -1 and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
+
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
 
@@ -636,13 +647,20 @@ else:
 off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
 
 for ticker in off_ticker_list:
+    BV_range_index = 0
+    loss_cut_index = 0
+    BTC_rsi_index = 0
+    ticker_rsi_index = 0
+    MA_profit_index = 0
+    if ":" in ticker:
+        ticker = ticker.replace(":BUSD", "")
     try:
         print("Condition checked coin ticker: ",ticker)
         Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
         if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
-
             # 매수한 상태에서의 수익률을 계산하기 위함임
+            print("2")
             amt = 0
             revenue_rate = 0
             PNL = 0
@@ -656,11 +674,11 @@ for ticker in off_ticker_list:
                         now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((PNL) / (isolated_cost))
+                            revenue_rate = ((PNL) / (isolated_cost*set_leverage))
                             break
                         elif float(posi['positionAmt']) > 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((PNL) / (isolated_cost))
+                            revenue_rate = ((PNL) / (isolated_cost*set_leverage))
                             break
 
             sum_PNL = sum_PNL + PNL
@@ -736,7 +754,8 @@ for ticker in off_ticker_list:
             MA_1m_ticker = myBinance.GetMA(df_MA_ticker, 14, -1)
 
             if amt < 0:
-                if now_price <= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
+                if now_price <= BV_pole_point_dict[ticker] and status != 'Done':
+                # if now_price <= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
 
                     #이렇게 딕셔너리에 값을 넣어주면 된다.
                     BV_pole_point_dict[ticker] = now_price
@@ -751,10 +770,11 @@ for ticker in off_ticker_list:
                 else:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
-                    #short 손절 라인
-                    # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                    if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC <= rsi_crit_bottom_BTC \
-                            or rsi_hour_ticker <= rsi_crit_bottom_ticker or (len(BV_coinlist) <= MA_cut_num and  now_price>MA_1m_ticker and revenue_rate > revenue_rate_cut):
+                    #short 청산 로직
+                    # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수 // 반대로 변동성 만큼 떨어지거나, 투자 금액의 2% 손해 이상 보거나, BTC RSI로 청산하거나, 개별코인 RSI로 청산하거나, 1%이상 이익 봤는데, 진입 코인이 7개 이하고, MA 꺾였을 때
+                    if now_price - BV_pole_point_dict[ticker] > BV_range or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker <= rsi_crit_bottom_ticker :
+                    # if now_price - BV_pole_point_dict[ticker] > BV_range or PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_BTC <= rsi_crit_bottom_BTC \
+                    #         or rsi_hour_ticker <= rsi_crit_bottom_ticker or (len(BV_coinlist) <= MA_cut_num and now_price > MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         #시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -776,8 +796,20 @@ for ticker in off_ticker_list:
                         with open(BV_file_path, 'w') as outfile:
                             json.dump(BV_coinlist, outfile)
 
+                        if now_price - BV_pole_point_dict[ticker] > BV_range:
+                            BV_range_index = 1
+                        if PNL<-loss_cut_ratio*GetInMoney*set_leverage:
+                            loss_cut_index = 1
+                        if rsi_hour_BTC <= rsi_crit_bottom_BTC:
+                            BTC_rsi_index = 1
+                        if rsi_hour_ticker <= rsi_crit_bottom_ticker:
+                            ticker_rsi_index = 1
+                        if len(BV_coinlist) <= MA_cut_num and  now_price>MA_1m_ticker and revenue_rate > revenue_rate_cut:
+                            MA_profit_index = 1
+                        close_situation = [BV_range_index,loss_cut_index,BTC_rsi_index,ticker_rsi_index,MA_profit_index]
+                        Situation_index = close_situation.index(1)
                         line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate*100,2))+
-                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$")
+                                                  " 수익$ : " + str(round(PNL,2))+ "$" + " 현재가 : " + str(round(now_price,2))+ "$\n청산 타입 : " +str(Situation_index))
 
                         # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
                         BV_cnt[ticker] = 0
@@ -799,7 +831,8 @@ for ticker in off_ticker_list:
                             json.dump(BV_daily_month_profit, outfile)
 
             elif amt > 0:
-                if now_price >= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
+                if now_price >= BV_pole_point_dict[ticker] and status != 'Done':
+                # if now_price >= BV_pole_point_dict[ticker] and status != 'Done' and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
 
                     # 이렇게 딕셔너리에 값을 넣어주면 된다.
                     BV_pole_point_dict[ticker] = now_price
@@ -811,13 +844,14 @@ for ticker in off_ticker_list:
                 elif status == 'Done':
                     pass
 
-                # long 손절 라인
+                # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수 // 반대로 변동성 만큼 떨어지거나, 투자 금액의 2% 손해 이상 보거나, BTC RSI로 청산하거나, 개별코인 RSI로 청산하거나, 1%이상 이익 봤는데, 진입 코인이 7개 이하고, MA 꺾였을 때
                 else:
                     df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney or rsi_hour_BTC >= rsi_crit_top_BTC or \
-                            rsi_hour_ticker >= rsi_crit_top_ticker or (len(BV_coinlist) <= MA_cut_num and  now_price<MA_1m_ticker and revenue_rate > revenue_rate_cut):
+                    if BV_pole_point_dict[ticker] - now_price > BV_range or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker >= rsi_crit_top_ticker:
+                    # if BV_pole_point_dict[ticker] - now_price > BV_range or PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_BTC >= rsi_crit_top_BTC or \
+                    #         rsi_hour_ticker >= rsi_crit_top_ticker or (len(BV_coinlist) <= MA_cut_num and now_price < MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         # 시장가로 모두 매도!
                         if float(posi['positionAmt']) < 0:
                             params = {'positionSide': 'SHORT'}
@@ -839,9 +873,22 @@ for ticker in off_ticker_list:
                         with open(BV_file_path, 'w') as outfile:
                             json.dump(BV_coinlist, outfile)
 
+                        if BV_pole_point_dict[ticker] - now_price > BV_range:
+                            BV_range_index = 1
+                        if PNL<-loss_cut_ratio*GetInMoney*set_leverage:
+                            loss_cut_index = 1
+                        if rsi_hour_BTC >= rsi_crit_top_BTC:
+                            BTC_rsi_index = 1
+                        if rsi_hour_ticker >= rsi_crit_top_ticker :
+                            ticker_rsi_index = 1
+                        if len(BV_coinlist) <= MA_cut_num and  now_price<MA_1m_ticker and revenue_rate > revenue_rate_cut:
+                            MA_profit_index = 1
+                        close_situation = [BV_range_index,loss_cut_index,BTC_rsi_index,ticker_rsi_index,MA_profit_index]
+                        Situation_index = close_situation.index(1)
+
                         # 이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker+" 진입 cnt : " +str(BV_cnt[ticker])
-                                                  + "\n 수익률 : " + str(round(revenue_rate*100, 2)) + " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$" )
+                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker + " 진입 cnt : " + str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate * 100, 2)) +
+                                                  " 수익$ : " + str(round(PNL, 2)) + "$" + " 현재가 : " + str(round(now_price, 2)) + "$\n청산 타입 : " + str(Situation_index))
 
                         # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
                         BV_cnt[ticker] = 0
