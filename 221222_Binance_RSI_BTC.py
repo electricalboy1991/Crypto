@@ -13,7 +13,7 @@ from datetime import datetime
 from pytz import timezone
 
 if platform.system() != 'Windows':
-    time.sleep(20)
+    time.sleep(30)
 else:
     pass
 
@@ -22,8 +22,8 @@ RSI_criteria_2 = 19
 
 profit_rate = 2
 
-RSI_criteria_1_GetInMoney = 400
-RSI_criteria_2_GetInMoney = 600
+RSI_criteria_1_GetInMoney = 500
+RSI_criteria_2_GetInMoney = 800
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
 simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
@@ -43,7 +43,7 @@ binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey,'secret': Binance_Sc
 if platform.system() == 'Windows':
     RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance.json"
 else:
-    RSI_info_Binance_path = "/var/Autobot_seoul/RSI_info_Binance.json"
+    RSI_info_Binance_path = "/var/autobot/RSI_info_Binance.json"
 
 RSI_info_Binance = dict()
 
@@ -61,7 +61,7 @@ except Exception as e:
 timestamp = datetime.now().timestamp()
 print(timestamp)
 
-Target_Coin_Ticker = 'BTC/BUSD'
+Target_Coin_Ticker = 'BTC/USDT'
 Target_Coin_Ticker_splited, Stable_coin_type =Target_Coin_Ticker.split('/')
 
 now_price_binance = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
