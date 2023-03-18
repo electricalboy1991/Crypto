@@ -247,8 +247,8 @@ Kimp_crit = 1.6
 Stop_price_percent = 0.97
 #close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.2
-#1회 진입 달러 수
-GetInMoney=7
+#1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임
+GetInMoney=400
 
 #바이낸스 업비트 평균 커미션 (0.0003+0.0005)/2
 binance_commission = 0.0003
@@ -352,7 +352,7 @@ if len(Krate_total) !=0:
 
 else:
     Sorted_topcoinlist=TopCoinList
-Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ADA','KRW-ETH']
+Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ETH']
 remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
 Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
 for ticker_upbit in Sorted_topcoinlist:
@@ -554,9 +554,9 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
                 Situation_index = Situation_flag[ticker_upbit].index(False)
-                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,1),round(Krate_total[ticker_upbit][Situation_index-1]+profit_rate_criteria,2),TryNumber-1,
-                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,1),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,1),
-                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,1), warning_percent,round(Krate,2)]
+                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,2),round(Krate_total[ticker_upbit][Situation_index-1]+profit_rate_criteria,2),TryNumber-1,
+                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,2),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,2),
+                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,2), warning_percent,round(Krate,2)]
 
                 # 수익화  // 아래 주석은 절대 김프로 수익화 할 때임
 
