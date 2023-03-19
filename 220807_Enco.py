@@ -249,6 +249,7 @@ Stop_price_percent = 0.97
 close_criteria = 1.2
 #1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임
 GetInMoney=400
+avoid_liquid_ratio = 1.3
 
 #바이낸스 업비트 평균 커미션 (0.0003+0.0005)/2
 binance_commission = 0.0003
@@ -292,7 +293,7 @@ for jj in Kimplist:
         del Krate_total[jj]
         del Situation_flag[jj]
         del Before_amt[jj]
-        # del Trade_infor[jj]
+        del Trade_infor[jj]
         Kimplist.remove(jj)
 
         with open(Krate_ExClose_type_file_path, 'w') as outfile:
@@ -301,8 +302,8 @@ for jj in Kimplist:
             json.dump(Krate_total, outfile)
         with open(Situation_flag_type_file_path, 'w') as outfile:
             json.dump(Situation_flag, outfile)
-        # with open(Trade_infor_path, 'w') as outfile:
-        #     json.dump(Trade_infor, outfile)
+        with open(Trade_infor_path, 'w') as outfile:
+            json.dump(Trade_infor, outfile)
         with open(Kimplist_type_file_path, 'w') as outfile:
             json.dump(Kimplist, outfile)
         with open(Before_amt_path, 'w') as outfile:
@@ -699,6 +700,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -810,7 +812,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
-
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -920,7 +922,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 elif Krate < Kimp_crit and Krate_total[ticker_upbit][Situation_index-1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
-
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1033,7 +1035,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
-
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
                     ADMoney = Buy_Amt * upbit_order_standard
 
@@ -1144,7 +1146,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
-
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1257,7 +1259,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
-
+                    GetInMoney = Trade_infor[ticker_upbit][2]
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
@@ -1378,6 +1380,20 @@ for ticker_upbit in Sorted_topcoinlist:
                 print("Total Money:", float(balance_binanace['BUSD']['total']))
                 print("Remain Money:", float(balance_binanace['BUSD']['free']))
 
+                if Kimp_crit - Krate_interval <= Krate < Kimp_crit:
+                    get_in_cnt = 4
+                    GetInMoney = float(balance_binanace['BUSD']['total'])/len(Kimp_target_coin)/get_in_cnt/avoid_liquid_ratio
+                elif Kimp_crit - Krate_interval*2 <= Krate < Kimp_crit- Krate_interval :
+                    get_in_cnt = 3
+                    GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
+                elif Kimp_crit - Krate_interval*3 <= Krate < Kimp_crit- Krate_interval*2 :
+                    get_in_cnt = 2
+                    GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
+                else:
+                    get_in_cnt = 1
+                    GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
+
+
                 Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
                 print("Buy_Amt",Buy_Amt)
 
@@ -1493,6 +1509,11 @@ for ticker_upbit in Sorted_topcoinlist:
                     # with open(Trade_infor_path, 'w') as outfile:
                     #     json.dump(Trade_infor, outfile)
                     # time.sleep(0.1)
+
+                    Trade_infor[ticker_upbit] = [won_rate, 0, GetInMoney, False, False, False, False, False, False, False, False, False]
+                    with open(Trade_infor_path, 'w') as outfile:
+                        json.dump(Trade_infor, outfile)
+                    time.sleep(0.1)
 
                     line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
                     line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
