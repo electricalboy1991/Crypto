@@ -27,6 +27,7 @@ if platform.system() == 'Windows':
     Trade_infor_path = "C:\\Users\world\PycharmProjects\Crypto\Trade_infor.json"
     BUSD_MA_path = "C:\\Users\world\PycharmProjects\Crypto\BUSD_MA.json"
     Before_amt_path = "C:\\Users\world\PycharmProjects\Crypto\Before_amt.json"
+    Before_amt_upbit_path = "C:\\Users\world\PycharmProjects\Crypto\Before_amt_upbit.json"
 
 else:
     Month_profit_type_file_path = "/var/autobot/Month_profit.json"
@@ -38,6 +39,7 @@ else:
     Trade_infor_path = "/var/autobot/Trade_infor.json"
     BUSD_MA_path = "/var/autobot/BUSD_MA.json"
     Before_amt_path = "/var/autobot/Before_amt.json"
+    Before_amt_upbit_path = "/var/autobot/Before_amt_upbit.json"
 
 """ Tether 가격은 더이상 쓸 필요가 없음
 page_USDT = requests.get("https://coinmarketcap.com/ko/currencies/tether/")
@@ -163,6 +165,15 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 6")
 
+Before_amt_upbit = dict()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(Before_amt_upbit_path, 'r', encoding="utf-8") as json_file:
+        Before_amt_upbit = json.load(json_file)
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First 7")
+
 
 Telegram_Log = dict()
 
@@ -242,6 +253,7 @@ set_leverage = 3
 profit_rate_criteria = 1.5
 #Krate_interval 물타기 범위 값
 Krate_interval = 0.5
+Krate_interval_getin = 0.25
 AD_criteria = 95
 Kimp_crit = 1.6
 Stop_price_percent = 0.97
@@ -286,7 +298,7 @@ won_rate = myUpbit.upbit_get_usd_krw()
 
 upbit_remain_money=0
 
-#김프 리스트에 없는 값들은 저장에서 다 지우는 코드
+#김프 리스트에 있는 애들 중 포지션 없는 애들은 다 지움
 for jj in Kimplist:
     if not myUpbit.IsHasCoin(balance_upbit, jj):
         del Krate_ExClose[jj]
@@ -353,7 +365,8 @@ if len(Krate_total) !=0:
 
 else:
     Sorted_topcoinlist=TopCoinList
-Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ETH']
+# Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ETH']
+Kimp_target_coin = ['KRW-XRP','KRW-ETH','KRW-DOGE']
 remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
 Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
 for ticker_upbit in Sorted_topcoinlist:
@@ -451,6 +464,11 @@ for ticker_upbit in Sorted_topcoinlist:
         Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
         Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
 
+        if ticker_upbit =='KRW-BTC' and Krate <-0.3:
+            now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
+            now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
+            Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
+            line_alert.SendMessage_SP("[\U0001F4B5역프 알림] : " +str(round(Krate,2))+ "\n[트론 역프] : " + str(round(Krate_TRX,2)) + "\n[환율] : " + str(round(won_rate,2)))
 
         """
         if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
@@ -614,8 +632,8 @@ for ticker_upbit in Sorted_topcoinlist:
                         #주문 취소해줘야 매도 됨
                         # myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         time.sleep(0.1)
-                        num_coin=upbit.get_balance(ticker_upbit)
-                        print(myUpbit.SellCoinMarket(upbit, ticker_upbit, abs(sell_Amt)))
+                        sell_Amt_upbit = float(Before_amt_upbit[ticker_upbit][Situation_index-1])
+                        print(myUpbit.SellCoinMarket(upbit, ticker_upbit, abs(sell_Amt_upbit)))
 
                         time.sleep(0.1)
 
@@ -655,11 +673,6 @@ for ticker_upbit in Sorted_topcoinlist:
                         total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
 
-                        # Kimplist.remove(ticker_upbit)
-                        # # 파일에 리스트를 저장합니다
-                        # with open(Kimplist_type_file_path, 'w') as outfile:
-                        #     json.dump(Kimplist, outfile)
-
                         ## 이거 절대 김프 할 때 쓰던 건데 필요 없어서 지움
                         # Temp_won_rate = Trade_infor[ticker_upbit][0]
                         # del Trade_infor[ticker_upbit]
@@ -670,7 +683,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         with open(Month_profit_type_file_path, 'w') as outfile:
                             json.dump(Month_profit, outfile)
 
-                        line_alert.SendMessage_SP("[매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1],2)) + "% \n"
+                        line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1],2)) + "% \n"
                                                   +"\n[번돈] : " + str(round(now_price_upbit*sell_Amt*(Krate_close - Krate_total[ticker_upbit][Situation_index - 1])/200,2)) + "万 " + "[자산] : " + total_asset + "万"
                                                   +"\n[환율] : " + str(won_rate) + "₩")
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
@@ -691,6 +704,16 @@ for ticker_upbit in Sorted_topcoinlist:
                         Before_amt[ticker_upbit][Situation_index - 1] = False
                         with open(Before_amt_path, 'w') as outfile:
                             json.dump(Before_amt, outfile)
+
+                        Before_amt_upbit[ticker_upbit][Situation_index - 1] = False
+                        with open(Before_amt_upbit_path, 'w') as outfile:
+                            json.dump(Before_amt_upbit, outfile)
+
+                        # if Situation_flag[ticker_upbit][0] == False:
+                        #     Kimplist.remove(ticker_upbit)
+                        #     # 파일에 리스트를 저장합니다
+                        #     with open(Kimplist_type_file_path, 'w') as outfile:
+                        #         json.dump(Kimplist, outfile)
 
                     else:
                         continue
@@ -801,7 +824,12 @@ for ticker_upbit in Sorted_topcoinlist:
                         with open(Before_amt_path, 'w') as outfile:
                             json.dump(Before_amt, outfile)
 
-                        line_alert.SendMessage_SP("["+str(Situation_index) + "단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        just_bought_amt = upbit.get_balance(ticker_upbit)-sum(Before_amt_upbit[ticker_upbit])
+                        Before_amt_upbit[ticker_upbit][Situation_index] = just_bought_amt
+                        with open(Before_amt_upbit_path, 'w') as outfile:
+                            json.dump(Before_amt_upbit, outfile)
+
+                        line_alert.SendMessage_SP("[\U0001F30A"+str(Situation_index) + "단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
@@ -1371,7 +1399,7 @@ for ticker_upbit in Sorted_topcoinlist:
         # 아직 김프 포지션 못 잡은 상태
         else:
             #김프가 전날 기준보다 어느정도 낮아야 사게 만들었네.
-            if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
+            if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
 
                 minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -1441,7 +1469,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     ADMoney = Buy_Amt * upbit_order_standard
                     Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
 
-                    if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval:
+                    if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
 
                         print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                         time.sleep(0.1)
@@ -1504,6 +1532,14 @@ for ticker_upbit in Sorted_topcoinlist:
                         json.dump(Before_amt, outfile)
                     time.sleep(0.1)
 
+                    num_coin = upbit.get_balance(ticker_upbit)
+                    Before_amt_upbit[ticker_upbit] = [num_coin, False, False, False, False, False, False]
+                    with open(Before_amt_upbit_path, 'w') as outfile:
+                        json.dump(Before_amt_upbit, outfile)
+                    time.sleep(0.1)
+
+
+
                     # Trade_infor[ticker_upbit][1] = 0 여기서 0의 의미는 스탑로스 회피를 위한 물타기의 경우임
                     # Trade_infor[ticker_upbit] = [won_rate, 0, None, None, None, None, None, None, None, None, None, None]
                     # with open(Trade_infor_path, 'w') as outfile:
@@ -1515,7 +1551,7 @@ for ticker_upbit in Sorted_topcoinlist:
                         json.dump(Trade_infor, outfile)
                     time.sleep(0.1)
 
-                    line_alert.SendMessage_SP("[진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
+                    line_alert.SendMessage_SP("[\U0001F4CA진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
                     line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                    + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
