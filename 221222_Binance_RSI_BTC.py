@@ -88,7 +88,7 @@ for i, open_order in enumerate(order):
 current_time = datetime.now(timezone('Asia/Seoul'))
 KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
-RSI_string = "  ♥♥" +KR_time_sliced+"♥♥  \n"+'[NOW 1hour RSI_바이낸스] : ' +str(round(rsi_hour,2))\
+RSI_string = "  \U0001F3C2\U0001F3C2" +KR_time_sliced+"\U0001F3C2\U0001F3C2  \n"+'[RSI_바이낸스] : ' +str(round(rsi_hour,2))\
              +"\n"+ '[NOW 가격] : ' + str(round(now_price_binance,2))+" $" +"\n"
 
 for j,profit_rate_i in enumerate(profit_rate_list):
@@ -131,7 +131,7 @@ if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info_Binance["Pre_RSI_ti
         json.dump(RSI_info_Binance, outfile)
     time.sleep(0.1)
 
-    rsi_messenger_1 = "[RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '[목표가 $] : ' + str(round(now_price_binance*1.05,0))
+    rsi_messenger_1 = "[\U0001F3C2RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '[목표가 $] : ' + str(round(now_price_binance*1.05,0))
     line_alert.SendMessage_SP(rsi_messenger_1)
 
 
@@ -152,7 +152,7 @@ elif rsi_hour <= RSI_criteria_2 and ((timestamp-float(RSI_info_Binance["Pre_RSI_
     time.sleep(0.1)
 
 
-    rsi_messenger_2 = "[RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$'+ '[목표가 $]' + str(round(now_price_binance*1.05,0))
+    rsi_messenger_2 = "[\U0001F3C2RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$'+ '[목표가 $]' + str(round(now_price_binance*1.05,0))
     line_alert.SendMessage_SP(rsi_messenger_2)
 
 
