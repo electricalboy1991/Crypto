@@ -1,5 +1,5 @@
 #-*-coding:utf-8 -*-
-import myBinance   #우리가 만든 함수들이 들어있는 모듈
+import myBinance_USDT   #우리가 만든 함수들이 들어있는 모듈
 import time
 import ccxt
 import ende_key  #암복호화키
@@ -17,7 +17,7 @@ else:
     time.sleep(5)
 
 #암복호화 클래스 객체를 미리 생성한 키를 받아 생성한다.
-simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
+simpleEnDecrypt = myBinance_USDT.SimpleEnDecrypt(ende_key.ende_key)
 
 #암호화된 액세스키와 시크릿키를 읽어 복호화 한다.
 Binance_AccessKey = simpleEnDecrypt.decrypt(my_key.binance_access)
@@ -46,9 +46,9 @@ print(hour, minute)
 
 #내가 매수할 총 코인 개수
 MaxCoinCnt = 10
-k_parameter = 0.45
-k_parameter_2 = 0.525
-GetInMoney = 20
+k_parameter = 0.39
+k_parameter_2 = 0.59
+GetInMoney = 50
 variability_range = 0.05
 set_leverage=3
 average_noise = 0.58
@@ -155,12 +155,12 @@ try:
     with open(BV_top_file_path, "r") as json_file:
         TopCoinList = json.load(json_file)
         if hour == hour_crit and minute == min_crit+2 and len(BV_coinlist) == 0:
-            TopCoinList = myBinance.GetTopCoinList(binanceX, 50)
+            TopCoinList = myBinance_USDT.GetTopCoinList(binanceX, 50)
             with open(BV_top_file_path, 'w', encoding="utf-8") as outfile:
                 json.dump(TopCoinList, outfile)
 
 except Exception as e:
-    TopCoinList = myBinance.GetTopCoinList(binanceX,20)
+    TopCoinList = myBinance_USDT.GetTopCoinList(binanceX,20)
     print("TopCoinList Exception by First")
     with open(BV_top_file_path, 'w', encoding="utf-8") as outfile:
         json.dump(TopCoinList, outfile)
@@ -223,7 +223,7 @@ try:
             noise_median_dict = json.load(json_file)
             if day == 1 and hour == hour_crit and minute == min_crit + 2:
                 for ticker in TopCoinList:
-                    df_day = myBinance.GetOhlcv(binanceX, ticker, '1d')
+                    df_day = myBinance_USDT.GetOhlcv(binanceX, ticker, '1d')
                     df_day_for_noise = df_day[:][-365:]
                     df_day_for_noise['noise'] = noise_now = 1 - abs((df_day_for_noise['open'] - df_day_for_noise['close']) / (df_day_for_noise['high'] - df_day_for_noise['low']))
                     noise_median_dict[ticker] = df_day_for_noise['noise'].median()
@@ -259,7 +259,7 @@ if hour ==hour_crit and (minute ==min_crit or minute ==min_crit+1  or minute ==m
 # elif (wday ==5 and 9 <= hour_usa <= 23) or (wday ==0 and 0 <= hour_usa <= 8) or wday ==6 :
 #     pass
 else:
-    for ticker in TopCoinList[1:11]:
+    for ticker in TopCoinList[0:7]:
         try:
             print("Coin Ticker: ",ticker)
             Target_Coin_Symbol = ticker.replace("/", "")
@@ -286,17 +286,17 @@ else:
                             break
 
             time.sleep(0.05)
-            df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+            df = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
 
             BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
             BV_range_2 = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter_2
             now_price = float(df['close'][-1])
 
-            df_rsi_BTC = myBinance.GetOhlcv(binanceX, rsi_BTC_ticker, '1h')
-            rsi_hour_BTC = float(myBinance.GetRSI(df_rsi_BTC, 14, -1))
+            df_rsi_BTC = myBinance_USDT.GetOhlcv(binanceX, rsi_BTC_ticker, '1h')
+            rsi_hour_BTC = float(myBinance_USDT.GetRSI(df_rsi_BTC, 14, -1))
 
-            df_rsi_ticker = myBinance.GetOhlcv(binanceX, ticker, '1h')
-            rsi_hour_ticker = float(myBinance.GetRSI(df_rsi_ticker, 14, -1))
+            df_rsi_ticker = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')
+            rsi_hour_ticker = float(myBinance_USDT.GetRSI(df_rsi_ticker, 14, -1))
             time.sleep(0.05)
             # 하루 동안 산적이 없는 애다
             if not (ticker in BV_cnt):
@@ -304,7 +304,7 @@ else:
                 up_target = float(df['open'][-(hour+1)]) + BV_range
                 down_target = float(df['open'][-(hour+1)]) - BV_range
 
-                df_day = myBinance.GetOhlcv(binanceX, ticker, '1d')
+                df_day = myBinance_USDT.GetOhlcv(binanceX, ticker, '1d')
 
                 range_rate=(float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) / float(df['open'][-(hour + 1)])
 
@@ -346,7 +346,7 @@ else:
                     noise_range_open = float(df['open'][-24])
                     noise_now = 1-abs((now_price-noise_range_open)/(noise_range_max-noise_range_min))
 
-                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                    minimun_amount = myBinance_USDT.GetMinimumAmount(binanceX, ticker)
                     Buy_Amt = float(binanceX.amount_to_precision(ticker, (volume_now/volume_average)*season_weight_long*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
 
@@ -412,7 +412,7 @@ else:
                             isolated_cost = float(posi['isolatedWallet'])
 
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
+                    line_alert.SendMessage_SP("[\U0001F4C8Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
 
                 elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and hour !=hour_crit :
                 # elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour + 1):]) and hour != hour_crit \
@@ -444,7 +444,7 @@ else:
                     noise_range_open = float(df['open'][-24])
                     noise_now = 1 - abs((now_price - noise_range_open) / (noise_range_max - noise_range_min))
 
-                    minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                    minimun_amount = myBinance_USDT.GetMinimumAmount(binanceX, ticker)
                     Buy_Amt = float(binanceX.amount_to_precision(ticker, (volume_now/volume_average)*season_weight_short*(noise_median_dict[ticker]/noise_now)*(variability_range/range_rate)*(GetInMoney / now_price) * set_leverage))
 
                     Buy_Amt_limit = float(binanceX.amount_to_precision(ticker, (GetInMoney / now_price) * set_leverage))
@@ -509,13 +509,13 @@ else:
                             isolated_cost = float(posi['isolatedWallet'])
 
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
+                    line_alert.SendMessage_SP("[\U0001F4C8Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
 
             # 롱 불 타기 1회
-            elif amt >0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker]==1:
+            elif amt >0 and now_price > float(df['open'][-(hour+1)]) + BV_range_2 and BV_cnt[ticker]==1:
             # elif amt > 0 and now_price > entryPrice + BV_range_2 and BV_cnt[ticker] == 1 and rsi_hour_BTC < rsi_crit_top_BTC and rsi_hour_ticker < rsi_crit_top_ticker:
 
-                minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                minimun_amount = myBinance_USDT.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
 
                 if Buy_Amt < minimun_amount:
@@ -569,14 +569,14 @@ else:
                     json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[불 Long BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) +"\n현재 가격 : " + str(round(now_price, 4)) +"$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
+                line_alert.SendMessage_SP("[\U0001F4C8 \U0001F525 Long BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) +"\n현재 가격 : " + str(round(now_price, 4)) +"$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
                 pass
 
             #숏 불타기 1회
-            elif amt <0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker]==-1:
+            elif amt <0 and now_price < float(df['open'][-(hour+1)]) - BV_range_2 and BV_cnt[ticker]==-1:
             # elif amt < 0 and now_price < entryPrice - BV_range_2 and BV_cnt[ticker] == -1 and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
 
-                minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker)
+                minimun_amount = myBinance_USDT.GetMinimumAmount(binanceX, ticker)
                 Buy_Amt = float(binanceX.amount_to_precision(ticker, float(abs(amt))*2/3))
 
                 if Buy_Amt < minimun_amount:
@@ -630,7 +630,7 @@ else:
                     json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[불 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
+                line_alert.SendMessage_SP("[\U0001F4C8 \U0001F525 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
 
                 pass
             else:
@@ -649,7 +649,7 @@ else:
 #     pass
 # else:
 
-off_ticker_list = myBinance.GetTopCoinList(binanceX,50)
+off_ticker_list = myBinance_USDT.GetTopCoinList(binanceX,50)
 
 for ticker in off_ticker_list:
     BV_range_index = 0
@@ -663,7 +663,7 @@ for ticker in off_ticker_list:
         print("Condition checked coin ticker: ",ticker)
         Target_Coin_Symbol = ticker.replace("/", "")
         #변동성 돌파로 매수된 코인이다!!! (실제로 매도가 되서 잔고가 없어도 파일에 쓰여있다면 참이니깐 이 안의 로직을 타게 됨)
-        if myBinance.CheckCoinInList(BV_coinlist,ticker) == True:
+        if myBinance_USDT.CheckCoinInList(BV_coinlist,ticker) == True:
             # 매수한 상태에서의 수익률을 계산하기 위함임
             print("2")
             amt = 0
@@ -676,7 +676,7 @@ for ticker in off_ticker_list:
                     PNL = float(posi['unrealizedProfit'])
                     isolated_cost = float(posi['isolatedWallet'])
                     if float(posi['positionAmt']) != 0:
-                        now_price = myBinance.GetCoinNowPrice(binanceX, ticker)
+                        now_price = myBinance_USDT.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
                             amt = float(posi['positionAmt'])
                             revenue_rate = ((PNL) / (isolated_cost*set_leverage))
@@ -749,14 +749,14 @@ for ticker in off_ticker_list:
             ############################트레일링 스탑 구현을 위한 부분..###################################
             # 수익률 기준이 아닌 변동성 range로 트레일링 스탑 구현
 
-            df_rsi_BTC = myBinance.GetOhlcv(binanceX, rsi_BTC_ticker, '1h')
-            rsi_hour_BTC = float(myBinance.GetRSI(df_rsi_BTC, 14, -1))
+            df_rsi_BTC = myBinance_USDT.GetOhlcv(binanceX, rsi_BTC_ticker, '1h')
+            rsi_hour_BTC = float(myBinance_USDT.GetRSI(df_rsi_BTC, 14, -1))
 
-            df_rsi_ticker = myBinance.GetOhlcv(binanceX, ticker, '1h')
-            rsi_hour_ticker = float(myBinance.GetRSI(df_rsi_ticker, 14, -1))
+            df_rsi_ticker = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')
+            rsi_hour_ticker = float(myBinance_USDT.GetRSI(df_rsi_ticker, 14, -1))
 
-            df_MA_ticker = myBinance.GetOhlcv(binanceX, ticker, '1m')
-            MA_1m_ticker = myBinance.GetMA(df_MA_ticker, 14, -1)
+            df_MA_ticker = myBinance_USDT.GetOhlcv(binanceX, ticker, '1m')
+            MA_1m_ticker = myBinance_USDT.GetMA(df_MA_ticker, 14, -1)
 
             if amt < 0:
                 if now_price <= BV_pole_point_dict[ticker] and status != 'Done':
@@ -773,7 +773,7 @@ for ticker in off_ticker_list:
                     pass
 
                 else:
-                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
+                    df = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')  # 일봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #short 청산 로직
                     # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수 // 반대로 변동성 만큼 떨어지거나, 투자 금액의 2% 손해 이상 보거나, BTC RSI로 청산하거나, 개별코인 RSI로 청산하거나, 1%이상 이익 봤는데, 진입 코인이 7개 이하고, MA 꺾였을 때
@@ -851,7 +851,7 @@ for ticker in off_ticker_list:
 
                 # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수 // 반대로 변동성 만큼 떨어지거나, 투자 금액의 2% 손해 이상 보거나, BTC RSI로 청산하거나, 개별코인 RSI로 청산하거나, 1%이상 이익 봤는데, 진입 코인이 7개 이하고, MA 꺾였을 때
                 else:
-                    df = myBinance.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
+                    df = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
                     if BV_pole_point_dict[ticker] - now_price > BV_range*loss_cut_range_ratio or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker >= rsi_crit_top_ticker:
@@ -892,7 +892,7 @@ for ticker in off_ticker_list:
                         Situation_index = close_situation.index(1)
 
                         # 이렇게 손절했다고 메세지를 보낼수도 있다
-                        line_alert.SendMessage_SP("★트레일링 스탑 : " + ticker + " 진입 cnt : " + str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate * 100, 4)) +
+                        line_alert.SendMessage_SP("\U0001F628트레일링 스탑 : " + ticker + " 진입 cnt : " + str(BV_cnt[ticker]) + "\n 수익률 : " + str(round(revenue_rate * 100, 4)) +
                                                   " 수익$ : " + str(round(PNL, 4)) + "$" + " 현재가 : " + str(round(now_price, 4)) + "$\n청산 타입 : " + str(Situation_index))
 
                         # cnt 0의 의미는 진입했다가 -> 청산된 코인을 의미
