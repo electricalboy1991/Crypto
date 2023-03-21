@@ -567,7 +567,7 @@ for ticker_upbit in Sorted_topcoinlist:
                 if warning_percent<0:
                     warning_percent = 0.0
 
-                if warning_percent > 150:
+                if warning_percent > 200:
                     line_alert.SendMessage_SP( "[Stoploss 경고] : " + str(ticker_upbit[4:]) +" [Warning %] : " + str(round(warning_percent, 2))+" %")
 
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
