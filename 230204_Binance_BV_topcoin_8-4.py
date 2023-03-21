@@ -61,7 +61,7 @@ short_stoploss_ratio = 1.1
 loss_cut_ratio = 0.05
 rsi_crit_bottom_BTC = 19
 rsi_crit_top_BTC = 100 - rsi_crit_bottom_BTC
-rsi_crit_bottom_ticker = 15
+rsi_crit_bottom_ticker = 9
 rsi_crit_top_ticker = 100 - rsi_crit_bottom_ticker
 rsi_BTC_ticker = 'BTC/USDT'
 MA_cut_num = 7
@@ -221,12 +221,11 @@ try:
     with open(BV_noise_median_file_path, 'r', encoding="utf-8") as json_file:
         if hour == hour_crit and minute == min_crit + 2:
             noise_median_dict = json.load(json_file)
-            if day == 1 and hour == hour_crit and minute == min_crit + 2:
-                for ticker in TopCoinList:
-                    df_day = myBinance_USDT.GetOhlcv(binanceX, ticker, '1d')
-                    df_day_for_noise = df_day[:][-365:]
-                    df_day_for_noise['noise'] = noise_now = 1 - abs((df_day_for_noise['open'] - df_day_for_noise['close']) / (df_day_for_noise['high'] - df_day_for_noise['low']))
-                    noise_median_dict[ticker] = df_day_for_noise['noise'].median()
+            for ticker in TopCoinList:
+                df_day = myBinance_USDT.GetOhlcv(binanceX, ticker, '1d')
+                df_day_for_noise = df_day[:][-365:]
+                df_day_for_noise['noise'] = noise_now = 1 - abs((df_day_for_noise['open'] - df_day_for_noise['close']) / (df_day_for_noise['high'] - df_day_for_noise['low']))
+                noise_median_dict[ticker] = df_day_for_noise['noise'].median()
 
             with open(BV_noise_median_file_path, 'w', encoding="utf-8") as outfile:
                 json.dump(noise_median_dict, outfile)
@@ -509,7 +508,7 @@ else:
                             isolated_cost = float(posi['isolatedWallet'])
 
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[\U0001F4C8Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
+                    line_alert.SendMessage_SP("[\U0001F4C9Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
 
             # 롱 불 타기 1회
             elif amt >0 and now_price > float(df['open'][-(hour+1)]) + BV_range_2 and BV_cnt[ticker]==1:
@@ -630,7 +629,7 @@ else:
                     json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[\U0001F4C8 \U0001F525 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
+                line_alert.SendMessage_SP("[\U0001F4C9 \U0001F525 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
 
                 pass
             else:
@@ -743,6 +742,8 @@ for ticker in off_ticker_list:
                     BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
 
                 # 파일에 딕셔너리를 저장합니다
+                BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
                 with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
                     json.dump(BV_daily_month_profit, outfile)
 
@@ -777,7 +778,8 @@ for ticker in off_ticker_list:
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #short 청산 로직
                     # 손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수 // 반대로 변동성 만큼 떨어지거나, 투자 금액의 2% 손해 이상 보거나, BTC RSI로 청산하거나, 개별코인 RSI로 청산하거나, 1%이상 이익 봤는데, 진입 코인이 7개 이하고, MA 꺾였을 때
-                    if now_price - BV_pole_point_dict[ticker] > BV_range*loss_cut_range_ratio or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker <= rsi_crit_bottom_ticker :
+                    if PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker <= rsi_crit_bottom_ticker :
+                    # if now_price - BV_pole_point_dict[ticker] > BV_range * loss_cut_range_ratio or PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_ticker <= rsi_crit_bottom_ticker:
                     # if now_price - BV_pole_point_dict[ticker] > BV_range or PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_BTC <= rsi_crit_bottom_BTC \
                     #         or rsi_hour_ticker <= rsi_crit_bottom_ticker or (len(BV_coinlist) <= MA_cut_num and now_price > MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         #시장가로 모두 매도!
@@ -805,8 +807,8 @@ for ticker in off_ticker_list:
                             BV_range_index = 1
                         if PNL<-loss_cut_ratio*GetInMoney*set_leverage:
                             loss_cut_index = 1
-                        # if rsi_hour_BTC <= rsi_crit_bottom_BTC:
-                        #     BTC_rsi_index = 1
+                        if rsi_hour_BTC <= rsi_crit_bottom_BTC:
+                            BTC_rsi_index = 1
                         # if rsi_hour_ticker <= rsi_crit_bottom_ticker:
                         #     ticker_rsi_index = 1
                         # if len(BV_coinlist) <= MA_cut_num and  now_price>MA_1m_ticker and revenue_rate > revenue_rate_cut:
@@ -832,6 +834,8 @@ for ticker in off_ticker_list:
                             BV_daily_month_profit[ticker][4] = -BV_daily_month_profit[ticker][2] / BV_daily_month_profit[ticker][3]
 
                         # 파일에 딕셔너리를 저장합니다
+                        BV_daily_month_profit["daily"] = BV_daily_month_profit["daily"] + PNL
+                        BV_daily_month_profit["month"] = BV_daily_month_profit["month"] + PNL
                         with open(BV_daily_month_profit_type_file_path, 'w') as outfile:
                             json.dump(BV_daily_month_profit, outfile)
 
@@ -854,7 +858,8 @@ for ticker in off_ticker_list:
                     df = myBinance_USDT.GetOhlcv(binanceX, ticker, '1h')  # 시간봉 데이타를 가져온다.
                     BV_range = (float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) * k_parameter
                     #손절 로직 : 자산*(받아들일수있는 손실/투자 코인수)*(코인당 투자 액/자산)*코인수
-                    if BV_pole_point_dict[ticker] - now_price > BV_range*loss_cut_range_ratio or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker >= rsi_crit_top_ticker:
+                    # if BV_pole_point_dict[ticker] - now_price > BV_range*loss_cut_range_ratio or PNL<-loss_cut_ratio*GetInMoney*set_leverage or rsi_hour_ticker >= rsi_crit_top_ticker:
+                    if PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_ticker >= rsi_crit_top_ticker:
                     # if BV_pole_point_dict[ticker] - now_price > BV_range or PNL < -loss_cut_ratio * GetInMoney * set_leverage or rsi_hour_BTC >= rsi_crit_top_BTC or \
                     #         rsi_hour_ticker >= rsi_crit_top_ticker or (len(BV_coinlist) <= MA_cut_num and now_price < MA_1m_ticker and revenue_rate > revenue_rate_cut):
                         # 시장가로 모두 매도!
@@ -884,8 +889,8 @@ for ticker in off_ticker_list:
                             loss_cut_index = 1
                         # if rsi_hour_BTC >= rsi_crit_top_BTC:
                         #     BTC_rsi_index = 1
-                        # if rsi_hour_ticker >= rsi_crit_top_ticker :
-                        #     ticker_rsi_index = 1
+                        if rsi_hour_ticker >= rsi_crit_top_ticker :
+                            ticker_rsi_index = 1
                         # if len(BV_coinlist) <= MA_cut_num and  now_price<MA_1m_ticker and revenue_rate > revenue_rate_cut:
                         #     MA_profit_index = 1
                         close_situation = [BV_range_index,loss_cut_index,BTC_rsi_index,ticker_rsi_index,MA_profit_index]
@@ -956,8 +961,10 @@ for ticker in off_ticker_list:
 current_time = datetime.now(timezone('Asia/Seoul'))
 KR_time=str(current_time)
 KR_time_sliced =KR_time[:23]
+# 오늘 수익 = 현재 position 수익 + 오늘 확정 수익
 day_PNL = sum_PNL + BV_daily_month_profit["daily"]
-month_PNL = sum_PNL + BV_daily_month_profit["month"]
+# 월 수익 = 현재 position 수익 + 어제까지 월 확정 수익 + 오늘 확정 수익
+month_PNL = sum_PNL + BV_daily_month_profit["month"] + BV_daily_month_profit["daily"]
 
 if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
     Telegram_Log_str = str()
@@ -967,17 +974,17 @@ if len(Telegram_Log) !=0 and sum_isolated_cost !=0:
         key_ticker = key.replace('/USDT', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " Status : " + str(value[0])+"\n" \
                             + " 수익률 : "+ str(100*value[1]) + "%" + "\n 수익$ : "+ str(value[2])+ "$" + " 투입액 : "+ str(value[3])+"\n"
-    line_alert.SendMessage_BV("  ♥♥" +KR_time_sliced+"♥♥  \n\n" +'[요약] \n일 수익률 : ' + str(round(day_PNL/(GetInMoney*MaxCoinCnt*set_leverage)*100, 4))+ "% \n일 수익$ : "
-                              + str(round(day_PNL, 4)) + " 월 수익$ : "+ str(round(month_PNL, 4))+ "$\n\n"+Telegram_Log_str)
+    line_alert.SendMessage_BV("  \U0001F4C8\U0001F4C9" +KR_time_sliced+"\U0001F4C8\U0001F4C9  \n\n" +"[요약] \n현 포지현 수익$ : "+ str(round(sum_PNL, 4)) + " \n일 수익$ : "
+                              + str(round(day_PNL, 4))+ "\n일 수익률 : " + str(round(day_PNL/(GetInMoney*MaxCoinCnt*set_leverage)*100, 4)) + "% 월 수익$ : "+ str(round(month_PNL, 4))+ "$\n\n"+Telegram_Log_str)
 else:
     if hour == hour_crit and minute==min_crit+1:
-        line_alert.SendMessage_SP("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n일 수익$ : "+ str(round(day_PNL, 4)) + " 월 수익$ : "+ str(round(month_PNL, 4))+
+        line_alert.SendMessage_SP("  \U0001F4C8\U0001F4C9" + KR_time_sliced + "\U0001F4C8\U0001F4C9\n\n" + "[요약] \n일 수익$ : "+ str(round(day_PNL, 4)) + " 월 수익$ : "+ str(round(month_PNL, 4))+
                                   "\n승리 : " + str(BV_daily_month_profit["day_based_win"]) +"  패배 :" + str(BV_daily_month_profit["day_based_lose"]) +
                                   "  승률 : " + str(round(100*BV_daily_month_profit["day_based_win"]/(BV_daily_month_profit["day_based_lose"]+BV_daily_month_profit["day_based_win"]), 4))+
                                   "\n누적 승리액 $ : " + str(round(BV_daily_month_profit["cumulative_win_dollor"], 4)) + "  누적 패배액 $ : " + str(round(BV_daily_month_profit["cumulative_lose_dollor"], 4)) +
                                   "\n누적 손익비 : " + str(round(-BV_daily_month_profit["cumulative_win_dollor"]/BV_daily_month_profit["cumulative_lose_dollor"], 4)))
     else:
-        line_alert.SendMessage_BV("  ♥♥" + KR_time_sliced + "♥♥\n\n" + "[요약] \n일 수익$ : " + str(round(day_PNL, 4)) + " 월 수익$ : " + str(round(month_PNL, 4)) +
+        line_alert.SendMessage_BV("  \U0001F4C8\U0001F4C9" + KR_time_sliced + "\U0001F4C8\U0001F4C9\n\n" + "[요약] \n일 수익$ : " + str(round(day_PNL, 4)) + " 월 수익$ : " + str(round(month_PNL, 4)) +
                                   "\n승리 : " + str(BV_daily_month_profit["day_based_win"]) + "  패배 :" + str(BV_daily_month_profit["day_based_lose"]) +
                                   "  승률 : " + str(round(100 * BV_daily_month_profit["day_based_win"] / (BV_daily_month_profit["day_based_lose"] + BV_daily_month_profit["day_based_win"]), 4)) +
                                   "\n누적 승리액 $ : " + str(round(BV_daily_month_profit["cumulative_win_dollor"], 4))+ "  누적 패배액 $ : " + str(round(BV_daily_month_profit["cumulative_lose_dollor"], 4)) +
