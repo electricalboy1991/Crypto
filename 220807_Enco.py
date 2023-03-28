@@ -48,11 +48,11 @@ str_TetherKRW = soup_USDT.select_one('div.priceValue span').get_text()
 TetherKRW=float(str_TetherKRW[1]+str_TetherKRW[3:9])
 """
 
-# BUSD 가격 크롤링 해서 가지고 옴
-page_BUSD = requests.get("https://coinmarketcap.com/ko/currencies/binance-usd/")
-soup_BUSD = bs(page_BUSD.text, "html.parser")
-str_BUSDKRW = soup_BUSD.select_one('div.priceValue span').get_text()
-BUSDKRW=float(str_BUSDKRW[1]+str_BUSDKRW[3:9])
+# # BUSD 가격 크롤링 해서 가지고 옴
+# page_BUSD = requests.get("https://coinmarketcap.com/ko/currencies/binance-usd/")
+# soup_BUSD = bs(page_BUSD.text, "html.parser")
+# str_BUSDKRW = soup_BUSD.select_one('div.priceValue span').get_text()
+# BUSDKRW=float(str_BUSDKRW[1]+str_BUSDKRW[3:9])
 
 # # BUSD 24시간 Range로 평균 가격 가지고 오기
 # str_BUSDKRW_range=soup_BUSD.select('span.sc-d5c68954-5')
@@ -256,16 +256,17 @@ set_leverage = 3
 #profit_rate_criteria 기본 값 -> 아래에 함수에 의해서 바뀜
 profit_rate_criteria = 1.5
 #Krate_interval 물타기 범위 값
-Krate_interval = 0.5
+Krate_interval = 0.33
 Krate_interval_getin = 0.25
 AD_criteria = 95
-Kimp_crit = 1.6
+Kimp_crit = 2.1
 Stop_price_percent = 0.97
 #close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.2
-#1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임
+#1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임 // 아래의 값은 그냥 기본 값 넣어준거지 이와 같이 사지는 건 아님
 GetInMoney=400
-avoid_liquid_ratio = 1.3
+avoid_liquid_ratio = 1.15
+AD_weight_list = [1, 1.2, 1.3, 1.2, 0.9, 0.8, 0.6]
 
 #바이낸스 업비트 평균 커미션 (0.0003+0.0005)/2
 binance_commission = 0.0003
@@ -365,7 +366,7 @@ else:
     Sorted_topcoinlist=TopCoinList
 #진입 티커 갯수 늘릴 거면, CNT
 
-Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ETH']
+Kimp_target_coin = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-DOGE']
 CoinCnt = len(Kimp_target_coin)
 # Kimp_target_coin = ['KRW-XRP','KRW-ETH','KRW-DOGE']
 remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
@@ -666,9 +667,10 @@ for ticker_upbit in Sorted_topcoinlist:
                         # myUpbit.CancelCoinOrder(upbit, ticker_upbit)
                         # coin_volume = upbit.get_balance(ticker_upbit)
                         # myUpbit.SellCoinLimit(upbit, ticker_upbit, stop_price_upbit, coin_volume)
-                        coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*Before_amt_upbit[ticker_upbit][Situation_index-1]/sum(Before_amt_upbit[ticker_upbit])+\
-                                   won_rate*(entryPrice_s-now_price_binance)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])
-                        coin_net_withCommision = round((coin_net-Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*0.05/100*2)/10000,2)
+
+                        # coin_net = (now_price_upbit-myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit))*Before_amt_upbit[ticker_upbit][Situation_index-1]/sum(Before_amt_upbit[ticker_upbit])+\
+                        #            won_rate*(entryPrice_s-now_price_binance)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])
+                        # coin_net_withCommision = round((coin_net-Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*0.05/100*2)/10000,2)
 
                         total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
@@ -678,16 +680,16 @@ for ticker_upbit in Sorted_topcoinlist:
                         # del Trade_infor[ticker_upbit]
                         # with open(Trade_infor_path, 'w') as outfile:
                         #     json.dump(Trade_infor, outfile)
-
-                        Month_profit.append(coin_net_withCommision)
-                        with open(Month_profit_type_file_path, 'w') as outfile:
-                            json.dump(Month_profit, outfile)
-
+                        earned_money = (unrealizedProfit*won_rate-upbit_invested_money*binance_commission+upbit_diff-upbit_invested_money*upbit_commission)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])/10000
                         line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1],2)) + "% \n"
-                                                  +"\n[번돈] : " + str(round(now_price_upbit*sell_Amt*(Krate_close - Krate_total[ticker_upbit][Situation_index - 1])/200,2)) + "万 " + "[자산] : " + total_asset + "万"
+                                                  +"\n[번돈] : " + str(round(earned_money,4)) + "万 " + "[자산] : " + total_asset + "万"
                                                   +"\n[환율] : " + str(won_rate) + "₩")
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
+
+                        Month_profit.append(round(now_price_upbit*sell_Amt*(Krate_close - Krate_total[ticker_upbit][Situation_index - 1])/200/10000,4))
+                        with open(Month_profit_type_file_path, 'w') as outfile:
+                            json.dump(Month_profit, outfile)
 
                         # Situation_flag[ticker_upbit] = [False,False,False,False,False]
                         # 매도하는 여기서 해당 딕셔너리를 그냥 제거하면 될 듯. 어차피 로직의 시작은 매도인데, 매도하면 새로 반영 되니까
@@ -724,7 +726,7 @@ for ticker_upbit in Sorted_topcoinlist:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
                     GetInMoney = Trade_infor[ticker_upbit][2]
-                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney/now_price_binance*set_leverage))
+                    Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, AD_weight_list[Situation_index]*GetInMoney/now_price_binance*set_leverage))
 
                     ADMoney = Buy_Amt * upbit_order_standard
 
@@ -849,12 +851,18 @@ for ticker_upbit in Sorted_topcoinlist:
                 print("Remain Money:", float(balance_binanace['BUSD']['free']))
 
                 if Kimp_crit - Krate_interval <= Krate < Kimp_crit:
-                    get_in_cnt = 4
-                    GetInMoney = float(balance_binanace['BUSD']['total'])/len(Kimp_target_coin)/get_in_cnt/avoid_liquid_ratio
+                    get_in_cnt = 6
+                    GetInMoney = float(balance_binanace['BUSD']['toal'])/len(Kimp_target_coin)/get_in_cnt/avoid_liquid_ratio
                 elif Kimp_crit - Krate_interval*2 <= Krate < Kimp_crit- Krate_interval :
-                    get_in_cnt = 3
+                    get_in_cnt = 5
                     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
                 elif Kimp_crit - Krate_interval*3 <= Krate < Kimp_crit- Krate_interval*2 :
+                    get_in_cnt = 4
+                    GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
+                elif Kimp_crit - Krate_interval*4 <= Krate < Kimp_crit- Krate_interval*3 :
+                    get_in_cnt = 3
+                    GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
+                elif Kimp_crit - Krate_interval*5<= Krate < Kimp_crit- Krate_interval*4 :
                     get_in_cnt = 2
                     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt/avoid_liquid_ratio
                 else:
@@ -1043,5 +1051,5 @@ if len(Telegram_Log) !=0:
 
 Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['free']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
-line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"\U0001F4B5환율 : $ " + str(won_rate)+ "₩ (㉥ : "+ str(BUSDKRW) + "₩)"+ "\n\U0001F4E6"
+line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"\U0001F4B5환율 : $ " + str(won_rate)+ "\n\U0001F4E6"
                                       +Telegram_Summary+" \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won+" \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit),2))+"万")
