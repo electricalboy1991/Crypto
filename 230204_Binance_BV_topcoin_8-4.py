@@ -48,7 +48,7 @@ print(hour, minute)
 MaxCoinCnt = 10
 k_parameter = 0.39
 k_parameter_2 = 0.59
-GetInMoney = 50
+GetInMoney = 10
 variability_range = 0.02
 set_leverage=3
 average_noise = 0.58
@@ -64,7 +64,7 @@ rsi_crit_top_BTC = 100 - rsi_crit_bottom_BTC
 rsi_crit_bottom_ticker = 8
 rsi_crit_top_ticker = 100 - rsi_crit_bottom_ticker
 
-rsi_hour_filter_upper = 70
+rsi_hour_filter_upper = 75
 rsi_hour_filter_lower = 100-rsi_hour_filter_upper
 
 rsi_BTC_ticker = 'BTC/USDT'
@@ -73,7 +73,7 @@ revenue_rate_cut = 0.01
 one_minute_offset = 0.008
 loss_cut_range_ratio = 1.5
 #5일치 rsi_hour를 보겠다는 거임, 진입을 오랫동안 거래량 안터진 방향으로 진행하기 위함
-hour_rsi_length = 100
+hour_rsi_length = 70
 
 Telegram_Log = dict()
 
@@ -325,6 +325,7 @@ else:
                 down_target = float(df['open'][-(hour+1)]) - BV_range
 
                 df_day = myBinance_USDT.GetOhlcv(binanceX, ticker, '1d')
+                df_minute = myBinance_USDT.GetOhlcv(binanceX, ticker, '1m')
 
                 range_rate=(float(max(df['high'][-(hour + 25):-(hour + 1)])) - float(min(df['low'][-(hour + 25):-(hour + 1)]))) / float(df['open'][-(hour + 1)])
 
@@ -337,7 +338,7 @@ else:
                 print("현재가 : ",now_price , "상승 타겟 : ", up_target, "하락 타겟 : ", down_target)
                 time.sleep(0.05)
                 #이를 돌파했다면 변동성 돌파 성공!! 코인을 매수하고 지정가 익절을 걸고 파일에 해당 코인을 저장한다!
-                if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and hour !=hour_crit and not any(num > rsi_hour_filter_upper for num in rsi_hour_list):
+                if up_target < now_price < 1.007*up_target and now_price >= max(df_minute['high'][:-1]) and now_price >= max(df['high'][-(hour + 2):-1]) and len(BV_coinlist) < MaxCoinCnt and hour !=hour_crit and not any(num > rsi_hour_filter_upper for num in rsi_hour_list):
                 # if now_price > up_target and len(BV_coinlist) < MaxCoinCnt and now_price >= max(df['high'][-(hour + 1):]) and hour != hour_crit and rsi_hour_BTC < rsi_crit_top_BTC \
                 #         and rsi_hour_ticker < rsi_crit_top_ticker:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
                 #if now_price > up_target and len(BV_coinlist) < MaxCoinCnt:  # and myUpbit.GetHasCoinCnt(balances) < MaxCoinCnt:
@@ -425,16 +426,17 @@ else:
                         json.dump(BV_cnt, outfile)
 
                     balance_binance = binanceX.fetch_balance(params={"type": "future"})
-                    isolated_cost = 0
+                    initialMargin_cost = 0
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                             # 사는 구간
-                            isolated_cost = float(posi['isolatedWallet'])
+                            initialMargin_cost = float(posi['initialMargin'])
 
                     #이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[\U0001F4C8Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
+                    line_alert.SendMessage_SP("[\U0001F4C8Long BV] : " + ticker + " 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(initialMargin_cost, 4))+ "$")
 
-                elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and hour !=hour_crit and not any(num < rsi_hour_filter_lower for num in rsi_hour_list):
+                elif down_target > now_price > 0.993*down_target and now_price <= min(df_minute['low'][:-1]) and now_price <= min(df['low'][-(hour + 2):-1]) and len(BV_coinlist) < MaxCoinCnt and hour !=hour_crit \
+                        and not any(num < rsi_hour_filter_lower for num in rsi_hour_list):
                 # elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt and now_price <= min(df['low'][-(hour + 1):]) and hour != hour_crit \
                 #         and rsi_hour_BTC > rsi_crit_bottom_BTC and rsi_hour_ticker > rsi_crit_bottom_ticker:
                 #elif now_price < down_target and len(BV_coinlist) < MaxCoinCnt:
@@ -521,15 +523,15 @@ else:
                     with open(BV_cnt_file_path, 'w') as outfile:
                         json.dump(BV_cnt, outfile)
 
-                    isolated_cost = 0
+                    initialMargin_cost = 0
                     balance_binance = binanceX.fetch_balance(params={"type": "future"})
                     for posi in balance_binance['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                             # 사는 구간
-                            isolated_cost = float(posi['isolatedWallet'])
+                            initialMargin_cost = float(posi['initialMargin'])
 
                     # 이렇게 매수했다고 메세지를 보낼수도 있다
-                    line_alert.SendMessage_SP("[\U0001F4C9Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(isolated_cost, 4))+ "$")
+                    line_alert.SendMessage_SP("[\U0001F4C9Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4))+"$\n투입액 : " + str(round(initialMargin_cost, 4))+ "$")
 
             # 롱 불 타기 1회
             elif amt >0 and now_price > float(df['open'][-(hour+1)]) + BV_range_2 and BV_cnt[ticker]==1:
@@ -563,15 +565,15 @@ else:
                 time.sleep(0.05)
                 # 매수와 동시에 수익률
                 PNL = 0
-                isolated_cost = 0
+                initialMargin_cost = 0
                 balance_binance = binanceX.fetch_balance(params={"type": "future"})
                 for posi in balance_binance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                         # 사는 구간
                         PNL = float(posi['unrealizedProfit'])
-                        isolated_cost = float(posi['isolatedWallet'])
+                        initialMargin_cost = float(posi['initialMargin'])
 
-                BV_revenue_dict[ticker] = PNL/isolated_cost
+                BV_revenue_dict[ticker] = PNL/initialMargin_cost
 
                 # 파일에 딕셔너리를 저장합니다
                 with open(revenue_type_file_path, 'w') as outfile:
@@ -589,7 +591,7 @@ else:
                     json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[\U0001F4C8 \U0001F525 Long BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) +"\n현재 가격 : " + str(round(now_price, 4)) +"$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
+                line_alert.SendMessage_SP("[\U0001F4C8 \U0001F525 Long BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) +"\n현재 가격 : " + str(round(now_price, 4)) +"$\n투입액 : " + str(round(initialMargin_cost, 4)) + "$")
                 pass
 
             #숏 불타기 1회
@@ -624,15 +626,15 @@ else:
                 time.sleep(0.05)
                 # 매수와 동시에 수익률
                 PNL = 0
-                isolated_cost = 0
+                initialMargin_cost = 0
                 balance_binance = binanceX.fetch_balance(params={"type": "future"})
                 for posi in balance_binance['info']['positions']:
                     if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                         # 사는 구간
                         PNL = float(posi['unrealizedProfit'])
-                        isolated_cost = float(posi['isolatedWallet'])
+                        initialMargin_cost = float(posi['initialMargin'])
 
-                BV_revenue_dict[ticker] = PNL / isolated_cost
+                BV_revenue_dict[ticker] = PNL / initialMargin_cost
 
                 # 파일에 딕셔너리를 저장합니다
                 with open(revenue_type_file_path, 'w') as outfile:
@@ -650,7 +652,7 @@ else:
                     json.dump(BV_cnt, outfile)
 
                 # 이렇게 매수했다고 메세지를 보낼수도 있다
-                line_alert.SendMessage_SP("[\U0001F4C9 \U0001F525 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(isolated_cost, 4)) + "$")
+                line_alert.SendMessage_SP("[\U0001F4C9 \U0001F525 Short BV] : " + ticker +" 진입 cnt : " +str(BV_cnt[ticker]) + "\n현재 가격 : " + str(round(now_price, 4)) + "$\n투입액 : " + str(round(initialMargin_cost, 4)) + "$")
 
                 pass
             else:
@@ -689,25 +691,25 @@ for ticker in off_ticker_list:
             amt = 0
             revenue_rate = 0
             PNL = 0
-            isolated_cost = 0
+            initialMargin_cost = 0
             for posi in balance_binance['info']['positions']:
                 if posi['symbol'] == Target_Coin_Symbol and float(posi['positionAmt']) != 0:
                     # 사는 구간
                     PNL = float(posi['unrealizedProfit'])
-                    isolated_cost = float(posi['isolatedWallet'])
+                    initialMargin_cost = float(posi['initialMargin'])
                     if float(posi['positionAmt']) != 0:
                         now_price = myBinance_USDT.GetCoinNowPrice(binanceX, ticker)
                         if float(posi['positionAmt']) < 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((PNL) / (isolated_cost*set_leverage))
+                            revenue_rate = (PNL / initialMargin_cost)
                             break
                         elif float(posi['positionAmt']) > 0:
                             amt = float(posi['positionAmt'])
-                            revenue_rate = ((PNL) / (isolated_cost*set_leverage))
+                            revenue_rate = (PNL / initialMargin_cost)
                             break
 
             sum_PNL = sum_PNL + PNL
-            sum_isolated_cost = sum_isolated_cost + isolated_cost
+            sum_isolated_cost = sum_isolated_cost + initialMargin_cost
 
             if amt == 0:
                 status = 'Done'
@@ -718,7 +720,7 @@ for ticker in off_ticker_list:
                 status = 'Short'
                 num_BV_ing_ticker = num_BV_ing_ticker + 1
 
-            Telegram_Log[ticker] = [status, round(revenue_rate, 4), round(PNL, 4), round(isolated_cost, 4)]
+            Telegram_Log[ticker] = [status, round(revenue_rate, 4), round(PNL, 4), round(initialMargin_cost, 4)]
 
             #청산 시간
             if hour == hour_crit and minute == min_crit:
