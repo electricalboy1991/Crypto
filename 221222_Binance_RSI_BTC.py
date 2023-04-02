@@ -131,7 +131,7 @@ if rsi_hour <= RSI_criteria_1 and ((timestamp-float(RSI_info_Binance["Pre_RSI_ti
         json.dump(RSI_info_Binance, outfile)
     time.sleep(0.1)
 
-    rsi_messenger_1 = "[\U0001F3C2RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '[목표가 $] : ' + str(round(now_price_binance*1.05,0))
+    rsi_messenger_1 = "[\U0001F3C2RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : '+ str(round(now_price_binance,0)) + ' [목표가 $] : ' + str(round(now_price_binance*1.05,0))
     line_alert.SendMessage_SP(rsi_messenger_1)
 
 
@@ -152,7 +152,7 @@ elif rsi_hour <= RSI_criteria_2 and ((timestamp-float(RSI_info_Binance["Pre_RSI_
     time.sleep(0.1)
 
 
-    rsi_messenger_2 = "[\U0001F3C2RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$'+ '[목표가 $]' + str(round(now_price_binance*1.05,0))
+    rsi_messenger_2 = "[\U0001F3C2RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$' + '\n[현재가 $] : '+ str(round(now_price_binance,0)) + ' [목표가 $] : ' + str(round(now_price_binance*1.05,0))
     line_alert.SendMessage_SP(rsi_messenger_2)
 
 
