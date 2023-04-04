@@ -373,6 +373,8 @@ remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
 Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
 for ticker_upbit in Sorted_topcoinlist:
 
+    if Trade_infor['general'][0] == 0:
+        continue
     time.sleep(0.1)
     now_price_upbit = pyupbit.get_current_price(ticker_upbit)
 
@@ -470,7 +472,13 @@ for ticker_upbit in Sorted_topcoinlist:
             now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
             now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
             Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
-            line_alert.SendMessage_SP("[\U0001F4B5역프 알림] : " +str(round(Krate,2))+ "\n[트론 역프] : " + str(round(Krate_TRX,2)) + "\n[환율] : " + str(round(won_rate,2)))
+            line_alert.SendMessage_SP("[\U0001F4B5大역프 알림] : " +str(round(Krate,2))+ "\n[트론 역프] : " + str(round(Krate_TRX,2)) + "\n[환율] : " + str(round(won_rate,2)))
+        elif ticker_upbit =='KRW-BTC' and Krate > 4:
+            now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
+            now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
+            Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
+            line_alert.SendMessage_SP("[\U0001F4B5大김프 알림] : " + str(round(Krate, 2)) + "\n[트론 김프] : " + str(round(Krate_TRX, 2)) + "\n[환율] : " + str(round(won_rate, 2)))
+
 
         """
         if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
@@ -575,7 +583,7 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,2),round(Krate_total[ticker_upbit][Situation_index-1]+profit_rate_criteria,2),TryNumber-1,
                                               round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,2),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,2),
-                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,2), warning_percent,round(Krate,2)]
+                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,2), warning_percent,round(Krate,2),round(Krate_total[ticker_upbit][Situation_index-1],2)]
 
                 # 수익화  // 아래 주석은 절대 김프로 수익화 할 때임
                 # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
@@ -637,11 +645,18 @@ for ticker_upbit in Sorted_topcoinlist:
                         time.sleep(0.1)
 
                         # 체결했으니까 내역 업데이트 해서 받아오기// 리밋 주문 새로 넣어주기
-                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
                         upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
                         time.sleep(0.1)
                         balance_upbit = upbit.get_balances()
+                        just_bought_amt = upbit.get_balance(ticker_upbit) - sum(Before_amt_upbit[ticker_upbit])
+                        if just_bought_amt == 0:
+                            print(binanceX.create_order(ticker_binance, 'market', 'sell', abs(sell_Amt), None, params))
+                            Trade_infor['general'][0] = 0
+                            with open(Trade_infor_path, 'w') as outfile:
+                                json.dump(Trade_infor, outfile)
+                            continue
 
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future"})
                         PNL=0
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -788,6 +803,16 @@ for ticker_upbit in Sorted_topcoinlist:
                         # if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) and ADMoney < upbit_remain_money:
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
+                            upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                            time.sleep(0.1)
+                            balance_upbit = upbit.get_balances()
+                            just_bought_amt = upbit.get_balance(ticker_upbit) - sum(Before_amt_upbit[ticker_upbit])
+                            if just_bought_amt ==0:
+                                print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(Buy_Amt), None, params))
+                                Trade_infor['general'][0] = 0
+                                with open(Trade_infor_path, 'w') as outfile:
+                                    json.dump(Trade_infor, outfile)
+                                continue
                         else:
                             line_alert.SendMessage_SP( "[돈 부족] : " + str(ticker_upbit[4:]) +" [김프 %] : " + str(round(Krate, 2))+"%")
                             continue
@@ -796,9 +821,6 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
                         balance_binanace = binanceX.fetch_balance(params={"type": "future"})
-                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
-                        time.sleep(0.1)
-                        balance_upbit = upbit.get_balances()
 
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -935,6 +957,16 @@ for ticker_upbit in Sorted_topcoinlist:
                         print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                         time.sleep(0.1)
                         print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
+                        upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
+                        time.sleep(0.1)
+                        balance_upbit = upbit.get_balances()
+                        just_bought_amt = upbit.get_balance(ticker_upbit) - sum(Before_amt_upbit[ticker_upbit])
+                        if just_bought_amt == 0:
+                            print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(Buy_Amt), None, params))
+                            Trade_infor['general'][0] = 0
+                            with open(Trade_infor_path, 'w') as outfile:
+                                json.dump(Trade_infor, outfile)
+                            continue
                     else:
                         line_alert.SendMessage_SP("[돈 부족] : " + str(ticker_upbit[4:]) + " [김프 %] : " + str(round(Krate, 2)) + "%")
                         continue
@@ -943,9 +975,6 @@ for ticker_upbit in Sorted_topcoinlist:
 
                     # 체결했으니까 내역 업데이트 해서 받아오기
                     balance_binanace = binanceX.fetch_balance(params={"type": "future"})
-                    upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
-                    time.sleep(0.1)
-                    balance_upbit = upbit.get_balances()
 
                     for posi in balance_binanace['info']['positions']:
                         if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -1058,11 +1087,12 @@ if len(Telegram_Log) !=0:
     for key, value in Telegram_Log.items():
         num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
-        Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0])+ " ↙" + str(value[8]) + " 均p: " + str(value[1]) + " TGp: " + str(value[2]) + "\n" + "물: " + str(value[3])  \
-                            + " ⚠: " +str(value[7]) + "%" + " (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
+        Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0])+ " ↙" + str(value[8]) + " 물: " + str(value[3]) + " ⚠: " +str(value[7]) + "%"\
+                            + "\n TGp: " + str(value[2])  +" 末p: " + str(value[9]) + " TGp: " + str(value[2])  + " 均p: " + str(value[1])+ "\n (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
     line_alert.SendMessage_Log("\U0001F4CA\U0001F4CA" +KR_time_sliced+"\U0001F4CA\U0001F4CA  \n"+Telegram_Log_str)
 
-Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+# Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
 Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']),1))+ "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money/10000),1)) +"만원 "
 line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 "+"차익(今㉥) : " + total_difference +"万 \n"+"\U0001F4B5환율 : $ " + str(won_rate)+ "\n\U0001F4E6"
                                       +Telegram_Summary+" \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won+" \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit),2))+"万")
