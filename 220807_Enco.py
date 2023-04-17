@@ -28,7 +28,9 @@ if platform.system() == 'Windows':
     BUSD_MA_path = "C:\\Users\world\PycharmProjects\Crypto\BUSD_MA.json"
     Before_amt_path = "C:\\Users\world\PycharmProjects\Crypto\Before_amt.json"
     Before_amt_upbit_path = "C:\\Users\world\PycharmProjects\Crypto\Before_amt_upbit.json"
-
+    Before_price_path = "C:\\Users\world\PycharmProjects\Crypto\Before_price.json"
+    Before_price_upbit_path = "C:\\Users\world\PycharmProjects\Crypto\Before_price_upbit.json"
+    dollar_rate_path = "C:\\Users\world\PycharmProjects\Crypto\dollar_rate.json"
 else:
     Month_profit_type_file_path = "/var/autobot/Month_profit.json"
     Kimplist_type_file_path = "/var/autobot/Kimplist.json"
@@ -40,6 +42,9 @@ else:
     BUSD_MA_path = "/var/autobot/BUSD_MA.json"
     Before_amt_path = "/var/autobot/Before_amt.json"
     Before_amt_upbit_path = "/var/autobot/Before_amt_upbit.json"
+    Before_price_path = "/var/autobot/Before_price.json"
+    Before_price_upbit_path = "/var/autobot/Before_price_upbit.json"
+    dollar_rate_path = "/var/autobot/dollar_rate.json"
 
 """ Tether 가격은 더이상 쓸 필요가 없음
 page_USDT = requests.get("https://coinmarketcap.com/ko/currencies/tether/")
@@ -174,6 +179,33 @@ except Exception as e:
     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     print("Exception by First 7")
 
+dollar_rate = dict()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(dollar_rate_path, 'r', encoding="utf-8") as json_file:
+        dollar_rate = json.load(json_file)
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First 8")
+
+Before_price = dict()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(Before_price_path, 'r', encoding="utf-8") as json_file:
+        Before_price = json.load(json_file)
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First 9")
+
+Before_price_upbit = dict()
+try:
+    #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+    with open(Before_price_upbit_path, 'r', encoding="utf-8") as json_file:
+        Before_price_upbit = json.load(json_file)
+except Exception as e:
+    #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    print("Exception by First 10")
+
 
 Telegram_Log = dict()
 
@@ -190,6 +222,10 @@ try:
             setForFlag = set(Situation_flag.keys())
             setForBefore = set(Before_amt.keys())
             setForBefore_upbit = set(Before_amt_upbit.keys())
+            setForBefore_price = set(Before_price.keys())
+            setForBefore_price_upbit = set(Before_price_upbit.keys())
+
+            setdollar_rate = set(dollar_rate.keys())
             setForTopcoin = set(TopCoinList)
 
             #기존 list에 있는 값이랑 차이 있는 값에 대한 list를 만듦
@@ -198,6 +234,9 @@ try:
             setDifference_Flag  = list(setForFlag.difference(setForFlag))
             setDifference_Before = list(setForBefore.difference(setForBefore))
             setDifference_Before_upbit = list(setForBefore_upbit.difference(setForBefore_upbit))
+            setDifference_Before_price = list(setForBefore_price.difference(setForBefore_price))
+            setDifference_Before_price_upbit = list(setForBefore_price_upbit.difference(setForBefore_price_upbit))
+            setDifference_dollar_rate = list(setdollar_rate.difference(setdollar_rate))
 
             for remove_element_Exclose in setDifference_Exclose:
                 if remove_element_Exclose in Krate_ExClose:
@@ -219,6 +258,18 @@ try:
                 if remove_element_Before_upbit in Before_amt_upbit:
                     del Before_amt_upbit[remove_element_Before_upbit]
 
+            for remove_element_Before_price in setDifference_Before_price:
+                if remove_element_Before_price in Before_price:
+                    del Before_price[remove_element_Before_price]
+
+            for remove_element_Before_price_upbit in setDifference_Before_price_upbit:
+                if remove_element_Before_price_upbit in Before_price_upbit:
+                    del Before_price_upbit[remove_element_Before_price_upbit]
+
+            for remove_element_dollar_rate in setDifference_dollar_rate:
+                if remove_element_dollar_rate in dollar_rate:
+                    del dollar_rate[remove_element_dollar_rate]
+
             with open(top_file_path, 'w', encoding="utf-8") as outfile:
                 json.dump(TopCoinList, outfile)
             with open(Krate_ExClose_type_file_path, 'w') as outfile:
@@ -229,6 +280,16 @@ try:
                 json.dump(Situation_flag, outfile)
             with open(Before_amt_path, 'w') as outfile:
                 json.dump(Before_amt, outfile)
+            with open(Before_amt_upbit_path, 'w') as outfile:
+                json.dump(Before_amt_upbit, outfile)
+
+            with open(Before_price_path, 'w') as outfile:
+                json.dump(Before_price, outfile)
+            with open(Before_price_upbit_path, 'w') as outfile:
+                json.dump(Before_price_upbit, outfile)
+
+            with open(dollar_rate_path, 'w') as outfile:
+                json.dump(dollar_rate, outfile)
 
 except Exception as e:
     TopCoinList = myUpbit.GetTopCoinList("day",30)
@@ -252,6 +313,7 @@ except Exception as e:
 
 
 #Invest_Rate = 0.21
+minimum_profit_rate = 0.002
 set_leverage = 3
 #profit_rate_criteria 기본 값 -> 아래에 함수에 의해서 바뀜
 profit_rate_criteria = 1.5
@@ -304,6 +366,10 @@ for jj in Kimplist:
         del Krate_total[jj]
         del Situation_flag[jj]
         del Before_amt[jj]
+        del Before_amt_upbit[jj]
+        del Before_price[jj]
+        del Before_price_upbit[jj]
+        del dollar_rate[jj]
         del Trade_infor[jj]
         Kimplist.remove(jj)
 
@@ -319,7 +385,14 @@ for jj in Kimplist:
             json.dump(Kimplist, outfile)
         with open(Before_amt_path, 'w') as outfile:
             json.dump(Before_amt, outfile)
-
+        with open(Before_amt_upbit_path, 'w') as outfile:
+            json.dump(Before_amt_upbit, outfile)
+        with open(Before_price_path, 'w') as outfile:
+            json.dump(Before_price, outfile)
+        with open(Before_price_upbit_path, 'w') as outfile:
+            json.dump(Before_price_upbit, outfile)
+        with open(dollar_rate_path, 'w') as outfile:
+            json.dump(dollar_rate, outfile)
 
 for upbit_asset in balance_upbit:
     if upbit_asset['currency'] == 'KRW':
@@ -468,7 +541,7 @@ for ticker_upbit in Sorted_topcoinlist:
         Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
         Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
 
-        if ticker_upbit =='KRW-BTC' and Krate <-0.3:
+        if ticker_upbit =='KRW-BTC' and Krate <-0.5:
             now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
             now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
             Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
@@ -581,41 +654,52 @@ for ticker_upbit in Sorted_topcoinlist:
 
                 upbit_invested_money=myUpbit.GetCoinNowMoney(balance_upbit, ticker_upbit)
 
-                Telegram_Log[ticker_upbit] = [round(Krate_close,2),round(Krate_average,2),round(Krate_total[ticker_upbit][Situation_index-1]+profit_rate_criteria,2),TryNumber-1,
-                                              round((unrealizedProfit*won_rate-upbit_invested_money*binance_commission)/10000,2),round((upbit_diff-upbit_invested_money*upbit_commission)/10000,2),
-                                              round((unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)/10000,2), warning_percent,round(Krate,2),round(Krate_total[ticker_upbit][Situation_index-1],2)]
 
                 # 수익화  // 아래 주석은 절대 김프로 수익화 할 때임
                 # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
                 #         (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
                         # and Krate - Krate_average <= profit_rate*2.2:
-                if Krate_close - Krate_total[ticker_upbit][Situation_index-1] > profit_rate_criteria:
+                #최종 물탄 틱 기준 profit
+                url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
+                binance_orderbook_data = requests.get(url).json()
+                # 바이낸스에서 팔 때 슬리피지는 다르게 해줘야지
+                binance_order_index_close = 0
+                binance_order_Nsum_close = 0
+                for price_i, num_i in binance_orderbook_data['asks']:
+                    binance_order_Nsum_close += float(num_i)
 
-                    url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
-                    binance_orderbook_data = requests.get(url).json()
-                    # 바이낸스에서 팔 때 슬리피지는 다르게 해줘야지
-                    binance_order_index_close = 0
-                    binance_order_Nsum_close = 0
-                    for price_i, num_i in binance_orderbook_data['asks']:
-                        binance_order_Nsum_close += float(num_i)
+                    if binance_order_Nsum_close > abs(amt_s):
+                        break
+                    binance_order_index_close += 1  # 버퍼로 하나 더해줌
+                binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
 
-                        if binance_order_Nsum_close > abs(amt_s):
-                            break
-                        binance_order_index_close += 1  # 버퍼로 하나 더해줌
-                    binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
+                # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
+                orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
+                upbit_order_index_close = 0
+                upbit_order_Nsum_close = 0
 
-                    # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
-                    orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
-                    upbit_order_index_close = 0
-                    upbit_order_Nsum_close = 0
+                for upbit_order_data in orderbook_upbit['orderbook_units']:
+                    upbit_order_Nsum_close += upbit_order_data['bid_size']
 
-                    for upbit_order_data in orderbook_upbit['orderbook_units']:
-                        upbit_order_Nsum_close += upbit_order_data['bid_size']
+                    if upbit_order_Nsum_close > abs(amt_s):
+                        break
+                    upbit_order_index_close += 1
+                upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
 
-                        if upbit_order_Nsum_close > abs(amt_s):
-                            break
-                        upbit_order_index_close += 1
-                    upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
+                now_profit = (upbit_order_standard_close-Before_price_upbit[ticker_upbit][Situation_index-1])*Before_amt_upbit[ticker_upbit][Situation_index-1]+\
+                             (Before_price[ticker_upbit][Situation_index-1]-binance_order_standard_close)*Before_amt[ticker_upbit][Situation_index-1]*won_rate\
+                             -2*upbit_order_standard_close*Before_amt_upbit[ticker_upbit][Situation_index-1]*commission
+
+                Telegram_Log[ticker_upbit] = [round(Krate_close, 2), round(Krate_average, 2), round(Krate_total[ticker_upbit][Situation_index - 1] + profit_rate_criteria, 2), TryNumber - 1,
+                                              round((unrealizedProfit * won_rate - upbit_invested_money * binance_commission) / 10000, 2), round((upbit_diff - upbit_invested_money * upbit_commission) / 10000, 2),
+                                              round((unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 2 * commission) / 10000, 2), warning_percent, round(Krate, 2),
+                                              round(Krate_total[ticker_upbit][Situation_index - 1], 2),round(now_profit/10000, 2), round((Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*(profit_rate_criteria+0.05)/100)/10000, 2)]
+
+                if (Krate_close - Krate_total[ticker_upbit][Situation_index-1] > profit_rate_criteria
+                    and now_profit>Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*minimum_profit_rate) \
+                        or now_profit>Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*(profit_rate_criteria+0.05)/100:
+
+
 
                     # 다시 정의 할 필요 없어서 지움
                     Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
@@ -638,7 +722,6 @@ for ticker_upbit in Sorted_topcoinlist:
 
                         #주문 취소해줘야 매도 됨
                         # myUpbit.CancelCoinOrder(upbit, ticker_upbit)
-                        time.sleep(0.1)
                         sell_Amt_upbit = float(Before_amt_upbit[ticker_upbit][Situation_index-1])
                         print(myUpbit.SellCoinMarket(upbit, ticker_upbit, abs(sell_Amt_upbit)))
 
@@ -702,17 +785,17 @@ for ticker_upbit in Sorted_topcoinlist:
 
 
                         # upbit_invested_money*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])) -> 해당 amt의 투자 금액
-                        earned_money = (upbit_invested_money*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit]))*(Krate_close-Krate_total[ticker_upbit][Situation_index-1])/100 \
-                                       -upbit_invested_money*2*commission*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])))/10000
+                        # earned_money = (upbit_invested_money*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit]))*(Krate_close-Krate_total[ticker_upbit][Situation_index-1])/100 \
+                        #                -upbit_invested_money*2*commission*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])))/10000
                         # earned_money = (earned_money_num / earned_money_den) * (unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 2 * commission) / 10000
                         # earned_money = (unrealizedProfit*won_rate-upbit_invested_money*binance_commission+upbit_diff-upbit_invested_money*upbit_commission)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])/10000
                         line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close,2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1],2)) + "% \n"
-                                                  +"\n[번돈] : " + str(round(earned_money,4)) + "万 " + "[자산] : " + total_asset + "万"
+                                                  +"\n[번돈] : " + str(round(now_profit,4)) + "万 " + "[자산] : " + total_asset + "万"
                                                   +"\n[환율] : " + str(won_rate) + "₩")
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+ " 시장가 : " + str(now_price_upbit) +"원 " + str(now_price_binance)+"$ "  +"\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
-                        Month_profit.append(round(earned_money,4))
+                        Month_profit.append(round(now_profit,4))
                         with open(Month_profit_type_file_path, 'w') as outfile:
                             json.dump(Month_profit, outfile)
 
@@ -736,11 +819,17 @@ for ticker_upbit in Sorted_topcoinlist:
                         with open(Before_amt_upbit_path, 'w') as outfile:
                             json.dump(Before_amt_upbit, outfile)
 
-                        # if Situation_flag[ticker_upbit][0] == False:
-                        #     Kimplist.remove(ticker_upbit)
-                        #     # 파일에 리스트를 저장합니다
-                        #     with open(Kimplist_type_file_path, 'w') as outfile:
-                        #         json.dump(Kimplist, outfile)
+                        Before_price[ticker_upbit][Situation_index - 1] = False
+                        with open(Before_price_path, 'w') as outfile:
+                            json.dump(Before_price, outfile)
+
+                        Before_price_upbit[ticker_upbit][Situation_index - 1] = False
+                        with open(Before_price_upbit_path, 'w') as outfile:
+                            json.dump(Before_price_upbit, outfile)
+
+                        dollar_rate[ticker_upbit][Situation_index - 1] = False
+                        with open(dollar_rate_path, 'w') as outfile:
+                            json.dump(dollar_rate, outfile)
 
                     else:
                         continue
@@ -865,7 +954,20 @@ for ticker_upbit in Sorted_topcoinlist:
                         with open(Before_amt_upbit_path, 'w') as outfile:
                             json.dump(Before_amt_upbit, outfile)
 
-                        line_alert.SendMessage_SP("[\U0001F30A"+str(Situation_index) + "단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2)))
+                        Before_price[ticker_upbit][Situation_index] = binance_order_standard
+                        with open(Before_price_path, 'w') as outfile:
+                            json.dump(Before_price, outfile)
+
+                        Before_price_upbit[ticker_upbit][Situation_index] = upbit_order_standard
+                        with open(Before_price_upbit_path, 'w') as outfile:
+                            json.dump(Before_price_upbit, outfile)
+
+                        dollar_rate[ticker_upbit][Situation_index] = won_rate
+                        with open(dollar_rate_path, 'w') as outfile:
+                            json.dump(dollar_rate, outfile)
+
+                        line_alert.SendMessage_SP("[\U0001F30A"+str(Situation_index) + "단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard/10000, 1)) + "만원 "+"김프 : "+ str(round(Krate,2))
+                                                  +"\n환율 : "+ str(round(won_rate,4))+" 업빗가격 : "+ str(round(upbit_order_standard/10000,1))+"万 바낸가격 : "+ str(round(binance_order_standard,1)))
                         line_alert.SendMessage_Trading(str(ticker_upbit)+ " BUSD KRW : " + str(won_rate)+" 시장가 : " + str(now_price_upbit) + str(now_price_binance) +"\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                   +"\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
@@ -955,7 +1057,6 @@ for ticker_upbit in Sorted_topcoinlist:
                     if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
 
                         print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
-                        time.sleep(0.1)
                         print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
                         upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
                         time.sleep(0.1)
@@ -1008,28 +1109,41 @@ for ticker_upbit in Sorted_topcoinlist:
                         json.dump(Kimplist, outfile)
                     time.sleep(0.1)
 
-                    Situation_flag[ticker_upbit] = [True, False, False, False, False, False, False]
+                    Situation_flag[ticker_upbit] = [True, False, False, False, False, False, False, False]
                     with open(Situation_flag_type_file_path, 'w') as outfile:
                         json.dump(Situation_flag, outfile)
                     time.sleep(0.1)
 
-                    Krate_total[ticker_upbit] = [Krate, False, False, False, False, False, False]
+                    Krate_total[ticker_upbit] = [Krate, False, False, False, False, False, False, False]
                     with open(Krate_total_type_file_path, 'w') as outfile:
                         json.dump(Krate_total, outfile)
                     time.sleep(0.1)
 
-                    Before_amt[ticker_upbit]= [Buy_Amt, False, False, False, False, False, False]
+                    Before_amt[ticker_upbit]= [Buy_Amt, False, False, False, False, False, False, False]
                     with open(Before_amt_path, 'w') as outfile:
                         json.dump(Before_amt, outfile)
                     time.sleep(0.1)
 
                     num_coin = upbit.get_balance(ticker_upbit)
-                    Before_amt_upbit[ticker_upbit] = [num_coin, False, False, False, False, False, False]
+                    Before_amt_upbit[ticker_upbit] = [num_coin, False, False, False, False, False, False, False]
                     with open(Before_amt_upbit_path, 'w') as outfile:
                         json.dump(Before_amt_upbit, outfile)
                     time.sleep(0.1)
 
+                    Before_price[ticker_upbit] = [binance_order_standard, False, False, False, False, False, False, False]
+                    with open(Before_price_path, 'w') as outfile:
+                        json.dump(Before_price, outfile)
+                    time.sleep(0.1)
 
+                    Before_price_upbit[ticker_upbit] = [upbit_order_standard, False, False, False, False, False, False, False]
+                    with open(Before_price_upbit_path, 'w') as outfile:
+                        json.dump(Before_price_upbit, outfile)
+                    time.sleep(0.1)
+
+                    dollar_rate[ticker_upbit] = [won_rate, False, False, False, False, False, False, False]
+                    with open(dollar_rate_path, 'w') as outfile:
+                        json.dump(dollar_rate, outfile)
+                    time.sleep(0.1)
 
                     # Trade_infor[ticker_upbit][1] = 0 여기서 0의 의미는 스탑로스 회피를 위한 물타기의 경우임
                     # Trade_infor[ticker_upbit] = [won_rate, 0, None, None, None, None, None, None, None, None, None, None]
@@ -1042,7 +1156,8 @@ for ticker_upbit in Sorted_topcoinlist:
                         json.dump(Trade_infor, outfile)
                     time.sleep(0.1)
 
-                    line_alert.SendMessage_SP("[\U0001F4CA진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2)))
+                    line_alert.SendMessage_SP("[\U0001F4CA진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2))
+                                              +"\n환율 : "+ str(round(won_rate,4))+" 업빗가격 : "+ str(round(upbit_order_standard/10000,1))+"万 바낸가격 : "+ str(round(binance_order_standard,1)))
                     line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                    + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
@@ -1088,7 +1203,8 @@ if len(Telegram_Log) !=0:
         num_type=num_type+1
         key_ticker = key.replace('KRW-', '')
         Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0])+ " ↙" + str(value[8]) + " 물: " + str(value[3]) + " ⚠: " +str(value[7]) + "%"\
-                            + "\n TGp: " + str(value[2])  +" 末p: " + str(value[9]) + " TGp: " + str(value[2])  + " 均p: " + str(value[1])+ "\n (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n\n"
+                            + "\n TGp: " + str(value[2])  +" 末p: " + str(value[9]) + " TGp: " + str(value[2])  + " 均p: " + str(value[1])+ "\n (바差: " +str(value[4]) + " 업差: " +str(value[5]) +  ")→" +str(value[6]) + "万\n "\
+                            + "末틱 수익: "+str(value[10])+ "万"+ " 末틱 수익TG: "+str(value[11])+ "万"+ "\n\n"
     line_alert.SendMessage_Log("\U0001F4CA\U0001F4CA" +KR_time_sliced+"\U0001F4CA\U0001F4CA  \n"+Telegram_Log_str)
 
 # Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
