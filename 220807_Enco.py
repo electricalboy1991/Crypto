@@ -363,7 +363,7 @@ while True:
     #     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
     #     print("Exception by First 6")
 
-    binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey, 'secret': Binance_ScretKey, 'enableRateLimit': True, 'options': {'defaultType': 'future'}})
+    binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey, 'secret': Binance_ScretKey, 'enableRateLimit': True, 'options': {'defaultType': 'future','recvWindow': 15000}})
     # 업비트에서 비트코인 사기 전까지 아래 값은 0이지
     # upbit_diff_BTC = float(myUpbit.NumOfTickerCoin(balance_upbit, "KRW-BTC")) * (pyupbit.get_current_price("KRW-BTC") - float(myUpbit.GetAvgBuyPrice(balance_upbit, "KRW-BTC")))
 
@@ -481,7 +481,7 @@ while True:
 
             Target_Coin_Symbol = ticker_binance.replace("/", "")
 
-            balance_binanace = binanceX.fetch_balance(params={"type": "future",'timestamp': nonce})
+            balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
             for posi in balance_binanace['info']['positions']:
                 if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
                     print(posi)
@@ -702,25 +702,27 @@ while True:
 
                     now_profit = (upbit_order_standard_close - Before_price_upbit[ticker_upbit][Situation_index - 1]) * Before_amt_upbit[ticker_upbit][Situation_index - 1] + \
                                  (Before_price[ticker_upbit][Situation_index - 1] - binance_order_standard_close) * Before_amt[ticker_upbit][Situation_index - 1] * won_rate \
-                                 - 2 * upbit_order_standard_close * Before_amt_upbit[ticker_upbit][Situation_index - 1] * commission
+                                 - 4 * upbit_order_standard_close * Before_amt_upbit[ticker_upbit][Situation_index - 1] * commission
+
+                    #Krate_close 한번 다시 업데이트
+                    Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
+                    Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
 
                     Telegram_Log[ticker_upbit] = [round(Krate_close, 2), round(Krate_average, 2), round(Krate_total[ticker_upbit][Situation_index - 1] + profit_rate_criteria, 2), TryNumber - 1,
                                                   round((unrealizedProfit * won_rate - upbit_invested_money * binance_commission) / 10000, 2), round((upbit_diff - upbit_invested_money * upbit_commission) / 10000, 2),
                                                   round((unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 2 * commission) / 10000, 2), warning_percent, round(Krate, 2),
                                                   round(Krate_total[ticker_upbit][Situation_index - 1], 2), round(now_profit / 10000, 2), round((Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.05) / 100) / 10000, 2)]
 
-                    if (Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria
-                        and now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * minimum_profit_rate) \
-                            or now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.05) / 100:
+                    # 김프 절대 환율에서 바꿈
+                    # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
+                    #         (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
 
-                        # 김프 절대 환율에서 바꿈
-                        # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
-                        #         (unrealizedProfit*won_rate+upbit_diff-upbit_invested_money*2*commission)>-200000:
-
-                        # 업비트 최소 주문량 충족 못해서 바이낸스만 계속 팔고 있었음.
-                        if ((Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria
+                    #수익화
+                    #업비트 최소 주문량 충족 못해서 바이낸스만 계속 팔고 있었음.
+                    if ((Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria
                         and now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * minimum_profit_rate) \
-                            or now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.05) / 100) and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
+                        or now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.05) / 100) \
+                            and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
 
                             # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
                             params = {'positionSide': 'SHORT'}
@@ -750,7 +752,7 @@ while True:
                                     json.dump(Trade_infor, outfile)
                                 continue
 
-                            balance_binanace = binanceX.fetch_balance(params={"type": "future",'timestamp': nonce})
+                            balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
                             PNL = 0
                             for posi in balance_binanace['info']['positions']:
                                 if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -840,9 +842,6 @@ while True:
                             with open(dollar_rate_path, 'w') as outfile:
                                 json.dump(dollar_rate, outfile)
 
-                        else:
-                            continue
-
                     # 물타기 1회
                     elif Krate < Kimp_crit and Krate_total[ticker_upbit][Situation_index - 1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False:
                         # and (Krate-Krate_total[ticker_upbit][0])/2.2>= profit_rate:
@@ -918,7 +917,7 @@ while True:
                             time.sleep(0.1)
 
                             # 체결했으니까 내역 업데이트 해서 받아오기
-                            balance_binanace = binanceX.fetch_balance(params={"type": "future",'timestamp': nonce})
+                            balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
 
                             for posi in balance_binanace['info']['positions']:
                                 if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -1086,7 +1085,7 @@ while True:
                         time.sleep(0.1)
 
                         # 체결했으니까 내역 업데이트 해서 받아오기
-                        balance_binanace = binanceX.fetch_balance(params={"type": "future",'timestamp': nonce})
+                        balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
 
                         for posi in balance_binanace['info']['positions']:
                             if posi['symbol'] == Target_Coin_Symbol and posi['positionSide'] == 'SHORT':
@@ -1178,7 +1177,7 @@ while True:
         except Exception as e:
             # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
             print('예외가 발생했습니다.', e)
-            if str(e)[-4:] == 'BUSD':
+            if str(e)[-4:] == 'BUSD' or type(e) ==IndexError:
                 pass
             else:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1186,11 +1185,14 @@ while True:
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 print(exc_type, fname, exc_tb.tb_lineno)
                 line_alert.SendMessage_Trading('[에러] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
-                line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
-                line_alert.SendMessage_Trading(str(binance_orderbook_data) + ' ' + str(binance_order_Nsum_close) + ' ' + str(amt_s))
+                line_alert.SendMessage_SP('[에러] : \n' + str(err))
+                line_alert.SendMessage_SP('[파일] : ' + str(fname))
+                line_alert.SendMessage_SP('[라인 넘버] : ' + str(exc_tb.tb_lineno))
+                # line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
+                # line_alert.SendMessage_Trading(str(binance_orderbook_data) + ' ' + str(binance_order_Nsum_close) + ' ' + str(amt_s))
 
     time.sleep(0.1)
-    balance_binanace = binanceX.fetch_balance(params={"type": "future",'timestamp': nonce})
+    balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
 
     time.sleep(0.1)
     # 수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
