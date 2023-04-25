@@ -1,4 +1,9 @@
-import datetime
+import http.client
 
-print(datetime.datetime.fromtimestamp(1578297600000/1000))
-
+conn = http.client.HTTPSConnection(“data.fixer.io”)
+payload = ”
+headers = {}
+conn.request(“GET”, “/api/latest?access_key=c0*****f”, payload, headers)
+res = conn.getresponse()
+data = res.read()
+print(data.decode(“utf-8”))

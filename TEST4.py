@@ -1,23 +1,11 @@
-import asyncio
-import json
-import websockets
+import requests
+from bs4 import BeautifulSoup
 
-async def subscribe(symbol):
-    uri = "wss://fstream.binance.com/ws/" + symbol.lower() + "@ticker/" + symbol.lower() + "@depth"
-    async with websockets.connect(uri) as websocket:
-        subscribe_msg = {
-            "method": "SUBSCRIBE",
-            "params": [
-                symbol.lower() + "@ticker",
-                symbol.lower() + "@depth20" # subscribe to 10 levels of order book updates
-            ],
-            "id": 1
-        }
-        await websocket.send(json.dumps(subscribe_msg))
+url = "https://finance.naver.com/marketindex/exchangeDailyQuote.nhn?marketindexCd=FX_USDKRW"
+page = requests.get(url)
+soup = BeautifulSoup(page.content, "html.parser")
 
-        while True:
-            response = await websocket.recv()
-            print(json.loads(response))
+# find the exchange rate value
+exchange_rate = soup.find("td", class_="num").get_text()
 
-symbol = "BTCBUSD"
-asyncio.get_event_loop().run_until_complete(subscribe(symbol))
+print("Today's dollar-won exchange rate is:", exchange_rate)

@@ -132,349 +132,352 @@ big_kimp_flag = 0
 small_kimp_flag = 0
 
 while True:
-
-    # 시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
-    time_info = time.gmtime()
-    hour = time_info.tm_hour
-    min = time_info.tm_min
-
-    if min_temp ==min:
-        min_flag = 0
-    else:
-        min_flag = 1
-    min_temp = min
-
-    if hour_temp != hour:
-        big_kimp_flag = 0
-        small_kimp_flag = 0
-
-    hour_temp = hour
-    # 한국시간 9시 -> 0
-    hour_crit = 20
-    min_crit = 25
-
-    Month_profit = list()
     try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Month_profit_type_file_path, 'r', encoding="utf-8") as json_file:
-            Month_profit = json.load(json_file)
+        # 시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
+        time_info = time.gmtime()
+        hour = time_info.tm_hour
+        min = time_info.tm_min
 
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 0")
+        if min_temp ==min:
+            min_flag = 0
+        else:
+            min_flag = 1
+        min_temp = min
 
-    # 김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
-    Kimplist = list()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Kimplist_type_file_path, 'r', encoding="utf-8") as json_file:
-            Kimplist = json.load(json_file)
+        if hour_temp != hour:
+            big_kimp_flag = 0
+            small_kimp_flag = 0
 
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 1")
+        hour_temp = hour
+        # 한국시간 9시 -> 0
+        hour_crit = 20
+        min_crit = 25
 
-    # 김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
-    Situation_flag = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Situation_flag_type_file_path, 'r', encoding="utf-8") as json_file:
-            Situation_flag = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 2")
+        Month_profit = list()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Month_profit_type_file_path, 'r', encoding="utf-8") as json_file:
+                Month_profit = json.load(json_file)
 
-    # 전날 close 값 불러오기 위함. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
-    Krate_ExClose = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Krate_ExClose_type_file_path, 'r', encoding="utf-8") as json_file:
-            Krate_ExClose = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 0")
 
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 3")
+        # 김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
+        Kimplist = list()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Kimplist_type_file_path, 'r', encoding="utf-8") as json_file:
+                Kimplist = json.load(json_file)
 
-    # 거래 김프 total 정보. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
-    Krate_total = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Krate_total_type_file_path, 'r', encoding="utf-8") as json_file:
-            Krate_total = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 4")
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 1")
 
-    Trade_infor = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Trade_infor_path, 'r', encoding="utf-8") as json_file:
-            Trade_infor = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 5")
+        # 김프 리스트를 저장하기 위한 부분, 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
+        Situation_flag = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Situation_flag_type_file_path, 'r', encoding="utf-8") as json_file:
+                Situation_flag = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 2")
 
-    Before_amt = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Before_amt_path, 'r', encoding="utf-8") as json_file:
-            Before_amt = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 6")
+        # 전날 close 값 불러오기 위함. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
+        Krate_ExClose = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Krate_ExClose_type_file_path, 'r', encoding="utf-8") as json_file:
+                Krate_ExClose = json.load(json_file)
 
-    Before_amt_upbit = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Before_amt_upbit_path, 'r', encoding="utf-8") as json_file:
-            Before_amt_upbit = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 7")
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 3")
 
-    dollar_rate = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(dollar_rate_path, 'r', encoding="utf-8") as json_file:
-            dollar_rate = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 8")
+        # 거래 김프 total 정보. 만약 처음 돌려서 파일이 존재하지 않으면, exception 처리하고 밑에서 따로 저장함
+        Krate_total = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Krate_total_type_file_path, 'r', encoding="utf-8") as json_file:
+                Krate_total = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 4")
 
-    Before_price = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Before_price_path, 'r', encoding="utf-8") as json_file:
-            Before_price = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 9")
+        Trade_infor = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Trade_infor_path, 'r', encoding="utf-8") as json_file:
+                Trade_infor = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 5")
 
-    Before_price_upbit = dict()
-    try:
-        # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-        with open(Before_price_upbit_path, 'r', encoding="utf-8") as json_file:
-            Before_price_upbit = json.load(json_file)
-    except Exception as e:
-        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        print("Exception by First 10")
+        Before_amt = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Before_amt_path, 'r', encoding="utf-8") as json_file:
+                Before_amt = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 6")
 
-    Telegram_Log = dict()
+        Before_amt_upbit = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Before_amt_upbit_path, 'r', encoding="utf-8") as json_file:
+                Before_amt_upbit = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 7")
 
-    # TopCoinList N 개를 저장시키기 위한 Code
-    TopCoinList = list()
-    try:
-        with open(top_file_path, "r", encoding="utf-8") as json_file:
-            TopCoinList = json.load(json_file)
-            if hour == hour_crit and min % 60 == min_crit and len(Kimplist) == 0:
-                TopCoinList = myUpbit.GetTopCoinList("day", 30)
+        dollar_rate = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(dollar_rate_path, 'r', encoding="utf-8") as json_file:
+                dollar_rate = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 8")
 
-                setForExclose = set(Krate_ExClose.keys())
-                setForTotal = set(Krate_total.keys())
-                setForFlag = set(Situation_flag.keys())
-                setForBefore = set(Before_amt.keys())
-                setForBefore_upbit = set(Before_amt_upbit.keys())
-                setForBefore_price = set(Before_price.keys())
-                setForBefore_price_upbit = set(Before_price_upbit.keys())
+        Before_price = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Before_price_path, 'r', encoding="utf-8") as json_file:
+                Before_price = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 9")
 
-                setdollar_rate = set(dollar_rate.keys())
-                setForTopcoin = set(TopCoinList)
+        Before_price_upbit = dict()
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(Before_price_upbit_path, 'r', encoding="utf-8") as json_file:
+                Before_price_upbit = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            print("Exception by First 10")
 
-                # 기존 list에 있는 값이랑 차이 있는 값에 대한 list를 만듦
-                setDifference_Exclose = list(setForExclose.difference(setForExclose))
-                setDifference_Total = list(setForTotal.difference(setForTotal))
-                setDifference_Flag = list(setForFlag.difference(setForFlag))
-                setDifference_Before = list(setForBefore.difference(setForBefore))
-                setDifference_Before_upbit = list(setForBefore_upbit.difference(setForBefore_upbit))
-                setDifference_Before_price = list(setForBefore_price.difference(setForBefore_price))
-                setDifference_Before_price_upbit = list(setForBefore_price_upbit.difference(setForBefore_price_upbit))
-                setDifference_dollar_rate = list(setdollar_rate.difference(setdollar_rate))
+        Telegram_Log = dict()
 
-                for remove_element_Exclose in setDifference_Exclose:
-                    if remove_element_Exclose in Krate_ExClose:
-                        del Krate_ExClose[remove_element_Exclose]
+        # TopCoinList N 개를 저장시키기 위한 Code
+        TopCoinList = list()
+        try:
+            with open(top_file_path, "r", encoding="utf-8") as json_file:
+                TopCoinList = json.load(json_file)
+                if hour == hour_crit and min % 60 == min_crit and len(Kimplist) == 0:
+                    TopCoinList = myUpbit.GetTopCoinList("day", 30)
 
-                for remove_element_Total in setDifference_Total:
-                    if remove_element_Total in Krate_total:
-                        del Krate_total[remove_element_Total]
+                    setForExclose = set(Krate_ExClose.keys())
+                    setForTotal = set(Krate_total.keys())
+                    setForFlag = set(Situation_flag.keys())
+                    setForBefore = set(Before_amt.keys())
+                    setForBefore_upbit = set(Before_amt_upbit.keys())
+                    setForBefore_price = set(Before_price.keys())
+                    setForBefore_price_upbit = set(Before_price_upbit.keys())
 
-                for remove_element_Flag in setDifference_Flag:
-                    if remove_element_Flag in Situation_flag:
-                        del Situation_flag[remove_element_Flag]
+                    setdollar_rate = set(dollar_rate.keys())
+                    setForTopcoin = set(TopCoinList)
 
-                for remove_element_Before in setDifference_Before:
-                    if remove_element_Before in Before_amt:
-                        del Before_amt[remove_element_Before]
+                    # 기존 list에 있는 값이랑 차이 있는 값에 대한 list를 만듦
+                    setDifference_Exclose = list(setForExclose.difference(setForExclose))
+                    setDifference_Total = list(setForTotal.difference(setForTotal))
+                    setDifference_Flag = list(setForFlag.difference(setForFlag))
+                    setDifference_Before = list(setForBefore.difference(setForBefore))
+                    setDifference_Before_upbit = list(setForBefore_upbit.difference(setForBefore_upbit))
+                    setDifference_Before_price = list(setForBefore_price.difference(setForBefore_price))
+                    setDifference_Before_price_upbit = list(setForBefore_price_upbit.difference(setForBefore_price_upbit))
+                    setDifference_dollar_rate = list(setdollar_rate.difference(setdollar_rate))
 
-                for remove_element_Before_upbit in setDifference_Before_upbit:
-                    if remove_element_Before_upbit in Before_amt_upbit:
-                        del Before_amt_upbit[remove_element_Before_upbit]
+                    for remove_element_Exclose in setDifference_Exclose:
+                        if remove_element_Exclose in Krate_ExClose:
+                            del Krate_ExClose[remove_element_Exclose]
 
-                for remove_element_Before_price in setDifference_Before_price:
-                    if remove_element_Before_price in Before_price:
-                        del Before_price[remove_element_Before_price]
+                    for remove_element_Total in setDifference_Total:
+                        if remove_element_Total in Krate_total:
+                            del Krate_total[remove_element_Total]
 
-                for remove_element_Before_price_upbit in setDifference_Before_price_upbit:
-                    if remove_element_Before_price_upbit in Before_price_upbit:
-                        del Before_price_upbit[remove_element_Before_price_upbit]
+                    for remove_element_Flag in setDifference_Flag:
+                        if remove_element_Flag in Situation_flag:
+                            del Situation_flag[remove_element_Flag]
 
-                for remove_element_dollar_rate in setDifference_dollar_rate:
-                    if remove_element_dollar_rate in dollar_rate:
-                        del dollar_rate[remove_element_dollar_rate]
+                    for remove_element_Before in setDifference_Before:
+                        if remove_element_Before in Before_amt:
+                            del Before_amt[remove_element_Before]
 
-                with open(top_file_path, 'w', encoding="utf-8") as outfile:
-                    json.dump(TopCoinList, outfile)
+                    for remove_element_Before_upbit in setDifference_Before_upbit:
+                        if remove_element_Before_upbit in Before_amt_upbit:
+                            del Before_amt_upbit[remove_element_Before_upbit]
+
+                    for remove_element_Before_price in setDifference_Before_price:
+                        if remove_element_Before_price in Before_price:
+                            del Before_price[remove_element_Before_price]
+
+                    for remove_element_Before_price_upbit in setDifference_Before_price_upbit:
+                        if remove_element_Before_price_upbit in Before_price_upbit:
+                            del Before_price_upbit[remove_element_Before_price_upbit]
+
+                    for remove_element_dollar_rate in setDifference_dollar_rate:
+                        if remove_element_dollar_rate in dollar_rate:
+                            del dollar_rate[remove_element_dollar_rate]
+
+                    with open(top_file_path, 'w', encoding="utf-8") as outfile:
+                        json.dump(TopCoinList, outfile)
+                    with open(Krate_ExClose_type_file_path, 'w') as outfile:
+                        json.dump(Krate_ExClose, outfile)
+                    with open(Krate_total_type_file_path, 'w') as outfile:
+                        json.dump(Krate_total, outfile)
+                    with open(Situation_flag_type_file_path, 'w') as outfile:
+                        json.dump(Situation_flag, outfile)
+                    with open(Before_amt_path, 'w') as outfile:
+                        json.dump(Before_amt, outfile)
+                    with open(Before_amt_upbit_path, 'w') as outfile:
+                        json.dump(Before_amt_upbit, outfile)
+
+                    with open(Before_price_path, 'w') as outfile:
+                        json.dump(Before_price, outfile)
+                    with open(Before_price_upbit_path, 'w') as outfile:
+                        json.dump(Before_price_upbit, outfile)
+
+                    with open(dollar_rate_path, 'w') as outfile:
+                        json.dump(dollar_rate, outfile)
+
+        except Exception as e:
+            TopCoinList = myUpbit.GetTopCoinList("day", 30)
+            print("Exception by First")
+
+        # BUSDKRW_MA_List = list()
+        # try:
+        #     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+        #     with open(BUSD_MA_path, 'r', encoding="utf-8") as json_file:
+        #         BUSDKRW_MA_List = json.load(json_file)
+        #         if hour == hour_crit and min % 60 == min_crit:
+        #             del BUSDKRW_MA_List[0]
+        #             BUSDKRW_MA_List.append(BUSDKRW_Day_average)
+        #             with open(BUSD_MA_path, 'w', encoding="utf-8") as outfile:
+        #                 json.dump(BUSDKRW_MA_List, outfile)
+        #
+        #
+        # except Exception as e:
+        #     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+        #     print("Exception by First 6")
+
+        binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey, 'secret': Binance_ScretKey, 'enableRateLimit': True, 'options': {'defaultType': 'future','recvWindow': 15000}})
+        # 업비트에서 비트코인 사기 전까지 아래 값은 0이지
+        # upbit_diff_BTC = float(myUpbit.NumOfTickerCoin(balance_upbit, "KRW-BTC")) * (pyupbit.get_current_price("KRW-BTC") - float(myUpbit.GetAvgBuyPrice(balance_upbit, "KRW-BTC")))
+
+        # binance API의 서버 시간을 가져옴
+        server_time = binanceX.fetch_time()
+        # 로컬 컴퓨터의 시간을 가져옴
+        local_time = int(time.time() * 1000)
+        # 서버 시간과 로컬 시간의 차이를 계산하여 nonce 값을 설정
+        nonce = max(server_time, local_time)
+
+        # 내가 가진 잔고 데이터를 다 가져온다.
+        balance_upbit = upbit.get_balances()
+        won_rate = myUpbit.upbit_get_usd_krw()
+        # won_rate = myUpbit.upbit_get_usd()
+        # 김프 리스트에 있는 애들 중 포지션 없는 애들은 다 지움
+        for jj in Kimplist:
+            if not myUpbit.IsHasCoin(balance_upbit, jj):
+                del Krate_ExClose[jj]
+                del Krate_total[jj]
+                del Situation_flag[jj]
+                del Before_amt[jj]
+                del Before_amt_upbit[jj]
+                del Before_price[jj]
+                del Before_price_upbit[jj]
+                del dollar_rate[jj]
+                del Trade_infor[jj]
+                Kimplist.remove(jj)
+
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
                     json.dump(Krate_ExClose, outfile)
                 with open(Krate_total_type_file_path, 'w') as outfile:
                     json.dump(Krate_total, outfile)
                 with open(Situation_flag_type_file_path, 'w') as outfile:
                     json.dump(Situation_flag, outfile)
+                with open(Trade_infor_path, 'w') as outfile:
+                    json.dump(Trade_infor, outfile)
+                with open(Kimplist_type_file_path, 'w') as outfile:
+                    json.dump(Kimplist, outfile)
                 with open(Before_amt_path, 'w') as outfile:
                     json.dump(Before_amt, outfile)
                 with open(Before_amt_upbit_path, 'w') as outfile:
                     json.dump(Before_amt_upbit, outfile)
-
                 with open(Before_price_path, 'w') as outfile:
                     json.dump(Before_price, outfile)
                 with open(Before_price_upbit_path, 'w') as outfile:
                     json.dump(Before_price_upbit, outfile)
-
                 with open(dollar_rate_path, 'w') as outfile:
                     json.dump(dollar_rate, outfile)
 
-    except Exception as e:
-        TopCoinList = myUpbit.GetTopCoinList("day", 30)
-        print("Exception by First")
+        for upbit_asset in balance_upbit:
+            if upbit_asset['currency'] == 'KRW':
+                upbit_remain_money = float(upbit_asset['balance'])
+            else:
+                continue
 
-    # BUSDKRW_MA_List = list()
-    # try:
-    #     #이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-    #     with open(BUSD_MA_path, 'r', encoding="utf-8") as json_file:
-    #         BUSDKRW_MA_List = json.load(json_file)
-    #         if hour == hour_crit and min % 60 == min_crit:
-    #             del BUSDKRW_MA_List[0]
-    #             BUSDKRW_MA_List.append(BUSDKRW_Day_average)
-    #             with open(BUSD_MA_path, 'w', encoding="utf-8") as outfile:
-    #                 json.dump(BUSDKRW_MA_List, outfile)
-    #
-    #
-    # except Exception as e:
-    #     #처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-    #     print("Exception by First 6")
+        characters = "KRW-"
 
-    binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey, 'secret': Binance_ScretKey, 'enableRateLimit': True, 'options': {'defaultType': 'future','recvWindow': 15000}})
-    # 업비트에서 비트코인 사기 전까지 아래 값은 0이지
-    # upbit_diff_BTC = float(myUpbit.NumOfTickerCoin(balance_upbit, "KRW-BTC")) * (pyupbit.get_current_price("KRW-BTC") - float(myUpbit.GetAvgBuyPrice(balance_upbit, "KRW-BTC")))
+        # 거래에서 제외할 코인
+        # try:
+        #     TopCoinList.remove("KRW-TRX")
+        #     TopCoinList.remove("KRW-WEMIX")
+        #     TopCoinList.remove("KRW-WAVES")
+        # except Exception as e:
+        #     print("BTC remove error", e)
 
-    # binance API의 서버 시간을 가져옴
-    server_time = binanceX.fetch_time()
-    # 로컬 컴퓨터의 시간을 가져옴
-    local_time = int(time.time() * 1000)
-    # 서버 시간과 로컬 시간의 차이를 계산하여 nonce 값을 설정
-    nonce = max(server_time, local_time)
+        # 거래 순서를 김프 평단이 낮은 애부터 거래 되도록 하기 위함...
+        if len(Krate_total) != 0:
 
-    # 내가 가진 잔고 데이터를 다 가져온다.
-    balance_upbit = upbit.get_balances()
-    won_rate = myUpbit.upbit_get_usd_krw()
-    # 김프 리스트에 있는 애들 중 포지션 없는 애들은 다 지움
-    for jj in Kimplist:
-        if not myUpbit.IsHasCoin(balance_upbit, jj):
-            del Krate_ExClose[jj]
-            del Krate_total[jj]
-            del Situation_flag[jj]
-            del Before_amt[jj]
-            del Before_amt_upbit[jj]
-            del Before_price[jj]
-            del Before_price_upbit[jj]
-            del dollar_rate[jj]
-            del Trade_infor[jj]
-            Kimplist.remove(jj)
+            Krate_aver_total = dict()
+            Traded_sorted_list = list()
 
-            with open(Krate_ExClose_type_file_path, 'w') as outfile:
-                json.dump(Krate_ExClose, outfile)
-            with open(Krate_total_type_file_path, 'w') as outfile:
-                json.dump(Krate_total, outfile)
-            with open(Situation_flag_type_file_path, 'w') as outfile:
-                json.dump(Situation_flag, outfile)
-            with open(Trade_infor_path, 'w') as outfile:
-                json.dump(Trade_infor, outfile)
-            with open(Kimplist_type_file_path, 'w') as outfile:
-                json.dump(Kimplist, outfile)
-            with open(Before_amt_path, 'w') as outfile:
-                json.dump(Before_amt, outfile)
-            with open(Before_amt_upbit_path, 'w') as outfile:
-                json.dump(Before_amt_upbit, outfile)
-            with open(Before_price_path, 'w') as outfile:
-                json.dump(Before_price, outfile)
-            with open(Before_price_upbit_path, 'w') as outfile:
-                json.dump(Before_price_upbit, outfile)
-            with open(dollar_rate_path, 'w') as outfile:
-                json.dump(dollar_rate, outfile)
+            for temp_ticker in Krate_total:
+                temp_Krate_dummy = Krate_total[temp_ticker]
+                while False in temp_Krate_dummy:
+                    temp_Krate_dummy.remove(False)
+                Krate_average = sum(temp_Krate_dummy) / len(temp_Krate_dummy)
+                Krate_aver_total[temp_ticker] = Krate_average
 
-    for upbit_asset in balance_upbit:
-        if upbit_asset['currency'] == 'KRW':
-            upbit_remain_money = float(upbit_asset['balance'])
+            Traded_list = sorted(Krate_aver_total.items(), key=lambda item: item[1])
+            # 평단 높은 애 먼저 물타고 싶으면 아래 주석을 푼다.
+            # Traded_list = sorted(Krate_aver_total.items(), key=lambda item: item[1], reverse = True)
+            for ii in Traded_list:
+                Traded_sorted_list.append(ii[0])
+
+            s = set(Traded_sorted_list)
+            Rest_topcoin = [x for x in TopCoinList if x not in s]
+
+            Sorted_topcoinlist = Traded_sorted_list + Rest_topcoin
+
         else:
-            continue
+            Sorted_topcoinlist = TopCoinList
+        # 진입 티커 갯수 늘릴 거면, CNT
 
-    characters = "KRW-"
+        Kimp_target_coin = ['KRW-BTC', 'KRW-XRP', 'KRW-ETH', 'KRW-ADA']
+        CoinCnt = len(Kimp_target_coin)
+        # Kimp_target_coin = ['KRW-XRP','KRW-ETH','KRW-DOGE']
+        remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
+        Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
 
-    # 거래에서 제외할 코인
-    # try:
-    #     TopCoinList.remove("KRW-TRX")
-    #     TopCoinList.remove("KRW-WEMIX")
-    #     TopCoinList.remove("KRW-WAVES")
-    # except Exception as e:
-    #     print("BTC remove error", e)
+        # 티커별 for문 루프
+        for ticker_upbit in Sorted_topcoinlist:
 
-    # 거래 순서를 김프 평단이 낮은 애부터 거래 되도록 하기 위함...
-    if len(Krate_total) != 0:
+            # if Trade_infor['general'][0] == 0:
+            #     continue
+            time.sleep(0.1)
+            now_price_upbit = pyupbit.get_current_price(ticker_upbit)
 
-        Krate_aver_total = dict()
-        Traded_sorted_list = list()
+            if now_price_upbit < 10 and myUpbit.CheckCoinInList(Kimplist, ticker_upbit) == False:
+                continue
+            ticker_temp = ticker_upbit.replace('KRW-', '')
+            ticker_binance = ticker_temp + '/BUSD'
+            ticker_binance_orderbook = ticker_temp + 'BUSD'
 
-        for temp_ticker in Krate_total:
-            temp_Krate_dummy = Krate_total[temp_ticker]
-            while False in temp_Krate_dummy:
-                temp_Krate_dummy.remove(False)
-            Krate_average = sum(temp_Krate_dummy) / len(temp_Krate_dummy)
-            Krate_aver_total[temp_ticker] = Krate_average
 
-        Traded_list = sorted(Krate_aver_total.items(), key=lambda item: item[1])
-        # 평단 높은 애 먼저 물타고 싶으면 아래 주석을 푼다.
-        # Traded_list = sorted(Krate_aver_total.items(), key=lambda item: item[1], reverse = True)
-        for ii in Traded_list:
-            Traded_sorted_list.append(ii[0])
-
-        s = set(Traded_sorted_list)
-        Rest_topcoin = [x for x in TopCoinList if x not in s]
-
-        Sorted_topcoinlist = Traded_sorted_list + Rest_topcoin
-
-    else:
-        Sorted_topcoinlist = TopCoinList
-    # 진입 티커 갯수 늘릴 거면, CNT
-
-    Kimp_target_coin = ['KRW-BTC', 'KRW-XRP', 'KRW-ETH', 'KRW-DOGE']
-    CoinCnt = len(Kimp_target_coin)
-    # Kimp_target_coin = ['KRW-XRP','KRW-ETH','KRW-DOGE']
-    remove_coin = list(set(Sorted_topcoinlist) - set(Kimp_target_coin))
-    Sorted_topcoinlist = list(set(Sorted_topcoinlist) - set(remove_coin))
-    for ticker_upbit in Sorted_topcoinlist:
-
-        if Trade_infor['general'][0] == 0:
-            continue
-        time.sleep(0.1)
-        now_price_upbit = pyupbit.get_current_price(ticker_upbit)
-
-        if now_price_upbit < 10 and myUpbit.CheckCoinInList(Kimplist, ticker_upbit) == False:
-            continue
-        ticker_temp = ticker_upbit.replace('KRW-', '')
-        ticker_binance = ticker_temp + '/BUSD'
-        ticker_binance_orderbook = ticker_temp + 'BUSD'
-
-        try:
             time.sleep(0.05)
             now_price_binance = myBinance.GetCoinNowPrice(binanceX, ticker_binance)
             # Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
@@ -1063,13 +1066,19 @@ while True:
                         ADMoney = Buy_Amt * upbit_order_standard
                         Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
 
-                        if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
+                        if Krate < Kimp_crit and len(Kimplist) < CoinCnt:
 
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
                             upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
                             time.sleep(0.1)
                             balance_upbit = upbit.get_balances()
+
+                            Before_amt_upbit[ticker_upbit] = [False, False, False, False, False, False, False, False, False]
+                            with open(Before_amt_upbit_path, 'w') as outfile:
+                                json.dump(Before_amt_upbit, outfile)
+                            time.sleep(0.1)
+
                             just_bought_amt = upbit.get_balance(ticker_upbit) - sum(Before_amt_upbit[ticker_upbit])
                             if just_bought_amt == 0:
                                 print(binanceX.create_order(ticker_binance, 'market', 'buy', abs(Buy_Amt), None, params))
@@ -1174,55 +1183,80 @@ while True:
                     else:
                         continue
 
-        except Exception as e:
+    except Exception as e:
+
+        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+        if str(e)[-4:] == 'BUSD' or type(e) == IndexError or Trade_infor['general'][0]==str(e):
+            pass
+        else:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            err = traceback.format_exc()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+            line_alert.SendMessage_Trading('[에러 김프 1] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            line_alert.SendMessage_SP('[에러] : \n' + str(err))
+            line_alert.SendMessage_SP('[파일] : ' + str(fname))
+            line_alert.SendMessage_SP('[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            # line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
+            # line_alert.SendMessage_Trading(str(binance_orderbook_data) + ' ' + str(binance_order_Nsum_close) + ' ' + str(amt_s))
+
+        Trade_infor['general'][0] = str(e)
+        with open(Trade_infor_path, 'w') as outfile:
+            json.dump(Trade_infor, outfile)
+        time.sleep(0.1)
+
+    try:
+
+        time.sleep(0.1)
+        balance_binanace = binanceX.fetch_balance(params={"type": "future", 'adjustForTimeDifference': True})
+
+        time.sleep(0.1)
+        # 수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
+        total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+
+        Binance_URP = 0
+        for posi in balance_binanace['info']['positions']:
+            if float(posi['unrealizedProfit']) != 0 and posi['symbol'][-4:] != 'USDT':
+                Binance_URP += float(posi['unrealizedProfit'])
+
+        # Summary에 차액 구하는 구간임, 근데 여기는 won_rate로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
+        total_difference = str(round((myUpbit.GetTotalRealMoney(balance_upbit) - upbit_diff_BTC - myUpbit.GetTotalMoney(balance_upbit) + won_rate * Binance_URP) / 10000, 2))
+
+        if len(Telegram_Log) != 0 and min_flag == 1:
+            current_time = datetime.now(timezone('Asia/Seoul'))
+            KR_time = str(current_time)
+            KR_time_sliced = KR_time[:23]
+            Telegram_Log_str = str()
+            num_type = 0
+            for key, value in Telegram_Log.items():
+                num_type = num_type + 1
+                key_ticker = key.replace('KRW-', '')
+                Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0]) + " ↙" + str(value[8]) + " 물: " + str(value[3]) + " ⚠: " + str(value[7]) + "%" \
+                                    + "\n TGp: " + str(value[2]) + " 末p: " + str(value[9]) + " TGp: " + str(value[2]) + " 均p: " + str(value[1]) + "\n (바差: " + str(value[4]) + " 업差: " + str(value[5]) + ")→" + str(value[6]) + "万\n " \
+                                    + "末틱 수익: " + str(value[10]) + "万" + " 末틱 수익TG: " + str(value[11]) + "万" + "\n\n"
+            line_alert.SendMessage_Log("\U0001F4CA\U0001F4CA" + KR_time_sliced + "\U0001F4CA\U0001F4CA  \n" + Telegram_Log_str)
+
+        if min_flag == 1:
+            # Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['total'] - balance_binanace['BUSD']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
+            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F4B5환율 : $ " + str(won_rate) + "\n\U0001F4E6"
+                                                  + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
+    except Exception as e:
+        if Trade_infor['general'][1] == str(e):
+            pass
+        else:
+            # 텔레그램 api 오류 5초 이상 쉬어줘야해서 설정
+            time.sleep(5.5)
             # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-            print('예외가 발생했습니다.', e)
-            if str(e)[-4:] == 'BUSD' or type(e) ==IndexError:
-                pass
-            else:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                err = traceback.format_exc()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(exc_type, fname, exc_tb.tb_lineno)
-                line_alert.SendMessage_Trading('[에러] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
-                line_alert.SendMessage_SP('[에러] : \n' + str(err))
-                line_alert.SendMessage_SP('[파일] : ' + str(fname))
-                line_alert.SendMessage_SP('[라인 넘버] : ' + str(exc_tb.tb_lineno))
-                # line_alert.SendMessage_Trading(str(binance_order_index) + ' ' + str(binance_order_index_close))
-                # line_alert.SendMessage_Trading(str(binance_orderbook_data) + ' ' + str(binance_order_Nsum_close) + ' ' + str(amt_s))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            err = traceback.format_exc()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+            line_alert.SendMessage_Trading('[에러 김프 2] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            line_alert.SendMessage_SP('[에러 김프 2] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
 
-    time.sleep(0.1)
-    balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
-
-    time.sleep(0.1)
-    # 수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
-    total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
-
-    Binance_URP = 0
-    for posi in balance_binanace['info']['positions']:
-        if float(posi['unrealizedProfit']) != 0 and posi['symbol'][-4:] != 'USDT':
-            Binance_URP += float(posi['unrealizedProfit'])
-
-    # Summary에 차액 구하는 구간임, 근데 여기는 won_rate로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
-    total_difference = str(round((myUpbit.GetTotalRealMoney(balance_upbit) - upbit_diff_BTC - myUpbit.GetTotalMoney(balance_upbit) + won_rate * Binance_URP) / 10000, 2))
-
-    if len(Telegram_Log) != 0 and min_flag ==1:
-        current_time = datetime.now(timezone('Asia/Seoul'))
-        KR_time = str(current_time)
-        KR_time_sliced = KR_time[:23]
-        Telegram_Log_str = str()
-        num_type = 0
-        for key, value in Telegram_Log.items():
-            num_type = num_type + 1
-            key_ticker = key.replace('KRW-', '')
-            Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0]) + " ↙" + str(value[8]) + " 물: " + str(value[3]) + " ⚠: " + str(value[7]) + "%" \
-                                + "\n TGp: " + str(value[2]) + " 末p: " + str(value[9]) + " TGp: " + str(value[2]) + " 均p: " + str(value[1]) + "\n (바差: " + str(value[4]) + " 업差: " + str(value[5]) + ")→" + str(value[6]) + "万\n " \
-                                + "末틱 수익: " + str(value[10]) + "万" + " 末틱 수익TG: " + str(value[11]) + "万" + "\n\n"
-        line_alert.SendMessage_Log("\U0001F4CA\U0001F4CA" + KR_time_sliced + "\U0001F4CA\U0001F4CA  \n" + Telegram_Log_str)
-
-    if min_flag ==1:
-        # Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-        Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-        Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['total'] - balance_binanace['BUSD']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
-        line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F4B5환율 : $ " + str(won_rate) + "\n\U0001F4E6"
-                                              + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
+            Trade_infor['general'][1] = str(e)
+            with open(Trade_infor_path, 'w') as outfile:
+                json.dump(Trade_infor, outfile)
+            time.sleep(0.1)

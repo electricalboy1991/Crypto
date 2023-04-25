@@ -19,14 +19,14 @@ async def subscribe_upbit(symbols):
 async def subscribe_binance(symbols):
     uri = "wss://fstream.binance.com/stream?streams="
     for symbol in symbols:
-        uri += symbol.lower() + "@ticker/" + symbol.lower() + "@depth20" + "/"
+        uri += symbol.lower() + "@depth20" + "/"
     async with websockets.connect(uri) as websocket:
         while True:
             response = await websocket.recv()
             print(json.loads(response))
 
 symbols_upbit = ["BTC", "ETH", "XRP", "DOGE"]
-symbols_binance = ["BTCBUSD", "ETHBUSD", "XRPBUSD", "DOGEUSDT"]
+symbols_binance = ["BTCBUSD", "ETHBUSD", "XRPBUSD", "DOGEBUSD"]
 
 async def subscribe_all():
     task_upbit = asyncio.create_task(subscribe_upbit(symbols_upbit))

@@ -238,7 +238,7 @@ def IsHasCoin(balances,Ticker):
     HasCoin = False
     for value in balances:
         realTicker = value['unit_currency'] + "-" + value['currency']
-        if Ticker == realTicker:
+        if Ticker == realTicker and float(value['avg_buy_price'])*float(value['balance']) > 9000:
             HasCoin = True
     return HasCoin
 

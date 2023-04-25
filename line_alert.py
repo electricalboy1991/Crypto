@@ -1,6 +1,7 @@
 import requests
 import telegram
-
+import asyncio
+import sys
 
 telegram_token_Log = '5751723602:AAEjojgFOutl4ffbDghL_urHx10ijEwkBeU'
 telegram_id_Log = '5781986806'
@@ -17,8 +18,6 @@ telegram_id_1hourRSI = '5781986806'
 
 telegram_token_BV = '6044269270:AAG43ub5Pm6BlnRfngXbZZQq97oxRgg8JnY'
 telegram_id_BV = '5781986806'
-
-
 
 
 #메세지를 보냅니다.
@@ -43,11 +42,14 @@ def SendMessage_Trading(msg):
 
 def SendMessage_Log(message):
     try:
+        py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+        if py_ver > 37 and sys.platform.startswith('win'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_Log)
-        res = bot.sendMessage(chat_id=telegram_id_Log, text=message)
-
-        return res
+        # res = bot.sendMessage(chat_id=telegram_id_Log, text=message)
+        asyncio.run(bot.send_message(chat_id=telegram_id_Log, text=message))
+        # return res
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)
@@ -57,11 +59,14 @@ def SendMessage_Log(message):
 
 def SendMessage_SP(message):
     try:
+        py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+        if py_ver > 37 and sys.platform.startswith('win'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_SP)
-        res = bot.sendMessage(chat_id=telegram_id_SP, text=message)
-
-        return res
+        # res = bot.sendMessage(chat_id=telegram_id_SP, text=message)
+        asyncio.run(bot.send_message(chat_id=telegram_id_SP, text=message))
+        # return res
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)
@@ -72,11 +77,16 @@ def SendMessage_SP(message):
 
 def SendMessage_Summary1minute(message):
     try:
+        py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+        if py_ver > 37 and sys.platform.startswith('win'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_Summary1minute)
-        res = bot.sendMessage(chat_id=telegram_id_Summary1minute, text=message)
+        # res = bot.sendMessage(chat_id=telegram_id_Summary1minute, text=message)
+        asyncio.run(bot.send_message(chat_id=telegram_id_Summary1minute, text=message))
 
-        return res
+
+        # return res
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)
@@ -86,11 +96,16 @@ def SendMessage_Summary1minute(message):
 
 def SendMessage_1hourRSI(message):
     try:
+        py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+        if py_ver > 37 and sys.platform.startswith('win'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_1hourRSI)
-        res = bot.sendMessage(chat_id=telegram_id_1hourRSI, text=message)
+        # res = bot.sendMessage(chat_id=telegram_id_1hourRSI, text=message)
+        asyncio.run(bot.send_message(chat_id=telegram_id_1hourRSI, text=message))
 
-        return res
+
+        # return res
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)
@@ -100,11 +115,16 @@ def SendMessage_1hourRSI(message):
 
 def SendMessage_BV(message):
     try:
+        py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+        if py_ver > 37 and sys.platform.startswith('win'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_BV)
-        res = bot.sendMessage(chat_id=telegram_id_BV, text=message)
+        # res = bot.sendMessage(chat_id=telegram_id_BV, text=message)
+        asyncio.run(bot.send_message(chat_id=telegram_id_BV, text=message))
 
-        return res
+
+        # return res
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)
