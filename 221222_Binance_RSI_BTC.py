@@ -38,9 +38,31 @@ simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
 Binance_AccessKey = simpleEnDecrypt.decrypt(my_key.binance_access)
 Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
 
-try:
 
-    while True:
+
+while True:
+    try:
+        if platform.system() == 'Windows':
+            RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance.json"
+        else:
+            RSI_info_Binance_path = "/var/autobot/RSI_info_Binance.json"
+
+        RSI_info_Binance = dict()
+
+        try:
+            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            with open(RSI_info_Binance_path, 'r', encoding="utf-8") as json_file:
+                RSI_info_Binance = json.load(json_file)
+        except Exception as e:
+            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+            RSI_info_Binance["general"] = [False, False, False, False, False, False, False, False, False, False, False, False]
+            RSI_info_Binance["Pre_RSI_time_0"] = float(0)
+            RSI_info_Binance["Pre_RSI_time_1"] = float(0)
+            RSI_info_Binance["Pre_RSI_time_2"] = float(0)
+            RSI_info_Binance["Pre_RSI_time_3"] = float(0)
+            RSI_info_Binance["Num_input"] = float(0)
+            print("RSI 파일 없음")
+
         time.sleep(8)
         time_info = time.gmtime()
         hour = time_info.tm_hour
@@ -66,25 +88,7 @@ try:
 
         response = binanceX.fetch_balance(params={'recvWindow': 15000})
 
-        if platform.system() == 'Windows':
-            RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance.json"
-        else:
-            RSI_info_Binance_path = "/var/autobot/RSI_info_Binance.json"
 
-        RSI_info_Binance = dict()
-
-        try:
-            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
-            with open(RSI_info_Binance_path, 'r', encoding="utf-8") as json_file:
-                RSI_info_Binance = json.load(json_file)
-        except Exception as e:
-            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-            RSI_info_Binance["Pre_RSI_time_0"] = float(0)
-            RSI_info_Binance["Pre_RSI_time_1"] = float(0)
-            RSI_info_Binance["Pre_RSI_time_2"] = float(0)
-            RSI_info_Binance["Pre_RSI_time_3"] = float(0)
-            RSI_info_Binance["Num_input"] = float(0)
-            print("RSI 파일 없음")
 
         timestamp = datetime.now().timestamp()
         print(timestamp)
@@ -216,16 +220,27 @@ try:
             rsi_messenger_3 = "[\U0001F3C2RSI_3_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_3_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
             line_alert.SendMessage_SP(rsi_messenger_3)
 
-except Exception as e:
-            # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+    except Exception as e:
+        # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
+        if RSI_info_Binance['general'][0] == str(e):
+            pass
+        else:
+            #텔레그램 api 오류 5초 이상 쉬어줘야해서 설정
+            time.sleep(5.5)
             print('예외가 발생했습니다.', e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             err = traceback.format_exc()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
-            line_alert.SendMessage_SP('[에러] : \n' + str(err))
-            line_alert.SendMessage_SP('[파일] : ' + str(fname))
-            line_alert.SendMessage_SP('[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            line_alert.SendMessage_Trading('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            line_alert.SendMessage_SP('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+
+        RSI_info_Binance['general'][0] = str(e)
+        with open(RSI_info_Binance_path, 'w') as outfile:
+            json.dump(RSI_info_Binance, outfile)
+        time.sleep(0.1)
+
+
 
 
 
