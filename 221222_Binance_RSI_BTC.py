@@ -1,5 +1,5 @@
-import myBinance
-import ccxt
+import myBinance # 만든 코드
+import ccxt # 주문 명령 업비트나, 바이낸스에 줄 때, 이용하는 라이브러리
 import ende_key  # 암복호화키
 import my_key  # 업비트 시크릿 액세스키
 import json
@@ -11,12 +11,14 @@ from pytz import timezone
 import sys, os
 import traceback
 
+# 윈도우랑 리눅스 접속 구분을 위한 코드
 if platform.system() != 'Windows':
     from binance import Client
 else:
     from binance.client import Client
     pass
 
+# RSI 기준 / USER PARAMETER
 RSI_criteria_0 = 34.2
 RSI_criteria_1 = 29.2
 RSI_criteria_2 = 24
@@ -24,10 +26,11 @@ RSI_criteria_3 = 19
 
 profit_rate = 2
 
-RSI_criteria_0_GetInMoney = 50
-RSI_criteria_1_GetInMoney = 400
-RSI_criteria_2_GetInMoney = 600
-RSI_criteria_3_GetInMoney = 800
+# 내가 사는 돈
+RSI_criteria_0_GetInMoney = 75
+RSI_criteria_1_GetInMoney = 125
+RSI_criteria_2_GetInMoney = 200
+RSI_criteria_3_GetInMoney = 400
 
 min_temp = 0
 
@@ -42,6 +45,7 @@ Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
 
 while True:
     try:
+        # 이전 거래에 대한 정보를 저장하기 위한 경로
         if platform.system() == 'Windows':
             RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance.json"
         else:
@@ -50,9 +54,10 @@ while True:
         RSI_info_Binance = dict()
 
         try:
-            # 이 부분이 파일을 읽어서 리스트에 넣어주는 로직입니다.
+            # 이전 매매 정보 로드
             with open(RSI_info_Binance_path, 'r', encoding="utf-8") as json_file:
                 RSI_info_Binance = json.load(json_file)
+
         except Exception as e:
             # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
             RSI_info_Binance["general"] = [False, False, False, False, False, False, False, False, False, False, False, False]
@@ -63,10 +68,15 @@ while True:
             RSI_info_Binance["Num_input"] = float(0)
             print("RSI 파일 없음")
 
+        # 보수적으로 8초 쉬었다가 감
         time.sleep(8)
+
+        # 현재 시간 불러오기
         time_info = time.gmtime()
         hour = time_info.tm_hour
         min = time_info.tm_min
+
+        # 메시지를 1분에 1번만 오게 하기 위한 FLAG
 
         if min_temp == min:
             min_flag = 0
@@ -74,6 +84,7 @@ while True:
             min_flag = 1
         min_temp = min
 
+        # 바이낸스에서 특정 기능을 하게 하기 위한 client 객체 생성
         client = Client(Binance_AccessKey, Binance_ScretKey)
         order = client.get_open_orders()
         time.sleep(0.05)
@@ -93,9 +104,11 @@ while True:
         timestamp = datetime.now().timestamp()
         print(timestamp)
 
-        Target_Coin_Ticker = 'BTC/USDT'
+        # Target_Coin_Ticker = 'BTC/USDT'
+        Target_Coin_Ticker = 'BTC/BUSD'
         Target_Coin_Ticker_splited, Stable_coin_type = Target_Coin_Ticker.split('/')
 
+        # 현재 가격 받아오기
         now_price_binance = myBinance.GetCoinNowPrice(binanceX, Target_Coin_Ticker)
 
         # 비트코인의 140분봉(캔들) 정보를 가져온다.
@@ -110,7 +123,7 @@ while True:
         profit_rate_list = list()
         invested_money = list()
 
-        # 내가 매도 가격 설정을 안해놓으니까, BTC를 사도
+        # 내가 매도 가격 설정을 안해놓으니까, BTC를 사도  // 지금은 안 씀
         for i, open_order in enumerate(order):
             profit_rate_list.append(round((now_price_binance - float(order[i]['price']) / profit_rate) / (float(order[i]['price']) / profit_rate) * 100, 2))
             invested_money.append(float(order[i]['price']) / profit_rate * float(order[i]['origQty']))
@@ -124,15 +137,18 @@ while True:
         for j, profit_rate_i in enumerate(profit_rate_list):
             RSI_string += '[' + str(j + 1) + ". 수익%] : " + str(profit_rate_i) + " 투입 $ : " + str(round(invested_money[j], 1)) + "\n"
 
+        # 지정가 걸어논 애들이, 매도 되면 알람 오게 함
         if RSI_info_Binance["Num_input"] > len(invested_money):
 
             profit_messenger = "[RSI_바이낸스_수익화 진행 완료료 알림]"
             line_alert.SendMessage_SP(profit_messenger)
 
+            # 갯수 새롭게 저장하기 위한 코드
             RSI_info_Binance["Num_input"] = len(invested_money)
             with open(RSI_info_Binance_path, 'w') as outfile:
                 json.dump(RSI_info_Binance, outfile)
             time.sleep(0.1)
+
 
         elif RSI_info_Binance["Num_input"] == len(invested_money):
             pass
@@ -144,6 +160,7 @@ while True:
             time.sleep(0.1)
         if min_flag == 1:
             line_alert.SendMessage_1hourRSI(RSI_string)
+
 
         if rsi_hour <= RSI_criteria_0 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_0"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_0"]) == 0)):
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
@@ -233,7 +250,8 @@ while True:
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
             line_alert.SendMessage_Trading('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
-            line_alert.SendMessage_SP('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            if str(e) == "binance Account has insufficient balance for requested action." :
+                line_alert.SendMessage_SP("[\U0001F3C2 바이낸스] : RSI 달러 부족")
 
         RSI_info_Binance['general'][0] = str(e)
         with open(RSI_info_Binance_path, 'w') as outfile:
