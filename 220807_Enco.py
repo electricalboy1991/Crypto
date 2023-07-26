@@ -119,7 +119,7 @@ commission = (upbit_commission + binance_commission) / 2
 # profit_range= [3, 1]
 # average_range = [-2,2]
 
-profit_range = [1.4, 0.9]
+profit_range = [1.4, 1.1]
 average_range = [-2, Kimp_crit]
 
 # BUSDKRW_MA_value = sum(BUSDKRW_MA_List) / len(BUSDKRW_MA_List)
@@ -729,7 +729,7 @@ while True:
                     Telegram_Log[ticker_upbit] = [round(Krate_close, 2), round(Krate_average, 2), round(Krate_total[ticker_upbit][Situation_index - 1] + profit_rate_criteria, 2), TryNumber - 1,
                                                   round((unrealizedProfit * won_rate - 2*upbit_invested_money * binance_commission) / 10000, 2), round((upbit_diff - 2*upbit_invested_money * upbit_commission) / 10000, 2),
                                                   round((unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 4 * commission) / 10000, 2), warning_percent, round(Krate, 2),
-                                                  round(Krate_total[ticker_upbit][Situation_index - 1], 2), round(now_profit / 10000, 2), round((Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.05) / 100) / 10000, 2)]
+                                                  round(Krate_total[ticker_upbit][Situation_index - 1], 2), round(now_profit / 10000, 2), round((Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.15) / 100) / 10000, 2)]
 
                     # 김프 절대 환율에서 바꿈
                     # if (Krate_close > close_criteria and Krate_close > Krate_ExClose[ticker_upbit]+0.1 and Krate_close - Krate_average > profit_rate_criteria) or \
@@ -737,13 +737,13 @@ while True:
 
                     #수익화
                     # [(수익이 -지만, 김프 기준을 초과 달성) or (수익이 +고, 김프 기준 달성) or (환 상승 포함, 단순히 김프 수익이 초과 달성) ] and [투자 기본 치 넘어야, 단순히 기준치 이상의 투자를 했는지 보는 거임]
-                    # 환 선물로 햇지하면서 환 상승에 의한 단순 김프 수익 초과시에는 청산 안하게 바꿈
-                    # if ((now_profit < 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria + 0.2) or (now_profit > 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria) \
-                    #     or (now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.15) / 100) )\
-                    #     and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
+                    # 환 선물로 햇지하면서 환 상승에 의한 단순 김프 수익 초과시에는 청산 안하게 바꿈 -> change
+                    if ((now_profit < 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria + 0.2) or (now_profit > 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria) \
+                        or (now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * now_price_upbit * (profit_rate_criteria + 0.15) / 100) )\
+                        and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
 
-                    if ((now_profit < 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria + 0.2) or (now_profit > 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria)) \
-                            and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
+                    # if ((now_profit < 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria + 0.2) or (now_profit > 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria)) \
+                    #         and now_price_upbit * upbit.get_balance(ticker_upbit) / Situation_index > 5500:
 
                     # # (김프 기준을 넘고, 최소 수익 기준 넘고) or (단순 수익이 기준치 이상 나면 청산)
                     # if ((Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria
@@ -1046,7 +1046,7 @@ while True:
                     get_in_cnt = 4
 
                     # GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
-                    GetInMoney = 333
+                    GetInMoney = 666
 
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney / now_price_binance * set_leverage))
                     print("Buy_Amt", Buy_Amt)
