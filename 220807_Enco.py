@@ -1267,7 +1267,7 @@ while True:
                 key_ticker = key.replace('KRW-', '')
                 Telegram_Log_str += str(num_type) + "." + key_ticker + " ↗" + str(value[0]) + " ↙" + str(value[8]) + " 물: " + str(value[3]) + " ⚠: " + str(value[7])\
                                     + "\n TGp: " + str(value[2]) + " 末p: " + str(value[9])  + " 均p: " + str(value[1]) + "\n (바: " + str(value[4]) + " 업: " + str(value[5]) + ")→" + str(value[6]) + "万\n " \
-                                    + "末수익 : " + str(value[10]) + "万" + " 末 TG: " + str(value[11]) + "万" + "\n\n"
+                                    + "末실현시 : " + str(value[10]) + "万" + " 末 TG: " + str(value[11]) + "万" + "\n\n"
             line_alert.SendMessage_Log("\U0001F4CA" + KR_time_sliced + "\U0001F4CA  \n" + Telegram_Log_str)
 
         if min_flag == 1:
