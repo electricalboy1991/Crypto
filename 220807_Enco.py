@@ -718,9 +718,14 @@ while True:
                     upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
 
                     # Before_price_upbit[ticker_upbit][Situation_index - 1] 여기에 저장되는 가격이 실제 마지막 틱 구매 평단을 제대로 반영을 못하고 있음. 230512 Ada, 근데 왜 실제 청산했을 때는 수익이 더 정확하지... ?
-                    now_profit = (upbit_order_standard_close - Before_price_upbit[ticker_upbit][Situation_index - 1]) * Before_amt_upbit[ticker_upbit][Situation_index - 1] + \
-                                 (Before_price[ticker_upbit][Situation_index - 1] - binance_order_standard_close) * Before_amt[ticker_upbit][Situation_index - 1] * won_rate \
-                                 - 4 * upbit_order_standard_close * Before_amt_upbit[ticker_upbit][Situation_index - 1] * commission
+                    # now_profit을 이전에 구매한 값 기준 및 호가창 계산 한 걸 기반으로 정확하게 해보려고 했으나, 도지코인 같은 경우 내가 체결되는 가격을 정확하게 계산하기 어려움 -> Before price가 부정확
+                    # 그래서 now_profit을 그냥, UnRealizedProfit 값 가져온 거에 수수료를 보수적으로 때려서 계산하는 로직으로 변경 -> 원래 commission * 4 였는데 * 6으로 변경
+
+                    # now_profit = (upbit_order_standard_close - Before_price_upbit[ticker_upbit][Situation_index - 1]) * Before_amt_upbit[ticker_upbit][Situation_index - 1] + \
+                    #              (Before_price[ticker_upbit][Situation_index - 1] - binance_order_standard_close) * Before_amt[ticker_upbit][Situation_index - 1] * won_rate \
+                    #              - 4 * upbit_order_standard_close * Before_amt_upbit[ticker_upbit][Situation_index - 1] * commission
+
+                    now_profit = unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 6 * commission
 
                     #Krate_close 한번 다시 업데이트
                     Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
