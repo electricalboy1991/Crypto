@@ -143,8 +143,8 @@ while True:
         hour = time_info.tm_hour
         min = time_info.tm_min
 
-        won_rate = myUpbit.upbit_get_usd_krw()
-        #won_rate=dff.get_exchange_rate()
+        # won_rate = myUpbit.upbit_get_usd_krw()
+        won_rate=dff.get_exchange_rate()
 
         if min_temp ==min:
             min_flag = 0
@@ -834,7 +834,7 @@ while True:
                             # earned_money = (unrealizedProfit*won_rate-upbit_invested_money*binance_commission+upbit_diff-upbit_invested_money*upbit_commission)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])/10000
                             line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close, 2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1], 2)) + "% \n"
                                                       + "\n[번돈] : " + str(round(now_profit/10000, 4)) + "万 " + "[자산] : " + total_asset + "万"
-                                                      + "\n[환율] : " + str(won_rate) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩")
+                                                      + "\n[환율] : " + str(round(won_rate, 4)) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩")
                             line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + "원 " + str(now_price_binance) + "$ " + "\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                            + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
@@ -947,7 +947,7 @@ while True:
                                         json.dump(Trade_infor, outfile)
                                     continue
                             else:
-                                line_alert.SendMessage_SP("[돈 부족] : " + str(ticker_upbit[4:]) + " [김프 %] : " + str(round(Krate, 2)) + "%\n"+ "[필요액] : " + str(round(ADMoney/10000, 2)) + "万")
+                                line_alert.SendMessage_SP("[돈 부족] : " + str(ticker_upbit[4:]) + " [김프 %] : " + str(round(Krate, 2)) + "%\n"+ "[입금 필요액] : " + str(round((ADMoney-upbit_remain_money)/10000, 2)) + "万")
                                 continue
 
                             time.sleep(0.1)
@@ -1274,7 +1274,7 @@ while True:
             # Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
             Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
             Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['total'] - balance_binanace['BUSD']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
-            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F4B5환율 : $ " + str(won_rate) + "\n\U0001F4E6"
+            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
                                                   + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
     except Exception as e:
         if Trade_infor['general'][1] == str(e):
