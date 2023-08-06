@@ -24,7 +24,7 @@ RSI_criteria_1 = 29.2
 RSI_criteria_2 = 24
 RSI_criteria_3 = 19
 
-profit_rate = 2
+profit_rate = 5
 
 # 내가 사는 돈
 RSI_criteria_0_GetInMoney = 100
@@ -47,9 +47,9 @@ while True:
     try:
         # 이전 거래에 대한 정보를 저장하기 위한 경로
         if platform.system() == 'Windows':
-            RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance.json"
+            RSI_info_Binance_path = "C:\\Users\world\PycharmProjects\Crypto\RSI_info_Binance_sell.json"
         else:
-            RSI_info_Binance_path = "/var/autobot/RSI_info_Binance.json"
+            RSI_info_Binance_path = "/var/autobot/RSI_info_Binance_sell.json"
 
         RSI_info_Binance = dict()
 
@@ -104,8 +104,8 @@ while True:
         timestamp = datetime.now().timestamp()
         print(timestamp)
 
-        # Target_Coin_Ticker = 'BTC/USDT'
-        Target_Coin_Ticker = 'BTC/BUSD'
+        Target_Coin_Ticker = 'BTC/USDT'
+        # Target_Coin_Ticker = 'BTC/BUSD'
         Target_Coin_Ticker_splited, Stable_coin_type = Target_Coin_Ticker.split('/')
 
         # 현재 가격 받아오기
@@ -123,7 +123,7 @@ while True:
         profit_rate_list = list()
         invested_money = list()
 
-        # 내가 매도 가격 설정을 안해놓으니까, BTC를 사도  // 지금은 안 씀
+        # 내가 매도 가격 설정을 안해놓으니까, BTC를 사도
         for i, open_order in enumerate(order):
             profit_rate_list.append(round((now_price_binance - float(order[i]['price']) / profit_rate) / (float(order[i]['price']) / profit_rate) * 100, 2))
             invested_money.append(float(order[i]['price']) / profit_rate * float(order[i]['origQty']))
@@ -131,7 +131,7 @@ while True:
         current_time = datetime.now(timezone('Asia/Seoul'))
         KR_time = str(current_time)
         KR_time_sliced = KR_time[:23]
-        RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
+        RSI_string = "  \U0001F3C4\U0001F3C4" + KR_time_sliced + "\U0001F3C4\U0001F3C4  \n" + '[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
                      + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + " $" + "\n"
 
         for j, profit_rate_i in enumerate(profit_rate_list):
@@ -140,7 +140,7 @@ while True:
         # 지정가 걸어논 애들이, 매도 되면 알람 오게 함
         if RSI_info_Binance["Num_input"] > len(invested_money):
 
-            profit_messenger = "[RSI_바이낸스_수익화 진행 완료료 알림]"
+            profit_messenger = "[\U0001F3C4 RSI_바이낸스_수익화 진행 완료 알림 \U0001F3C4]"
             line_alert.SendMessage_SP(profit_messenger)
 
             # 갯수 새롭게 저장하기 위한 코드
@@ -168,16 +168,16 @@ while True:
 
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
-            # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
-            # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*1.05,0)))
-            # time.sleep(0.1)
+            #비트코인 이제 그냥 모아가기 위해서, 매도 안함
+            print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*(1+profit_rate/100),0)))
+            time.sleep(0.1)
 
             RSI_info_Binance["Pre_RSI_time_0"] = timestamp
             with open(RSI_info_Binance_path, 'w') as outfile:
                 json.dump(RSI_info_Binance, outfile)
             time.sleep(0.1)
 
-            rsi_messenger_0 = "[\U0001F3C2RSI_0_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_0_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
+            rsi_messenger_0 = "[\U0001F3C4RSI_0_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_0_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * (1+profit_rate/100), 0))
             line_alert.SendMessage_SP(rsi_messenger_0)
 
         elif rsi_hour <= RSI_criteria_1 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_1"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_1"]) == 0)):
@@ -187,15 +187,15 @@ while True:
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
             # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
-            # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*1.05,0)))
-            # time.sleep(0.1)
+            print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance*(1+profit_rate/100),0)))
+            time.sleep(0.1)
 
             RSI_info_Binance["Pre_RSI_time_1"] = timestamp
             with open(RSI_info_Binance_path, 'w') as outfile:
                 json.dump(RSI_info_Binance, outfile)
             time.sleep(0.1)
 
-            rsi_messenger_1 = "[\U0001F3C2RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
+            rsi_messenger_1 = "[\U0001F3C4RSI_1_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_1_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * (1+profit_rate/100), 0))
             line_alert.SendMessage_SP(rsi_messenger_1)
 
 
@@ -207,15 +207,15 @@ while True:
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
             # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
-            # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * 1.05, 0)))
-            # time.sleep(0.1)
+            print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * (1+profit_rate/100), 0)))
+            time.sleep(0.1)
 
             RSI_info_Binance["Pre_RSI_time_2"] = timestamp
             with open(RSI_info_Binance_path, 'w') as outfile:
                 json.dump(RSI_info_Binance, outfile)
             time.sleep(0.1)
 
-            rsi_messenger_2 = "[\U0001F3C2RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
+            rsi_messenger_2 = "[\U0001F3C4RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * (1+profit_rate/100), 0))
             line_alert.SendMessage_SP(rsi_messenger_2)
 
         elif rsi_hour <= RSI_criteria_3 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_3"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_3"]) == 0)):
@@ -226,15 +226,15 @@ while True:
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
             # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
-            # print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * 1.05, 0)))
-            # time.sleep(0.1)
+            print(binanceX.create_limit_sell_order(Target_Coin_Ticker, Buy_Amt, round(now_price_binance * (1+profit_rate/100), 0)))
+            time.sleep(0.1)
 
             RSI_info_Binance["Pre_RSI_time_3"] = timestamp
             with open(RSI_info_Binance_path, 'w') as outfile:
                 json.dump(RSI_info_Binance, outfile)
             time.sleep(0.1)
 
-            rsi_messenger_3 = "[\U0001F3C2RSI_3_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_3_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
+            rsi_messenger_3 = "[\U0001F3C4RSI_3_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_3_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * (1+profit_rate/100), 0))
             line_alert.SendMessage_SP(rsi_messenger_3)
 
     except Exception as e:
@@ -251,7 +251,7 @@ while True:
             print(exc_type, fname, exc_tb.tb_lineno)
             line_alert.SendMessage_Trading('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
             if str(e) == "binance Account has insufficient balance for requested action." :
-                line_alert.SendMessage_SP("[\U0001F3C2 바이낸스] : RSI 달러 부족")
+                line_alert.SendMessage_SP("[\U0001F3C4 바이낸스] : RSI 달러 부족")
 
         RSI_info_Binance['general'][0] = str(e)
         with open(RSI_info_Binance_path, 'w') as outfile:
