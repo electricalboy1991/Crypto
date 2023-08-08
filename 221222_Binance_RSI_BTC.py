@@ -134,30 +134,30 @@ while True:
         RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
                      + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + " $" + "\n"
 
-        for j, profit_rate_i in enumerate(profit_rate_list):
-            RSI_string += '[' + str(j + 1) + ". 수익%] : " + str(profit_rate_i) + " 투입 $ : " + str(round(invested_money[j], 1)) + "\n"
+        # for j, profit_rate_i in enumerate(profit_rate_list):
+        #     RSI_string += '[' + str(j + 1) + ". 수익%] : " + str(profit_rate_i) + " 투입 $ : " + str(round(invested_money[j], 1)) + "\n"
 
-        # 지정가 걸어논 애들이, 매도 되면 알람 오게 함
-        if RSI_info_Binance["Num_input"] > len(invested_money):
-
-            profit_messenger = "[RSI_바이낸스_수익화 진행 완료료 알림]"
-            line_alert.SendMessage_SP(profit_messenger)
-
-            # 갯수 새롭게 저장하기 위한 코드
-            RSI_info_Binance["Num_input"] = len(invested_money)
-            with open(RSI_info_Binance_path, 'w') as outfile:
-                json.dump(RSI_info_Binance, outfile)
-            time.sleep(0.1)
-
-
-        elif RSI_info_Binance["Num_input"] == len(invested_money):
-            pass
-
-        elif RSI_info_Binance["Num_input"] < len(invested_money):
-            RSI_info_Binance["Num_input"] = len(invested_money)
-            with open(RSI_info_Binance_path, 'w') as outfile:
-                json.dump(RSI_info_Binance, outfile)
-            time.sleep(0.1)
+        # # 지정가 걸어논 애들이, 매도 되면 알람 오게 함
+        # if RSI_info_Binance["Num_input"] > len(invested_money):
+        #
+        #     profit_messenger = "[RSI_바이낸스_수익화 진행 완료료 알림]"
+        #     line_alert.SendMessage_SP(profit_messenger)
+        #
+        #     # 갯수 새롭게 저장하기 위한 코드
+        #     RSI_info_Binance["Num_input"] = len(invested_money)
+        #     with open(RSI_info_Binance_path, 'w') as outfile:
+        #         json.dump(RSI_info_Binance, outfile)
+        #     time.sleep(0.1)
+        #
+        #
+        # elif RSI_info_Binance["Num_input"] == len(invested_money):
+        #     pass
+        #
+        # elif RSI_info_Binance["Num_input"] < len(invested_money):
+        #     RSI_info_Binance["Num_input"] = len(invested_money)
+        #     with open(RSI_info_Binance_path, 'w') as outfile:
+        #         json.dump(RSI_info_Binance, outfile)
+        #     time.sleep(0.1)
         if min_flag == 1:
             line_alert.SendMessage_1hourRSI(RSI_string)
 

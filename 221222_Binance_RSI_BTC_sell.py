@@ -125,8 +125,8 @@ while True:
 
         # 내가 매도 가격 설정을 안해놓으니까, BTC를 사도
         for i, open_order in enumerate(order):
-            profit_rate_list.append(round((now_price_binance - float(order[i]['price']) / profit_rate) / (float(order[i]['price']) / profit_rate) * 100, 2))
-            invested_money.append(float(order[i]['price']) / profit_rate * float(order[i]['origQty']))
+            profit_rate_list.append(round((now_price_binance - float(order[i]['price']) / (profit_rate/100+1)) / (float(order[i]['price']) / (profit_rate/100+1)) * 100, 2))
+            invested_money.append(float(order[i]['price']) / (profit_rate/100+1) * float(order[i]['origQty']))
 
         current_time = datetime.now(timezone('Asia/Seoul'))
         KR_time = str(current_time)

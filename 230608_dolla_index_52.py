@@ -1,18 +1,21 @@
-import requests
-from bs4 import BeautifulSoup
+import yfinance as yf
+import datetime
 
-def get_dollar_index():
-    url = 'https://www.investing.com/indices/us-dollar-index'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+# Define the ticker symbol for the Dollar Index
+ticker_symbol = 'DX-Y.NYB'
 
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    value = soup.find('span', {'id': 'last_last'}).text.strip()
+# Set the start and end dates
+end_date = datetime.datetime.today().strftime('%Y-%m-%d')
+start_date = (datetime.datetime.today() - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
 
-    return value
+# Fetch the Dollar Index data from Yahoo Finance
+dollar_index = yf.download(tickers=ticker_symbol, start=start_date, end=end_date)
 
-# Usage
-dollar_index_value = get_dollar_index()
-print("Dollar Index Value:", dollar_index_value)
+close_index  = dollar_index['Close']
+# Print the retrieved data
+print(dollar_index)
+print(close_index)
+
+
+# close_index.to_excel('output.xlsx', index=False)
+
