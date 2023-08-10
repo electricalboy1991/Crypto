@@ -136,6 +136,9 @@ hour_temp = 0
 big_kimp_flag = 0
 small_kimp_flag = 0
 
+# 김프 포지션 더 잡을 거면 =1, 더 안잡을 거면 =0
+AD_flag = 0
+
 while True:
     try:
         # 시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
@@ -613,7 +616,7 @@ while True:
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
                     json.dump(Krate_ExClose, outfile)
 
-            # 종가를 저장하는 로직 // 적어도 전날 기준 몇 이하에서 사도록 코딩
+            # 종가를 저장하는 로직 // 적어도 전날 기준 몇 이하에서 사도록 코딩 // 한국 시간 오전 5시 25분
             if hour == hour_crit and min % 60 == min_crit:
                 Krate_ExClose[ticker_upbit] = Krate
                 with open(Krate_ExClose_type_file_path, 'w') as outfile:
@@ -876,7 +879,7 @@ while True:
 
                     # 물타기
                     #
-                    elif ((Krate < Kimp_crit and Krate_total[ticker_upbit][Situation_index - 1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False and dollar_rate[ticker_upbit][Situation_index - 1] >=won_rate)\
+                    elif AD_flag == 1 and ((Krate < Kimp_crit and Krate_total[ticker_upbit][Situation_index - 1] - Krate >= Krate_interval and Situation_flag[ticker_upbit][Situation_index] == False and dollar_rate[ticker_upbit][Situation_index - 1] >=won_rate)\
                             or (Krate < Kimp_crit and Krate_total[ticker_upbit][Situation_index - 1] - Krate >= Krate_interval_2 and Situation_flag[ticker_upbit][Situation_index] == False and dollar_rate[ticker_upbit][Situation_index - 1] < won_rate))\
                             and won_rate <= Trade_infor['general'][2] + won_rate_margin:
 
@@ -1021,7 +1024,7 @@ while True:
             else:
                 # 김프가 전날 기준보다 어느정도 낮아야 사게 만들었네.
                 # if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
-                if Krate < Kimp_crit and len(Kimplist) < CoinCnt and won_rate <= Trade_infor['general'][2]:
+                if Krate < Kimp_crit and len(Kimplist) < CoinCnt and won_rate <= Trade_infor['general'][2] and AD_flag == 1:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
