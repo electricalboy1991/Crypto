@@ -69,7 +69,7 @@ def SendMessage_SP(message):
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_SP)
         # res = bot.sendMessage(chat_id=telegram_id_SP, text=message)
-        asyncio.run(bot.send_message(chat_id=telegram_id_SP, text=message))
+        bot.send_message(chat_id=telegram_id_SP, text=message)
         # return res
 
     # ----------------------------------------
@@ -106,8 +106,8 @@ def SendMessage_1hourRSI(message):
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_1hourRSI)
         # res = bot.sendMessage(chat_id=telegram_id_1hourRSI, text=message)
-        asyncio.run(bot.send_message(chat_id=telegram_id_1hourRSI, text=message))
-
+        # asyncio.run(bot.send_message(chat_id=telegram_id_1hourRSI, text=message))
+        bot.send_message(chat_id=telegram_id_1hourRSI, text=message)
 
         # return res
 

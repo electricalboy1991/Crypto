@@ -11,6 +11,38 @@ from pytz import timezone
 import sys, os
 import traceback
 
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+TOKEN = '5720042932:AAGnqMeLtxh3y-z_RcBywA3bJ7LF5cMxrZo'
+
+# Initialize the bot token and create an Updater
+updater = Updater(token=TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+
+# Global variable
+RSI_on = 0
+
+# Function to handle the /update_variable command
+def update_variable(update, context):
+    global RSI_on
+    new_value = context.args[0]
+    RSI_on = int(new_value)
+    update.message.reply_text(f"RSI1_on has been updated to {RSI_on}")
+
+# Function to handle regular messages
+def message_handler(update, context):
+    message_text = update.message.text
+    if message_text.startswith('/r1on'):
+        update_variable(update, context)
+    else:
+        update.message.reply_text("Invalid command")
+
+# Register the command and message handlers
+dispatcher.add_handler(CommandHandler('r1on', update_variable))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
+
+# Start the bot
+updater.start_polling()
+
 # 윈도우랑 리눅스 접속 구분을 위한 코드
 if platform.system() != 'Windows':
     from binance import Client
@@ -52,7 +84,7 @@ while True:
             RSI_info_Binance_path = "/var/autobot/RSI_info_Binance.json"
 
         RSI_info_Binance = dict()
-
+        print(RSI_on)
         try:
             # 이전 매매 정보 로드
             with open(RSI_info_Binance_path, 'r', encoding="utf-8") as json_file:
@@ -131,7 +163,7 @@ while True:
         current_time = datetime.now(timezone('Asia/Seoul'))
         KR_time = str(current_time)
         KR_time_sliced = KR_time[:23]
-        RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
+        RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI1_Power] : ' + str(round(RSI_on, 0)) +'\n[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
                      + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + " $" + "\n"
 
         # for j, profit_rate_i in enumerate(profit_rate_list):
@@ -162,7 +194,7 @@ while True:
             line_alert.SendMessage_1hourRSI(RSI_string)
 
 
-        if rsi_hour <= RSI_criteria_0 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_0"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_0"]) == 0)):
+        if RSI_on ==1 and rsi_hour <= RSI_criteria_0 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_0"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_0"]) == 0)):
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_0_GetInMoney / now_price_binance))
 
@@ -180,7 +212,7 @@ while True:
             rsi_messenger_0 = "[\U0001F3C2RSI_0_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_0_GetInMoney, 2)) + '$ ' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
             line_alert.SendMessage_SP(rsi_messenger_0)
 
-        elif rsi_hour <= RSI_criteria_1 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_1"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_1"]) == 0)):
+        elif RSI_on ==1 and rsi_hour <= RSI_criteria_1 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_1"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_1"]) == 0)):
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_1_GetInMoney / now_price_binance))
 
@@ -199,7 +231,7 @@ while True:
             line_alert.SendMessage_SP(rsi_messenger_1)
 
 
-        elif rsi_hour <= RSI_criteria_2 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_2"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_2"]) == 0)):
+        elif RSI_on ==1 and rsi_hour <= RSI_criteria_2 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_2"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_2"]) == 0)):
 
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_2_GetInMoney / now_price_binance))
@@ -218,7 +250,7 @@ while True:
             rsi_messenger_2 = "[\U0001F3C2RSI_2_바이낸스] : " + str(round(rsi_hour, 1)) + ' [금액] : ' + str(round(RSI_criteria_2_GetInMoney, 2)) + '$' + '\n[현재가 $] : ' + str(round(now_price_binance, 0)) + ' [목표가 $] : ' + str(round(now_price_binance * 1.05, 0))
             line_alert.SendMessage_SP(rsi_messenger_2)
 
-        elif rsi_hour <= RSI_criteria_3 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_3"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_3"]) == 0)):
+        elif RSI_on ==1 and rsi_hour <= RSI_criteria_3 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_3"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_3"]) == 0)):
 
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_3_GetInMoney / now_price_binance))
