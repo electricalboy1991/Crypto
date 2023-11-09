@@ -13,7 +13,7 @@ import traceback
 
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-TOKEN = '5720042932:AAGnqMeLtxh3y-z_RcBywA3bJ7LF5cMxrZo'
+TOKEN = '5665272058:AAGwNJm80OfDarnzbqAp_ZLwAau3QRTYai8'
 
 # Initialize the bot token and create an Updater
 updater = Updater(token=TOKEN, use_context=True)

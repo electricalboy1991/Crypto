@@ -18,6 +18,40 @@ from pytz import timezone
 from bs4 import BeautifulSoup as bs
 import platform
 
+#텔레그램 remote contol을 위한 코드
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+# TOKEN = '5720042932:AAGnqMeLtxh3y-z_RcBywA3bJ7LF5cMxrZo'
+TOKEN ='5462808910:AAGDKsBtsM4B5Lc93rdfS3wX_YjvBnl-tYg'
+
+# Initialize the bot token and create an Updater
+updater = Updater(token=TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+
+# 김프 포지션 더 잡을 거면 =1, 더 안잡을 거면 =0 # Global variable
+AD_flag = 1
+
+# Function to handle the /update_variable command
+def update_variable(update, context):
+    global AD_flag
+    new_value = context.args[0]
+    AD_flag = int(new_value)
+    update.message.reply_text(f"AD_flag has been updated to {AD_flag}")
+
+# Function to handle regular messages
+def message_handler(update, context):
+    message_text = update.message.text
+    if message_text.startswith('/ad'):
+        update_variable(update, context)
+    else:
+        update.message.reply_text("Invalid command")
+
+# Register the command and message handlers
+dispatcher.add_handler(CommandHandler('ad', update_variable))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
+
+# Start the bot
+updater.start_polling()
+
 if platform.system() == 'Windows':
     Month_profit_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Month_profit.json"
     Kimplist_type_file_path = "C:\\Users\world\PycharmProjects\Crypto\Kimplist.json"
@@ -107,7 +141,7 @@ Stop_price_percent = 0.97
 # close_criteria 적어도 이 수치보단 클 때 팔기
 close_criteria = 1.2
 # 1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임 // 아래의 값은 그냥 기본 값 넣어준거지 이와 같이 사지는 건 아님
-GetInMoney = 333
+GetInMoney = 250
 avoid_liquid_ratio = 1.05
 # AD_weight_list = [1, 1.2, 1.3, 1.2, 0.9, 0.8, 0.6, 0.6]
 AD_weight_list = [1, 1, 1, 1, 1, 1, 1, 1]
@@ -136,11 +170,9 @@ hour_temp = 0
 big_kimp_flag = 0
 small_kimp_flag = 0
 
-# 김프 포지션 더 잡을 거면 =1, 더 안잡을 거면 =0
-AD_flag = 0
-
 while True:
     try:
+        print(AD_flag)
         # 시간 정보를 가져옵니다. 아침 9시의 경우 서버에서는 hour변수가 0이 됩니다.
         time_info = time.gmtime()
         hour = time_info.tm_hour
@@ -485,8 +517,8 @@ while True:
             if now_price_upbit < 10 and myUpbit.CheckCoinInList(Kimplist, ticker_upbit) == False:
                 continue
             ticker_temp = ticker_upbit.replace('KRW-', '')
-            ticker_binance = ticker_temp + '/BUSD'
-            ticker_binance_orderbook = ticker_temp + 'BUSD'
+            ticker_binance = ticker_temp + '/USDT'
+            ticker_binance_orderbook = ticker_temp + 'USDT'
 
 
             time.sleep(0.05)
@@ -575,13 +607,13 @@ while True:
             if ticker_upbit == 'KRW-BTC' and Krate < -0.7 and small_kimp_flag==0:
                 small_kimp_flag=1
                 now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
-                now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
+                now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/USDT')
                 Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
                 line_alert.SendMessage_SP("[\U0001F4B5大역프 알림] : " + str(round(Krate, 2)) + "\n[트론 역프] : " + str(round(Krate_TRX, 2)) + "\n[환율] : " + str(round(won_rate, 2)))
             elif ticker_upbit == 'KRW-BTC' and Krate > 4 and big_kimp_flag==0:
                 big_kimp_flag=1
                 now_price_upbit_TRX = pyupbit.get_current_price('KRW-TRX')
-                now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/BUSD')
+                now_price_binance_TRX = myBinance.GetCoinNowPrice(binanceX, 'TRX/USDT')
                 Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
                 line_alert.SendMessage_SP("[\U0001F4B5大김프 알림] : " + str(round(Krate, 2)) + "\n[트론 김프] : " + str(round(Krate_TRX, 2)) + "\n[환율] : " + str(round(won_rate, 2)))
 
@@ -818,7 +850,7 @@ while True:
                             #            won_rate*(entryPrice_s-now_price_binance)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])
                             # coin_net_withCommision = round((coin_net-Before_amt_upbit[ticker_upbit][Situation_index-1]*now_price_upbit*0.05/100*2)/10000,2)
 
-                            total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+                            total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
                             ## 이거 절대 김프 할 때 쓰던 건데 필요 없어서 지움
                             # Temp_won_rate = Trade_infor[ticker_upbit][0]
@@ -838,7 +870,7 @@ while True:
                             line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close, 2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1], 2)) + "% \n"
                                                       + "\n[번돈] : " + str(round(now_profit/10000, 4)) + "万 " + "[자산] : " + total_asset + "万"
                                                       + "\n[환율] : " + str(round(won_rate, 4)) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩")
-                            line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + "원 " + str(now_price_binance) + "$ " + "\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
+                            line_alert.SendMessage_Trading(str(ticker_upbit) + " USDT KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + "원 " + str(now_price_binance) + "$ " + "\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                            + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                             Month_profit.append(round(now_profit/10000, 4))
@@ -934,9 +966,9 @@ while True:
                             params = {'positionSide': 'SHORT'}
 
                             # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                            # 담보 이용해서 더 넣을 수 있게 -> free, 있는 BUSD만 쓰고 싶으면 total -used로
-                            if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['BUSD']['free']) and ADMoney < upbit_remain_money:
-                                # if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) and ADMoney < upbit_remain_money:
+                            # 담보 이용해서 더 넣을 수 있게 -> free, 있는 USDT만 쓰고 싶으면 total -used로
+                            if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['USDT']['free']) and ADMoney < upbit_remain_money:
+                                # if Buy_Amt*now_price_binance/set_leverage < float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) and ADMoney < upbit_remain_money:
                                 print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                                 print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, ADMoney))
                                 upbit = pyupbit.Upbit(Upbit_AccessKey, Upbit_ScretKey)
@@ -1015,7 +1047,7 @@ while True:
 
                             line_alert.SendMessage_SP("[\U0001F30A" + str(Situation_index) + "단계 물] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2))
                                                       + "\n환율 : " + str(round(won_rate, 4)) + " 업빗가격 : " + str(round(upbit_order_standard / 10000, 4)) + "万 바낸가격 : " + str(round(binance_order_standard, 4)))
-                            line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                            line_alert.SendMessage_Trading(str(ticker_upbit) + " USDT KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                            + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                         else:
@@ -1029,32 +1061,32 @@ while True:
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
                     print("--- Target_Coin_Ticker:", ticker_binance, " minimun_amount : ", minimun_amount)
-                    print(balance_binanace['BUSD'])
-                    print("Total Money:", float(balance_binanace['BUSD']['total']))
-                    print("Remain Money:", float(balance_binanace['BUSD']['total'] - balance_binanace['BUSD']['used']))
+                    print(balance_binanace['USDT'])
+                    print("Total Money:", float(balance_binanace['USDT']['total']))
+                    print("Remain Money:", float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']))
 
                     # if Kimp_crit - Krate_interval <= Krate < Kimp_crit:
                     #     get_in_cnt = 6
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     # elif Kimp_crit - Krate_interval * 2 <= Krate < Kimp_crit - Krate_interval:
                     #     get_in_cnt = 5
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     # elif Kimp_crit - Krate_interval * 3 <= Krate < Kimp_crit - Krate_interval * 2:
                     #     get_in_cnt = 4
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     # elif Kimp_crit - Krate_interval * 4 <= Krate < Kimp_crit - Krate_interval * 3:
                     #     get_in_cnt = 3
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     # elif Kimp_crit - Krate_interval * 5 <= Krate < Kimp_crit - Krate_interval * 4:
                     #     get_in_cnt = 2
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     # else:
                     #     get_in_cnt = 1
-                    #     GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    #     GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
                     get_in_cnt = 4
 
-                    # GetInMoney = float(balance_binanace['BUSD']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
-                    GetInMoney = 666
+                    # GetInMoney = float(balance_binanace['USDT']['total']) / len(Kimp_target_coin) / get_in_cnt / avoid_liquid_ratio
+                    # GetInMoney = 666
 
                     Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney / now_price_binance * set_leverage))
                     print("Buy_Amt", Buy_Amt)
@@ -1073,8 +1105,8 @@ while True:
                     params = {'positionSide': 'SHORT'}
 
                     # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    # if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) and FirstEnterMoney < upbit_remain_money:
-                    if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['BUSD']['free']) and FirstEnterMoney < upbit_remain_money:
+                    # if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) and FirstEnterMoney < upbit_remain_money:
+                    if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['USDT']['free']) and FirstEnterMoney < upbit_remain_money:
 
                         url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
 
@@ -1214,7 +1246,7 @@ while True:
 
                         line_alert.SendMessage_SP("[\U0001F4CA진입] : " + str(ticker_upbit[4:]) + " " + str(round(Buy_Amt * upbit_order_standard / 10000, 1)) + "만원 " + "김프 : " + str(round(Krate, 2))
                                                   + "\n환율 : " + str(round(won_rate, 4)) + " 업빗가격 : " + str(round(upbit_order_standard / 10000, 4)) + "万 바낸가격 : " + str(round(binance_order_standard, 4)))
-                        line_alert.SendMessage_Trading(str(ticker_upbit) + " BUSD KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
+                        line_alert.SendMessage_Trading(str(ticker_upbit) + " USDT KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + ' ' + str(now_price_binance) + "\n김프 계산 가격 : " + str(upbit_order_standard) + ' ' + str(binance_order_standard)
                                                        + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
                     else:
@@ -1223,7 +1255,7 @@ while True:
     except Exception as e:
 
         # 처음에는 파일이 존재하지 않을테니깐 당연히 예외처리가 됩니다!
-        if str(e)[-4:] == 'BUSD' or type(e) == IndexError or Trade_infor['general'][0]==str(e):
+        if str(e)[-4:] == 'USDT' or type(e) == IndexError or Trade_infor['general'][0]==str(e):
             pass
         else:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1249,7 +1281,7 @@ while True:
 
         time.sleep(0.1)
         # 수익화 or 진입, 물타기 할 수 있고, 코드가 다 돌았는지 확인하기 위해 분단위 로그 코드를 맨 아래로 내림
-        total_asset = str(round((float(balance_binanace['BUSD']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
+        total_asset = str(round((float(balance_binanace['USDT']['total']) * won_rate + myUpbit.GetTotalRealMoney(balance_upbit)) / 10000, 1))
 
         Binance_URP = 0
         for posi in balance_binanace['info']['positions']:
@@ -1274,10 +1306,10 @@ while True:
             line_alert.SendMessage_Log("\U0001F4CA" + KR_time_sliced + "\U0001F4CA  \n" + Telegram_Log_str)
 
         if min_flag == 1:
-            # Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['total']-balance_binanace['BUSD']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-            Telegram_lev_Binanace_won = str(round((float(balance_binanace['BUSD']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['BUSD']['total'] - balance_binanace['BUSD']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
-            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
+            # Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
+            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F6A6김프 on : " + str(AD_flag)+ " \U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
                                                   + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
     except Exception as e:
         if Trade_infor['general'][1] == str(e):

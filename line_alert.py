@@ -87,7 +87,7 @@ def SendMessage_Summary1minute(message):
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_Summary1minute)
         # res = bot.sendMessage(chat_id=telegram_id_Summary1minute, text=message)
-        asyncio.run(bot.send_message(chat_id=telegram_id_Summary1minute, text=message))
+        bot.send_message(chat_id=telegram_id_Summary1minute, text=message)
 
 
         # return res
