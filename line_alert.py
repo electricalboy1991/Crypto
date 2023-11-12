@@ -52,8 +52,12 @@ def SendMessage_Log(message):
         # 텔레그램 메세지 발송
         bot = telegram.Bot(telegram_token_Log)
         # res = bot.sendMessage(chat_id=telegram_id_Log, text=message)
-        asyncio.run(bot.send_message(chat_id=telegram_id_Log, text=message))
+
+        # asyncio.run(bot.send_message(chat_id=telegram_id_Log, text=message))
         # return res
+
+        bot.send_message(chat_id=telegram_id_Log, text=message)
+
 
     # ----------------------------------------
     # 모든 함수의 공통 부분(Exception 처리)

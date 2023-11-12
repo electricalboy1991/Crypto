@@ -142,6 +142,7 @@ Stop_price_percent = 0.97
 close_criteria = 1.2
 # 1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임 // 아래의 값은 그냥 기본 값 넣어준거지 이와 같이 사지는 건 아님
 GetInMoney = 250
+won_buffer = 3
 avoid_liquid_ratio = 1.05
 # AD_weight_list = [1, 1.2, 1.3, 1.2, 0.9, 0.8, 0.6, 0.6]
 AD_weight_list = [1, 1, 1, 1, 1, 1, 1, 1]
@@ -1056,7 +1057,7 @@ while True:
             else:
                 # 김프가 전날 기준보다 어느정도 낮아야 사게 만들었네.
                 # if Krate < Kimp_crit and len(Kimplist) < CoinCnt and Krate < Krate_ExClose[ticker_upbit] - Krate_interval_getin:
-                if Krate < Kimp_crit and len(Kimplist) < CoinCnt and won_rate <= Trade_infor['general'][2] and AD_flag == 1:
+                if Krate < Kimp_crit and len(Kimplist) < CoinCnt and won_rate <= Trade_infor['general'][2]+ won_buffer and AD_flag == 1:
 
                     minimun_amount = myBinance.GetMinimumAmount(binanceX, ticker_binance)
 
@@ -1104,39 +1105,38 @@ while True:
                     # 숏 포지션을 잡습니다.
                     params = {'positionSide': 'SHORT'}
 
-                    # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
-                    # if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) and FirstEnterMoney < upbit_remain_money:
-                    if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['USDT']['free']) and FirstEnterMoney < upbit_remain_money:
+                    url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
 
-                        url = 'https://fapi.binance.com/fapi/v1/depth?symbol=' + ticker_binance_orderbook + '&limit=' + '10'
+                    binance_order_index = 0
+                    binance_order_Nsum = 0
+                    for price_i, num_i in binance_orderbook_data['bids']:
+                        binance_order_Nsum += float(num_i)
 
-                        binance_order_index = 0
-                        binance_order_Nsum = 0
-                        for price_i, num_i in binance_orderbook_data['bids']:
-                            binance_order_Nsum += float(num_i)
+                        if binance_order_Nsum > abs(Buy_Amt):
+                            break
+                        binance_order_index += 1  # 버퍼로 하나 더해줌
+                    binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
 
-                            if binance_order_Nsum > abs(Buy_Amt):
-                                break
-                            binance_order_index += 1  # 버퍼로 하나 더해줌
-                        binance_order_standard = float(binance_orderbook_data['bids'][binance_order_index][0])
+                    # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
+                    orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
+                    upbit_order_index = 0
+                    upbit_order_Nsum = 0
 
-                        # 업비트 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
-                        orderbook_upbit = pyupbit.get_orderbook(ticker_upbit)
-                        upbit_order_index = 0
-                        upbit_order_Nsum = 0
+                    for upbit_order_data in orderbook_upbit['orderbook_units']:
+                        upbit_order_Nsum += upbit_order_data['ask_size']
 
-                        for upbit_order_data in orderbook_upbit['orderbook_units']:
-                            upbit_order_Nsum += upbit_order_data['ask_size']
+                        if upbit_order_Nsum > abs(Buy_Amt):
+                            break
+                        upbit_order_index += 1
+                    upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
-                            if upbit_order_Nsum > abs(Buy_Amt):
-                                break
-                            upbit_order_index += 1
-                        upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
+                    ADMoney = Buy_Amt * upbit_order_standard
+                    Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
 
-                        ADMoney = Buy_Amt * upbit_order_standard
-                        Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
-
-                        if Krate < Kimp_crit and len(Kimplist) < CoinCnt:
+                    if Krate < Kimp_crit and len(Kimplist) < CoinCnt:
+                        # data = binanceX.create_market_sell_order(Target_Coin_Ticker,Buy_Amt,params)
+                        # if Buy_Amt * now_price_binance/set_leverage < float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) and FirstEnterMoney < upbit_remain_money:
+                        if Buy_Amt * now_price_binance / set_leverage < float(balance_binanace['USDT']['free']) and FirstEnterMoney < upbit_remain_money:
 
                             print(binanceX.create_order(ticker_binance, 'market', 'sell', Buy_Amt, None, params))
                             print(myUpbit.BuyCoinMarket(upbit, ticker_upbit, FirstEnterMoney))
@@ -1291,6 +1291,13 @@ while True:
         # Summary에 차액 구하는 구간임, 근데 여기는 won_rate로 계산하는 거라서 Log에 있는 차액들의 sum이랑은 다를 수 있음.
         total_difference = str(round((myUpbit.GetTotalRealMoney(balance_upbit) - upbit_diff_BTC - myUpbit.GetTotalMoney(balance_upbit) + won_rate * Binance_URP) / 10000, 2))
 
+        if min_flag == 1:
+            # Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
+            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
+            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F6A6김프 on : " + str(AD_flag)+ " \U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
+                                                  + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
+
         if len(Telegram_Log) != 0 and min_flag == 1:
             current_time = datetime.now(timezone('Asia/Seoul'))
             KR_time = str(current_time)
@@ -1305,12 +1312,7 @@ while True:
                                     + "末실현시 : " + str(value[10]) + "万" + " 末 TG: " + str(value[11]) + "万" + "\n\n"
             line_alert.SendMessage_Log("\U0001F4CA" + KR_time_sliced + "\U0001F4CA  \n" + Telegram_Log_str)
 
-        if min_flag == 1:
-            # Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-            Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['free']) * set_leverage * won_rate) / 10000, 1)) + "만원"
-            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
-            line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F6A6김프 on : " + str(AD_flag)+ " \U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
-                                                  + Telegram_Summary + " \n\U0001F4E6" + "레버리지 고려 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2)) + "万")
+
     except Exception as e:
         if Trade_infor['general'][1] == str(e):
             pass
