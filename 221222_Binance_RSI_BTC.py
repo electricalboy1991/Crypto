@@ -19,7 +19,7 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # Global variable
-RSI_on = 1
+RSI_on = 0
 
 # Function to handle the /update_variable command
 def update_variable(update, context):
@@ -137,7 +137,7 @@ while True:
         print(timestamp)
 
         # Target_Coin_Ticker = 'BTC/USDT'
-        Target_Coin_Ticker = 'BTC/USDT'
+        Target_Coin_Ticker = 'BTC/BUSD'
         Target_Coin_Ticker_splited, Stable_coin_type = Target_Coin_Ticker.split('/')
 
         # 현재 가격 받아오기

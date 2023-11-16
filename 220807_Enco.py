@@ -868,8 +868,7 @@ while True:
                             #                -upbit_invested_money*2*commission*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])))/10000
                             # earned_money = (earned_money_num / earned_money_den) * (unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 2 * commission) / 10000
                             # earned_money = (unrealizedProfit*won_rate-upbit_invested_money*binance_commission+upbit_diff-upbit_invested_money*upbit_commission)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])/10000
-                            line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close, 2)) + "% " + " 김프차 "
-                                                      + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1], 2)) + "% \n"
+                            line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close, 2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1], 2)) + "% \n"
                                                       + "\n[번돈] : " + str(round(now_profit/10000, 4)) + "万 " + "[자산] : " + total_asset + "万"
                                                       + "\n[환율] : " + str(round(won_rate, 4)) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩")
                             line_alert.SendMessage_Trading(str(ticker_upbit) + " USDT KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + "원 " + str(now_price_binance) + "$ " + "\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
