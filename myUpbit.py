@@ -35,10 +35,10 @@ class SimpleEnDecrypt:
 
 
 def ProfitReturn(profit_range,average_range,average_percent):
-    if average_percent > 2:
-        profit_rate = 1
-    elif average_percent < -2:
-        profit_rate = 3
+    if average_percent > average_range[1]:
+        profit_rate = profit_range[1]
+    elif average_percent < average_range[0]:
+        profit_rate = profit_range[0]
     else:
         slope = (profit_range[1]-profit_range[0])/(average_range[1]-average_range[0])
         bias = profit_range[1]-slope*average_range[1]

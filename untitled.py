@@ -1,26 +1,13 @@
-import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI1_Power] : ' + str(round(RSI_on, 0)) +'\n[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
+                     + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + " $" \
+                     + "\n[r0] : " + str(round(RSI_criteria_0, 1))+ "[g0] : " + str(round(RSI_criteria_0_GetInMoney, 0))\
+                     + "\n[r1] : " + str(round(RSI_criteria_1, 1))+ "[g1] : " + str(round(RSI_criteria_1_GetInMoney, 0))\
+                     + "\n[r2] : " + str(round(RSI_criteria_2, 1))+ "[g2] : " + str(round(RSI_criteria_2_GetInMoney, 0))\
+                     + "\n[r3] : " + str(round(RSI_criteria_3, 1))+ "[g3] : " + str(round(RSI_criteria_3_GetInMoney, 0))
 
-# 봇 토큰을 초기화하고 Updater를 생성합니다
-TOKEN = '5720042932:AAGnqMeLtxh3y-z_RcBywA3bJ7LF5cMxrZo'
-updater = Updater(token=TOKEN, use_context=True)
-dispatcher = updater.dispatcher
 
-# 메시지를 처리할 함수를 정의합니다
-def message_handler(update, context):
-    message_text = update.message.text
 
-    # 메시지가 변수를 업데이트하는 명령인지 확인합니다
-    if message_text.startswith('/update_variable'):
-        new_value = message_text.split()[1]  # 메시지에서 새 값을 추출합니다
-        # 특정 변수를 new_value로 업데이트합니다
-
-        update.message.reply_text(f"변수가 {new_value}로 업데이트되었습니다")
-
-# 메시지 핸들러를 등록합니다
-message_handler = MessageHandler(Filters.text & ~Filters.command, message_handler)
-dispatcher.add_handler(message_handler)
-
-# 봇을 시작합니다
-updater.start_polling()
-updater.idle()
+"[r1] : " + str(round(RSI_criteria_1, 1))
+"[r3] : " + str(round(RSI_criteria_3, 3))
+"[g1] : " + str(round(RSI_criteria_1_GetInMoney, 0))
+"[g3] : " + str(round(RSI_criteria_3_GetInMoney, 0))

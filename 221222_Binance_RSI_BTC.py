@@ -19,26 +19,83 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # Global variable
-RSI_on = 0
+RSI_on = 1
+# RSI 기준 / USER PARAMETER
+RSI_criteria_0 = 34.2
+RSI_criteria_1 = 29.2
+RSI_criteria_2 = 24.1
+RSI_criteria_3 = 19.1
+# 내가 사는 돈
+RSI_criteria_0_GetInMoney = 100
+RSI_criteria_1_GetInMoney = 250
+RSI_criteria_2_GetInMoney = 450
+RSI_criteria_3_GetInMoney = 600
+# # Function to handle the /update_variable command
+# def update_variable(update, context):
+#     global RSI_on
+#     new_value = context.args[0]
+#     RSI_on = int(new_value)
+#     update.message.reply_text(f"RSI1_on has been updated to {RSI_on}")
+#
+# # Function to handle regular messages
+# def message_handler(update, context):
+#     message_text = update.message.text
+#     if message_text.startswith('/r1on'):
+#         update_variable(update, context)
+#     else:
+#         update.message.reply_text("Invalid command")
+#
+# # Register the command and message handlers
+# dispatcher.add_handler(CommandHandler('r1on', update_variable))
+# dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
+#
+# # Start the bot
+# updater.start_polling()
 
-# Function to handle the /update_variable command
+# Function to update variables
 def update_variable(update, context):
-    global RSI_on
-    new_value = context.args[0]
-    RSI_on = int(new_value)
-    update.message.reply_text(f"RSI1_on has been updated to {RSI_on}")
+    global RSI_on, RSI_criteria_0, RSI_criteria_1, RSI_criteria_2, RSI_criteria_3
+    global RSI_criteria_0_GetInMoney, RSI_criteria_1_GetInMoney, RSI_criteria_2_GetInMoney, RSI_criteria_3_GetInMoney
 
-# Function to handle regular messages
-def message_handler(update, context):
-    message_text = update.message.text
-    if message_text.startswith('/r1on'):
-        update_variable(update, context)
+    command = update.message.text.split(' ')[0]
+    new_value = float(context.args[0])
+
+    # Existing RSI criteria updates
+    if command == '/ron':
+        RSI_on = int(new_value)
+        response = f"RSI_on has been updated to {RSI_on}"
+    elif command == '/r0':
+        RSI_criteria_0 = new_value
+        response = f"RSI_criteria_0 has been updated to {RSI_criteria_0}"
+    elif command == '/r1':
+        RSI_criteria_1 = new_value
+        response = f"RSI_criteria_1 has been updated to {RSI_criteria_1}"
+    elif command == '/r2':
+        RSI_criteria_2 = new_value
+        response = f"RSI_criteria_2 has been updated to {RSI_criteria_2}"
+    elif command == '/r3':
+        RSI_criteria_3 = new_value
+        response = f"RSI_criteria_3 has been updated to {RSI_criteria_3}"
+    # New RSI GetInMoney updates
+    elif command == '/g0':
+        RSI_criteria_0_GetInMoney = new_value
+        response = f"RSI_criteria_0_GetInMoney has been updated to {RSI_criteria_0_GetInMoney}"
+    elif command == '/g1':
+        RSI_criteria_1_GetInMoney = new_value
+        response = f"RSI_criteria_1_GetInMoney has been updated to {RSI_criteria_1_GetInMoney}"
+    elif command == '/g2':
+        RSI_criteria_2_GetInMoney = new_value
+        response = f"RSI_criteria_2_GetInMoney has been updated to {RSI_criteria_2_GetInMoney}"
+    elif command == '/g3':
+        RSI_criteria_3_GetInMoney = new_value
+        response = f"RSI_criteria_3_GetInMoney has been updated to {RSI_criteria_3_GetInMoney}"
     else:
-        update.message.reply_text("Invalid command")
+        response = "Invalid command"
 
-# Register the command and message handlers
-dispatcher.add_handler(CommandHandler('r1on', update_variable))
-dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
+    update.message.reply_text(response)
+
+# Register the command handler
+dispatcher.add_handler(CommandHandler(['ron', 'r0', 'r1', 'r2', 'r3', 'g0', 'g1', 'g2', 'g3'], update_variable))
 
 # Start the bot
 updater.start_polling()
@@ -50,19 +107,7 @@ else:
     from binance.client import Client
     pass
 
-# RSI 기준 / USER PARAMETER
-RSI_criteria_0 = 34.2
-RSI_criteria_1 = 29.2
-RSI_criteria_2 = 24
-RSI_criteria_3 = 19
-
 profit_rate = 2
-
-# 내가 사는 돈
-RSI_criteria_0_GetInMoney = 100
-RSI_criteria_1_GetInMoney = 250
-RSI_criteria_2_GetInMoney = 450
-RSI_criteria_3_GetInMoney = 600
 
 min_temp = 0
 
@@ -116,11 +161,24 @@ while True:
             min_flag = 1
         min_temp = min
 
+        # 정각마다 에러 초기화 -> 돈 부족 알람 1시간에 1번은 오게 리셋
+        if min ==0:
+            RSI_info_Binance['general'][0] = 0
+            with open(RSI_info_Binance_path, 'w') as outfile:
+                json.dump(RSI_info_Binance, outfile)
+            time.sleep(0.1)
+
         # 바이낸스에서 특정 기능을 하게 하기 위한 client 객체 생성
         client = Client(Binance_AccessKey, Binance_ScretKey)
         order = client.get_open_orders()
         time.sleep(0.05)
         binanceX = ccxt.binance(config={'apiKey': Binance_AccessKey, 'secret': Binance_ScretKey, 'enableRateLimit': True, 'options': {'defaultType': 'spot', 'adjustForTimeDifference': True, 'recvWindow': 15000}})
+        time.sleep(0.1)
+        response = binanceX.fetch_balance(params={'recvWindow': 15000})
+        time.sleep(0.1)
+
+        usdt_balance = response['total']['USDT']
+        print("USDT Balance:", usdt_balance)
 
         # binance API의 서버 시간을 가져옴
         server_time = binanceX.fetch_time()
@@ -136,8 +194,8 @@ while True:
         timestamp = datetime.now().timestamp()
         print(timestamp)
 
-        # Target_Coin_Ticker = 'BTC/USDT'
-        Target_Coin_Ticker = 'BTC/BUSD'
+        Target_Coin_Ticker = 'BTC/USDT'
+        # Target_Coin_Ticker = 'BTC/BUSD'
         Target_Coin_Ticker_splited, Stable_coin_type = Target_Coin_Ticker.split('/')
 
         # 현재 가격 받아오기
@@ -163,8 +221,12 @@ while True:
         current_time = datetime.now(timezone('Asia/Seoul'))
         KR_time = str(current_time)
         KR_time_sliced = KR_time[:23]
-        RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI1_Power] : ' + str(round(RSI_on, 0)) +'\n[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) \
-                     + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + " $" + "\n"
+        RSI_string = "  \U0001F3C2\U0001F3C2" + KR_time_sliced + "\U0001F3C2\U0001F3C2  \n" + '[RSI1_Power] : ' + str(round(RSI_on, 0))+' [잔액] : ' + str(round(usdt_balance, 1))+'$'  \
+                     +'\n[RSI_바이낸스] : ' + str(round(rsi_hour, 2)) + "\n" + '[NOW 가격] : ' + str(round(now_price_binance, 2)) + "$" \
+                     + "\n[r0] : " + str(round(RSI_criteria_0, 1)) + "  [g0] : " + str(round(RSI_criteria_0_GetInMoney, 0))+"$" \
+                     + "\n[r1] : " + str(round(RSI_criteria_1, 1)) + "  [g1] : " + str(round(RSI_criteria_1_GetInMoney, 0))+"$" \
+                     + "\n[r2] : " + str(round(RSI_criteria_2, 1)) + "  [g2] : " + str(round(RSI_criteria_2_GetInMoney, 0))+"$" \
+                     + "\n[r3] : " + str(round(RSI_criteria_3, 1)) + "  [g3] : " + str(round(RSI_criteria_3_GetInMoney, 0))+"$"
 
         # for j, profit_rate_i in enumerate(profit_rate_list):
         #     RSI_string += '[' + str(j + 1) + ". 수익%] : " + str(profit_rate_i) + " 투입 $ : " + str(round(invested_money[j], 1)) + "\n"
@@ -193,7 +255,7 @@ while True:
         if min_flag == 1:
             line_alert.SendMessage_1hourRSI(RSI_string)
 
-
+        print(1)
         if RSI_on ==1 and rsi_hour <= RSI_criteria_0 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_0"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_0"]) == 0)):
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_0_GetInMoney / now_price_binance))
