@@ -44,7 +44,7 @@ GetInMoney = 100
 # trailStopRate = 0.15
 trailStopRateAD = 0.02
 won_buffer = 10
-profitBottom = 4
+profitBottom = 1.7
 profitTop = 1.3
 profit_range = [profitBottom, profitTop]
 # # Function to handle the /update_variable command
@@ -238,7 +238,7 @@ commission = (upbit_commission + binance_commission) / 2
 # average_range = [-2,2]
 
 #김프 초기 진입가에 따라서, 청산 기준 변경하기
-average_range = [-10, Kimp_crit]
+average_range = [0, Kimp_crit]
 
 # BUSDKRW_MA_value = sum(BUSDKRW_MA_List) / len(BUSDKRW_MA_List)
 # binance 객체 생성
@@ -864,8 +864,10 @@ while True:
 
                     # profit 선형으로 청산 기준 그려놓음
                     profit_range = [profitBottom, profitTop]
-                    profit_rate_criteria = myUpbit.ProfitReturn(profit_range, average_range, Krate_total[ticker_upbit][Situation_index - 1])
-
+                    if Krate_total[ticker_upbit][Situation_index - 1] >=0:
+                        profit_rate_criteria = myUpbit.ProfitReturn(profit_range, average_range, Krate_total[ticker_upbit][Situation_index - 1])
+                    else:
+                        profit_rate_criteria = abs(Krate_total[ticker_upbit][Situation_index - 1])+profitBottom
                     # 현물로 갖고 있는 BTC는 제거하기 위한 code
                     upbit_diff = float(myUpbit.NumOfTickerCoin(balance_upbit, ticker_upbit)) * (upbit_order_standard_close - float(myUpbit.GetAvgBuyPrice(balance_upbit, ticker_upbit)))
 
