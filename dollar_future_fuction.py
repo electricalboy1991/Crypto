@@ -5,24 +5,38 @@ from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 from fake_useragent import UserAgent
 import line_alert
+import time
 
 # def get_exchange_rate():
-#     ua = UserAgent()
-#     header = {'User-Agent': str(ua.random)}
-#     pair = 'USD'
-#     BASE_URL = 'https://kr.investing.com/currencies/{}-{}'.format(pair.lower(), 'krw')
-#     url = Request(BASE_URL, headers=header)
-#     html = urlopen(url)
+#     time_info = time.gmtime()
+#     hour = time_info.tm_hour
+#     min = time_info.tm_min
 #
-#     if html.status == 200:
-#         # print('인베스팅')
-#         soup = BeautifulSoup(html, 'html.parser')
-#         element = soup.find('span', {'data-test': 'instrument-price-last'})
-#         exchange_rate = round(float(element.text.replace(',', '')), 2)
-#         return exchange_rate
+#     if hour>=20 or (hour ==0 and min <=10) or ((hour >=7 and min >=30) and (hour <=9 and min <=10) ):
+#         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+#         url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD'
+#         exchange = requests.get(url, headers=headers).json()
+#         return exchange[0]['basePrice']
+#
 #     else:
-#         line_alert.SendMessage_SP("[ \U0001F535 달러/원 인베스팅 크롤링 실패 \U0001F535 ]" )
-#         return 2000
+#         ua = UserAgent()
+#         header = {'User-Agent': str(ua.random)}
+#         pair = 'USD'
+#         BASE_URL = 'https://kr.investing.com/currencies/{}-{}'.format(pair.lower(), 'krw')
+#         url = Request(BASE_URL, headers=header)
+#         html = urlopen(url)
+#
+#         if html.status == 200:
+#             # print('인베스팅')
+#             soup = BeautifulSoup(html, 'html.parser')
+#             element = soup.find('span', {'data-test': 'instrument-price-last'})
+#             exchange_rate = round(float(element.text.replace(',', '')), 2)
+#             return exchange_rate
+#         else:
+#             line_alert.SendMessage_SP("[ \U0001F535 달러/원 인베스팅 크롤링 실패 \U0001F535 ]")
+#             return 2000
+
+
 #
 # def get_exchange_rate_JP():
 #     ua = UserAgent()
