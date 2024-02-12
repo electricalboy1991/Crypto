@@ -211,7 +211,7 @@ time.sleep(0.05)
 set_leverage = 3
 # profit_rate_criteria 기본 값 -> 아래에 함수에 의해서 바뀜
 profit_rate_criteria = 1.5
-
+initialAmtFlag = 0
 #환율이 급하게 떨어지면, 김프가 오름, 이 때 김프 막 진입시키지 않기위한 버퍼
 Krate_interval_2 = Krate_interval+0.09
 # Krate_interval_getin = 0.25
@@ -674,7 +674,11 @@ while True:
             # Krate = ((now_price_upbit / (now_price_binance * won_rate)) - 1) * 100
 
             Target_Coin_Symbol = ticker_binance.replace("/", "")
-            Situation_index = Situation_flag[ticker_upbit].index(False)
+            if ticker_upbit in Situation_flag:
+                Situation_index = Situation_flag[ticker_upbit].index(False)
+                initialAmtFlag = 0
+            else:
+                initialAmtFlag = 1
 
             balance_binanace = binanceX.fetch_balance(params={"type": "future",'adjustForTimeDifference': True})
             for posi in balance_binanace['info']['positions']:
@@ -692,6 +696,9 @@ while True:
             binance_orderbook_data = requests.get(url).json()
             time.sleep(0.05)
             Buy_Amt = float(binanceX.amount_to_precision(ticker_binance, GetInMoney / now_price_binance * set_leverage))
+
+
+
 
             # 바이낸스 Order북에서 슬리피지 밀리는 거 대비해서 호가창 몇번째 볼지에 대해 정하는 코드
             binance_order_index = 0
@@ -717,28 +724,33 @@ while True:
                 upbit_order_index += 1
             upbit_order_standard = orderbook_upbit['orderbook_units'][upbit_order_index]['ask_price']
 
-            # 바이낸스에서 팔 때 슬리피지는 다르게 해줘야지
-            binance_order_index_close = 0
-            binance_order_Nsum_close = 0
-            for price_i, num_i in binance_orderbook_data['asks']:
-                binance_order_Nsum_close += float(num_i)
 
-                if binance_order_Nsum_close > abs(Before_amt[ticker_upbit][Situation_index - 1]):
-                    break
-                binance_order_index_close += 1  # 버퍼로 하나 더해줌
-            binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
 
-            # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
-            upbit_order_index_close = 0
-            upbit_order_Nsum_close = 0
+            if initialAmtFlag ==0:
+                # 바이낸스에서 팔 때 슬리피지는 다르게 해줘야지
+                binance_order_index_close = 0
+                binance_order_Nsum_close = 0
+                for price_i, num_i in binance_orderbook_data['asks']:
+                    binance_order_Nsum_close += float(num_i)
 
-            for upbit_order_data in orderbook_upbit['orderbook_units']:
-                upbit_order_Nsum_close += upbit_order_data['bid_size']
+                    if binance_order_Nsum_close > abs(Before_amt[ticker_upbit][Situation_index - 1]):
+                        break
+                    binance_order_index_close += 1  # 버퍼로 하나 더해줌
+                binance_order_standard_close = float(binance_orderbook_data['asks'][binance_order_index_close][0])
 
-                if upbit_order_Nsum_close > abs(Before_amt_upbit[ticker_upbit][Situation_index - 1]):
-                    break
-                upbit_order_index_close += 1
-            upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
+                # 업비트에서 팔 때 슬리피지는 다르게 해줘야지
+                upbit_order_index_close = 0
+                upbit_order_Nsum_close = 0
+
+                for upbit_order_data in orderbook_upbit['orderbook_units']:
+                    upbit_order_Nsum_close += upbit_order_data['bid_size']
+
+                    if upbit_order_Nsum_close > abs(Before_amt_upbit[ticker_upbit][Situation_index - 1]):
+                        break
+                    upbit_order_index_close += 1
+                upbit_order_standard_close = orderbook_upbit['orderbook_units'][upbit_order_index_close]['bid_price']
+
+                Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
 
             ADMoney = Buy_Amt * upbit_order_standard
 
@@ -753,7 +765,7 @@ while True:
             # 진입 기준 Krate
             Krate = ((upbit_order_standard / (binance_order_standard * won_rate)) - 1) * 100
             # 청산 기준 Krate
-            Krate_close = ((upbit_order_standard_close / (binance_order_standard_close * won_rate)) - 1) * 100
+
 
             # Krate_BTC는 1분 마다 보기 위해서 따로 저장
             if ticker_upbit == 'KRW-BTC':
