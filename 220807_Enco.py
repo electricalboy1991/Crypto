@@ -256,6 +256,7 @@ big_kimp_flag = 0
 small_kimp_flag = 0
 profitResetFlag = 0
 firstWhileFlag = 0
+liquidType = ''
 
 while True:
     try:
@@ -786,6 +787,9 @@ while True:
                 Krate_TRX = ((now_price_upbit_TRX / (now_price_binance_TRX * won_rate)) - 1) * 100
                 line_alert.SendMessage_SP("[\U0001F4B5大김프 알림] : " + str(round(Krate, 2)) + "\n[트론 김프] : " + str(round(Krate_TRX, 2)) + "\n[환율] : " + str(round(won_rate, 2)))
 
+            if float(balance_binanace['info']['totalCrossUnPnl']) <-5000:
+                line_alert.SendMessage_SP("[\U0001F47A바낸 USDT 大손실 알림] : " + str(round(float(balance_binanace['info']['totalCrossUnPnl']), 2))+ " $")
+
             """
             if myUpbit.IsHasCoin(balance_upbit,ticker_upbit):
                 profit_rate = 100 * ((upbit_order_standard - myUpbit.GetAvgBuyPrice(balance_upbit,ticker_upbit)) * myUpbit.NumOfTickerCoin(
@@ -1071,9 +1075,19 @@ while True:
                             #                -upbit_invested_money*2*commission*(Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])))/10000
                             # earned_money = (earned_money_num / earned_money_den) * (unrealizedProfit * won_rate + upbit_diff - upbit_invested_money * 2 * commission) / 10000
                             # earned_money = (unrealizedProfit*won_rate-upbit_invested_money*binance_commission+upbit_diff-upbit_invested_money*upbit_commission)*Before_amt[ticker_upbit][Situation_index-1]/sum(Before_amt[ticker_upbit])/10000
+
+                            #[(수익이 - 지만 and 김프 기준을 초과 달성 0.2) or (수익이 + 고 and 김프 기준 달성) or (환 상승 포함, 단순히 김프 수익이 초과 달성 and 최소 김프차 만족(0.1 %) )]
+                            if now_profit < 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria + 0.2:
+                                liquidType = "수익이 - but, 김프 기준 초과 달성 0.2"
+                            elif now_profit > 0 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > profit_rate_criteria:
+                                liquidType = "수익이 + and 김프 기준 달성"
+                            elif now_profit > Before_amt_upbit[ticker_upbit][Situation_index - 1] * upbit_order_standard_close * (profit_rate_criteria + 0.15) / 100 and Krate_close - Krate_total[ticker_upbit][Situation_index - 1] > 0.1:
+                                liquidType = "환 상승 포함, 김프 수익 초과 달성 and 최소 김프차 만족 0.1"
+
                             line_alert.SendMessage_SP("[\U0001F3B6매도] : " + str(ticker_upbit[4:]) + " 김프 " + str(round(Krate_close, 2)) + "% " + " 김프차 " + str(round(Krate_close - Krate_total[ticker_upbit][Situation_index - 1], 2)) + "% \n"
                                                       + "\n[번돈] : " + str(round(now_profit/10000, 4)) + "万 " + "[자산] : " + total_asset + "万"
-                                                      + "\n[환율] : " + str(round(won_rate, 4)) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩")
+                                                      + "\n[환율] : " + str(round(won_rate, 4)) + "₩"+ " [진입 환율] : " + str(round(dollar_rate[ticker_upbit][Situation_index - 1],2)) + "₩"
+                                                      + "\n[청산 타입] : " + str(liquidType))
                             line_alert.SendMessage_Trading(str(ticker_upbit) + " USDT KRW : " + str(won_rate) + " 시장가 : " + str(now_price_upbit) + "원 " + str(now_price_binance) + "$ " + "\n김프 계산 가격 : " + str(upbit_order_standard_close) + ' ' + str(upbit_order_standard_close)
                                                            + "\n업빗 호가창 : \n" + str(orderbook_upbit['orderbook_units'][:4]) + "\n바낸 호가창 : \n" + str(binance_orderbook_data))
 
@@ -1562,7 +1576,8 @@ while True:
         if min_flag == 1:
             # Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['total']-balance_binanace['USDT']['used']) * set_leverage * won_rate) / 10000, 1)) + "만원"
             Telegram_lev_Binanace_won = str(round((float(balance_binanace['USDT']['free']) * set_leverage * won_rate) / 10000, 0)) + "만원"
-            Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
+            # Telegram_Summary = "바낸 잔액 : " + str(round(float(balance_binanace['USDT']['total'] - balance_binanace['USDT']['used']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
+            Telegram_Summary = "바낸 손실 : " + str(round(float(balance_binanace['info']['totalCrossUnPnl']), 1)) + "$  " + "업빗 잔액 : " + str(round(float(upbit_remain_money / 10000), 1)) + "만원 "
             line_alert.SendMessage_Summary1minute("\U0001F4CA자산(今㉥) : " + total_asset + "万 " + "차익(今㉥) : " + total_difference + "万 \n" + "\U0001F6A6김프 on 기준 : " + str(Kimp_crit)+ " \U0001F4B5환율 : $ " + str(round(won_rate,4)) + "\n\U0001F4E6"
                                                   + Telegram_Summary + " \n\U0001F4E6" + "Lev 바낸 투자 가능액 : " + Telegram_lev_Binanace_won + " \n" + "\U0001F4B0월 실현 수익 : " + str(round(sum(Month_profit), 2))
                                                   + "万 \U0001F64BBTC 김프 : "+ str(round(Krate_BTC, 2)) + "\n\U0001F6A61회 투자액 [GetInMoney*Lev] : " + str(round(set_leverage*GetInMoney*won_rate/10000, 1))+"万\n" + "\U0001F6A6TSA : " + str(round(trailStopRateAD, 2))
