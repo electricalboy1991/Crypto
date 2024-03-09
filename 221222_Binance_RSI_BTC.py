@@ -26,10 +26,16 @@ RSI_criteria_1 = 29.2
 RSI_criteria_2 = 24.1
 RSI_criteria_3 = 19.1
 # 내가 사는 돈
-RSI_criteria_0_GetInMoney = 100
-RSI_criteria_1_GetInMoney = 250
-RSI_criteria_2_GetInMoney = 450
-RSI_criteria_3_GetInMoney = 600
+RSI_criteria_0_GetInMoney = 200
+RSI_criteria_1_GetInMoney = 300
+RSI_criteria_2_GetInMoney = 500
+RSI_criteria_3_GetInMoney = 700
+
+#20$는 마진으로 더 붙임
+GetInMoneyTotal = RSI_criteria_0_GetInMoney+RSI_criteria_1_GetInMoney+RSI_criteria_2_GetInMoney+RSI_criteria_3_GetInMoney + 20
+
+
+BTCtransferAmt = 0.05
 # # Function to handle the /update_variable command
 # def update_variable(update, context):
 #     global RSI_on
@@ -146,7 +152,7 @@ while True:
             print("RSI 파일 없음")
 
         # 보수적으로 8초 쉬었다가 감
-        time.sleep(8)
+        time.sleep(5)
 
         # 현재 시간 불러오기
         time_info = time.gmtime()
@@ -337,15 +343,37 @@ while True:
             pass
         else:
             #텔레그램 api 오류 5초 이상 쉬어줘야해서 설정
-            time.sleep(5.5)
+            # time.sleep(5.5)
             print('예외가 발생했습니다.', e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             err = traceback.format_exc()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
-            line_alert.SendMessage_Trading('[에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+            line_alert.SendMessage_Trading('[🏂에러 RSI] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
             if str(e) == "binance Account has insufficient balance for requested action." :
-                line_alert.SendMessage_SP("[\U0001F3C2 바이낸스] : RSI 달러 부족")
+                # Transfer BTC from spot wallet to margin wallet
+                try:
+                    response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+                    # print(response)
+
+                    # Get max borrowable amount of USDT against BTC collateral
+                    # max_borrowable = client.get_max_margin_loan(asset='USDT', collateralCoin='BTC')
+                    # print(max_borrowable)
+
+                    # Borrow USDT against BTC collateral
+                    response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                    result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
+                    # print(response)
+
+                    line_alert.SendMessage_SP("[\U0001F3C2 바이낸스] : RSI 달러 부족")
+                except Exception as another_e:
+                    print("오류 발생:", another_e)
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    err = traceback.format_exc()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    line_alert.SendMessage_SP('[🏂에러 RSI loan]')
+                    line_alert.SendMessage_Trading('[🏂에러 RSI loan] : \n' + str(err) + '\n[파일] : ' + str(fname) + '\n[라인 넘버] : ' + str(exc_tb.tb_lineno))
+
 
         RSI_info_Binance['general'][0] = str(e)
         with open(RSI_info_Binance_path, 'w') as outfile:
