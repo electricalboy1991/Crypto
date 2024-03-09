@@ -1,42 +1,59 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-import time
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Setup Selenium with ChromeDriver
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+# 시뮬레이션 매개변수 설정
+initial_stock_price = 10  # 초기 주식 가격
+initial_cash = 10         # 초기 현금
+total_days = 5 * 252      # 5년 (주식 시장은 연간 약 252일 개장)
+rebalance_interval = 30   # 리밸런싱 주기 (30일)
+volatility = 0.01         # 주식 가격 변동성 (일일)
 
-# URL of the webpage you want to scrape
-url = 'https://theddari.com/kimp'
+# 주식 가격 시뮬레이션
+np.random.seed(0)  # 일관된 결과를 위한 난수 생성기 초기화
+stock_prices = np.zeros(total_days)
+stock_prices[0] = initial_stock_price
 
-# Navigate to the webpage
-driver.get(url)
+for t in range(1, total_days):
+    # 주식 가격을 랜덤 워크로 모델링
+    stock_prices[t] = stock_prices[t - 1] * np.exp(np.random.normal(0, volatility))
 
-# Wait for the dynamic content to load
-time.sleep(5)  # Adjust the sleep time as needed
+# 자산 시뮬레이션
+stock_value = initial_stock_price  # 현재 주식 가치
+cash = initial_cash                # 현재 현금
+total_assets = []                 # 총 자산 기록
 
-# Find and print the text for the first specified element
-try:
-    target_element_1 = driver.find_element(By.CLASS_NAME, 'css-1i59yj2')
-    print(target_element_1.text)
-except Exception as e:
-    print('Element with class css-1i59yj2 not found or error occurred:', e)
+for t in range(total_days):
+    # 주식 가치 갱신
+    stock_value = stock_prices[t] * (stock_value / stock_prices[t - 1])
 
-# Find and print the text for the second specified element
-try:
-    target_element_2 = driver.find_element(By.CLASS_NAME, 'css-19a56l9')
-    print(target_element_2.text)
-except Exception as e:
-    print('Element with class css-19a56l9 not found or error occurred:', e)
+    # 리밸런싱
+    if t % rebalance_interval == 0 and t > 0:
+        total = stock_value + cash
+        stock_value = total / 2
+        cash = total / 2
 
-# Find and print the text for the third specified element
-try:
-    target_element_3 = driver.find_element(By.CLASS_NAME, 'css-13cxduj')
-    print(target_element_3.text)
-except Exception as e:
-    print('Element with class css-13cxduj not found or error occurred:', e)
+    # 총 자산 기록
+    total_assets.append(stock_value + cash)
+plt.figure(figsize=(10, 6))
 
-# Clean up by closing the browser
-driver.quit()
+# 총 자산 가치
+plt.plot(total_assets, label='Total Assets', color='blue')
+plt.ylabel('Total Asset Value', color='blue')
+plt.xlabel('Days')
+plt.title('Asset Value and Stock Price Over Time with Final Values')
+plt.legend(loc='upper left')
+plt.grid(True)
+
+# 주식 가격 변화 (추가 축 사용)
+ax2 = plt.gca().twinx()
+ax2.plot(stock_prices, label='Stock Price', color='green')
+ax2.set_ylabel('Stock Price', color='green')
+ax2.legend(loc='upper right')
+
+# 마지막 값 표시
+final_stock_price = stock_prices[-1]
+final_portfolio_value = total_assets[-1]
+plt.text(total_days, final_portfolio_value, f'${final_portfolio_value:.2f}', color='blue', horizontalalignment='right')
+ax2.text(total_days, final_stock_price, f'${final_stock_price:.2f}', color='green', horizontalalignment='right')
+
+plt.show()

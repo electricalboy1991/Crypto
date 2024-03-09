@@ -1,4 +1,5 @@
 #-*-coding:utf-8 -*-
+import ccxt
 import myUpbit   #내가 만든 함수들이 들어있는 모듈
 import time
 import pyupbit
@@ -9,7 +10,6 @@ import dollar_future_fuction as dff
 
 import line_alert #라인,텔레그램 메세지를 보내기 위함!
 import traceback
-import ccxt
 import requests
 import myBinance
 import json
@@ -28,15 +28,15 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # 아래있는 coin도 혹시 나중에 거래량에서 밀려나면 거래 안함.
-Kimp_target_coin = ['KRW-BTC', 'KRW-XRP', 'KRW-ETH', 'KRW-SOL', 'KRW-DOGE', 'KRW-AVAX']
+Kimp_target_coin = ['KRW-BTC', 'KRW-XRP', 'KRW-ETH', 'KRW-SOL', 'KRW-DOGE']
 # Kimp_target_coin = ['KRW-BTC', 'KRW-SOL', 'KRW-XRP']
 # Kimp_target_coin = ['KRW-BTC']
 # 김프 포지션 더 잡을 거면 =1, 더 안잡을 거면 =0 # Global variable
 AD_flag = 1
 TS_on = 0
-Kimp_crit = 3.0
+Kimp_crit = 3
 # Krate_interval 물타기 범위 값
-Krate_interval = 0.4
+Krate_interval = 0.5
 
 # 1회 진입 달러 수, ex. GetInMoney 400 달러면 레버리지 고려시, 1200달러 한번에 넣는 거임 // 아래의 값은 그냥 기본 값 넣어준거지 이와 같이 사지는 건 아님
 GetInMoney = 100
