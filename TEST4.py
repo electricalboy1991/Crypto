@@ -1,11 +1,16 @@
-import requests
-from bs4 import BeautifulSoup
+from datetime import datetime
 
-url = "https://finance.naver.com/marketindex/exchangeDailyQuote.nhn?marketindexCd=FX_USDKRW"
-page = requests.get(url)
-soup = BeautifulSoup(page.content, "html.parser")
+# Example timestamps
+timestamp1 = 1710374289.999401
+timestamp2 = 1710374324.306725
 
-# find the exchange rate value
-exchange_rate = soup.find("td", class_="num").get_text()
+# Convert timestamps to datetime objects
+datetime1 = datetime.fromtimestamp(timestamp1)
+datetime2 = datetime.fromtimestamp(timestamp2)
 
-print("Today's dollar-won exchange rate is:", exchange_rate)
+# Format datetime objects into strings
+formatted_time1 = datetime1.strftime('%Y-%m-%d %H:%M:%S')
+formatted_time2 = datetime2.strftime('%Y-%m-%d %H:%M:%S')
+
+print("Formatted Time 1:", formatted_time1)
+print("Formatted Time 2:", formatted_time2)

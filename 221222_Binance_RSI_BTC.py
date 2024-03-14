@@ -12,7 +12,7 @@ import sys, os
 import traceback
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-TOKEN = '5665272058:AAGwNJm80OfDarnzbqAp_ZLwAau3QRTYai8'
+TOKEN = '7089325839:AAGzipLppNQbk5xCcSOV95rxg9WqyQPGREU'
 
 # Initialize the bot token and create an Updater
 updater = Updater(token=TOKEN, use_context=True)
@@ -266,6 +266,13 @@ while True:
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_0_GetInMoney / now_price_binance))
 
+            if usdt_balance/now_price_binance < Buy_Amt:
+                response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+                time.sleep(2)
+                response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                time.sleep(2)
+                result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
+
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
             # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
@@ -283,6 +290,13 @@ while True:
         elif RSI_on ==1 and rsi_hour <= RSI_criteria_1 and ((timestamp - float(RSI_info_Binance["Pre_RSI_time_1"]) > 86400) or (float(RSI_info_Binance["Pre_RSI_time_1"]) == 0)):
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_1_GetInMoney / now_price_binance))
+
+            if usdt_balance/now_price_binance < Buy_Amt:
+                response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+                time.sleep(2)
+                response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                time.sleep(2)
+                result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
 
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
@@ -304,6 +318,13 @@ while True:
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_2_GetInMoney / now_price_binance))
 
+            if usdt_balance/now_price_binance < Buy_Amt:
+                response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+                time.sleep(2)
+                response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                time.sleep(2)
+                result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
+
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
             # 비트코인 이제 그냥 모아가기 위해서, 매도 안함
@@ -322,6 +343,13 @@ while True:
 
             minimun_amount = myBinance.GetMinimumAmount(binanceX, Target_Coin_Ticker)
             Buy_Amt = float(binanceX.amount_to_precision(Target_Coin_Ticker, RSI_criteria_3_GetInMoney / now_price_binance))
+
+            if usdt_balance/now_price_binance < Buy_Amt:
+                response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+                time.sleep(2)
+                response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                time.sleep(2)
+                result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
 
             print(binanceX.create_market_buy_order(Target_Coin_Ticker, Buy_Amt))
             time.sleep(0.1)
@@ -354,7 +382,7 @@ while True:
                 # Transfer BTC from spot wallet to margin wallet
                 try:
                     response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
-                    # print(response)
+                    print("1111")
 
                     # Get max borrowable amount of USDT against BTC collateral
                     # max_borrowable = client.get_max_margin_loan(asset='USDT', collateralCoin='BTC')
@@ -362,7 +390,10 @@ while True:
 
                     # Borrow USDT against BTC collateral
                     response = client.create_margin_loan(asset='USDT', amount=GetInMoneyTotal, collateralCoin='BTC')  # 50 USDT as an example
+                    print("2222")
+                    time.sleep(5)
                     result = client.transfer_margin_to_spot(asset='USDT', amount=GetInMoneyTotal)
+                    print("3333")
                     # print(response)
 
                     line_alert.SendMessage_SP("[\U0001F3C2 바이낸스] : RSI 달러 부족")

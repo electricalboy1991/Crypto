@@ -17,7 +17,11 @@ from datetime import datetime
 from pytz import timezone
 from bs4 import BeautifulSoup as bs
 import platform
-
+if platform.system() != 'Windows':
+    from binance import Client
+else:
+    from binance.client import Client
+    pass
 #텔레그램 remote contol을 위한 코드
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 # TOKEN = '5720042932:AAGnqMeLtxh3y-z_RcBywA3bJ7LF5cMxrZo'
@@ -202,7 +206,7 @@ simpleEnDecrypt = myBinance.SimpleEnDecrypt(ende_key.ende_key)
 #암호화된 액세스키와 시크릿키를 읽어 복호화 한다.
 Binance_AccessKey = simpleEnDecrypt.decrypt(my_key.binance_access)
 Binance_ScretKey = simpleEnDecrypt.decrypt(my_key.binance_secret)
-
+client = Client(Binance_AccessKey, Binance_ScretKey)
 time.sleep(0.05)
 
 
@@ -284,6 +288,19 @@ while True:
         # 한국시간 9시 -> 0
         hour_crit = 20
         min_crit = 25
+
+        # Iterate through spot wallet balances to find BTC balance
+        spot_balances = client.get_account()
+        BTCtransferAmt = None
+        for asset in spot_balances['balances']:
+            if asset['asset'] == 'BTC':
+                BTCtransferAmt = float(asset['free'])  # Convert balance to float
+                break
+
+        if BTCtransferAmt > 0.03:
+            BTCtransferAmt = 0.03
+        else:
+            pass
 
         #수익 저장 json
         try:
@@ -788,7 +805,22 @@ while True:
                 line_alert.SendMessage_SP("[\U0001F4B5大김프 알림] : " + str(round(Krate, 2)) + "\n[트론 김프] : " + str(round(Krate_TRX, 2)) + "\n[환율] : " + str(round(won_rate, 2)))
             usdt_assets = [asset_info for asset_info in balance_binanace['info']['assets'] if asset_info['asset'].startswith('USDT')]
 
-            if float(usdt_assets[0]['marginBalance']) <-5000:
+            if float(usdt_assets[0]['marginBalance']) <-6000:
+                if BTCtransferAmt !=0:
+                    response = client.transfer_spot_to_margin(asset='BTC', amount=BTCtransferAmt)
+
+                time.sleep(3)
+                max_usdt_borrowable = client.get_max_margin_loan(asset='USDT', collateralCoin='BTC' )
+                if float(max_usdt_borrowable['amount']) >2500:
+                    borrowedUSDT = 2500
+                else:
+                    borrowedUSDT = float(max_usdt_borrowable['amount'])
+                response = client.create_margin_loan(asset='USDT', amount=borrowedUSDT, collateralCoin='BTC')  # 50 USDT as an example
+                time.sleep(3)
+                result = client.transfer_margin_to_spot(asset='USDT', amount=borrowedUSDT)
+                time.sleep(3)
+                binanceX.transfer('USDT', borrowedUSDT, 'spot', 'future')
+
                 line_alert.SendMessage_SP("[\U0001F47A바낸 USDT 大손실 알림] : " + str(round(float(usdt_assets[0]['marginBalance']), 2))+ " $")
 
             """
